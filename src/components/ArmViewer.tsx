@@ -5,19 +5,23 @@ import { useAtomValue } from 'jotai'
 import RobotArm from './RobotArm'
 import ReachEnvelope from './ReachEnvelope'
 import JointArcOverlay from './JointArcOverlay'
-import { showReachEnvelopeAtom, showJointArcsAtom } from '../store/atoms'
+import { showReachEnvelopeAtom, showJointArcsAtom, armSegmentsAtom } from '../store/atoms'
 
 export type ArmViewerHandle = {
   resetCamera: () => void
   setCameraFocus: (level: 0 | 1 | 2) => void
 }
 
-// 0 = base, 1 = mid, 2 = top
-const FOCUS_TARGETS = [
-  [0, 0.10, 0],  // base — bottom of the arm
-  [0, 0.42, 0],  // mid  — default orbit point
-  [0, 0.82, 0],  // top  — near gripper
-] as const
+/** Derive the 3 focus Y positions from the live segment list */
+function useFocusTargets() {
+  const segments = useAtomValue(armSegmentsAtom)
+  const totalHeight = segments.reduce((sum, s) => sum + s.length, 0)
+  return [
+    0.04,                  // base  — just above the mounting plate
+    totalHeight / 2,       // mid   — exact geometric centre of the arm
+    totalHeight + 0.04,    // top   — just above the gripper tip
+  ] as const
+}
 
 
 
@@ -27,7 +31,8 @@ const FOCUS_TARGETS = [
 function SceneContent({ controlsRef }: { controlsRef: React.MutableRefObject<any> }) {
   const showReach = useAtomValue(showReachEnvelopeAtom)
   const showArcs = useAtomValue(showJointArcsAtom)
-
+  const focusTargets = useFocusTargets()
+  const midY = focusTargets[1]
 
   return (
     <>
@@ -38,7 +43,7 @@ function SceneContent({ controlsRef }: { controlsRef: React.MutableRefObject<any
         dampingFactor={0.06}
         maxDistance={5.8}
         minDistance={0.8}
-        target={[0, 0.42, 0]}
+        target={[0, midY, 0]}
       />
           
 
@@ -96,6 +101,7 @@ function SceneContent({ controlsRef }: { controlsRef: React.MutableRefObject<any
 
 const ArmViewer = forwardRef<ArmViewerHandle>((_, ref) => {
   const controlsRef = useRef<any>(null)
+  const focusTargets = useFocusTargets()
 
   useImperativeHandle(ref, () => ({
     resetCamera() {
@@ -104,11 +110,10 @@ const ArmViewer = forwardRef<ArmViewerHandle>((_, ref) => {
     setCameraFocus(level: 0 | 1 | 2) {
       const ctrl = controlsRef.current
       if (!ctrl) return
-      const [tx, ty, tz] = FOCUS_TARGETS[level]
-      ctrl.target.set(tx, ty, tz)
+      ctrl.target.set(0, focusTargets[level], 0)
       ctrl.update()
     },
-  }))
+  }), [focusTargets])
 
   return (
     <div className="arm-viewer">
