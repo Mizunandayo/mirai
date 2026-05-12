@@ -111,7 +111,17 @@ export default function App() {
   const [activeNav, setActiveNav] = useState<NavItem>('design')
   const [panelOpen, setPanelOpen] = useState(true)
   const [showHint, setShowHint] = useState(true)
+  const [focusLevel, setFocusLevel] = useState<0 | 1 | 2>(1)
   const viewerRef = useRef<ArmViewerHandle>(null)
+
+  const FOCUS_LABELS = ['Base', 'Mid', 'Top'] as const
+  const FOCUS_DOT_Y  = [13, 8, 3] as const
+
+  function handleFocusCycle() {
+    const next = ((focusLevel + 1) % 3) as 0 | 1 | 2
+    setFocusLevel(next)
+    viewerRef.current?.setCameraFocus(next)
+  }
 
   function handleNavClick(nav: NavItem) {
     if (nav === activeNav) {
@@ -165,9 +175,27 @@ export default function App() {
           <ArmViewer ref={viewerRef} />
 
           <button
+            className={`viewport-focus-btn${focusLevel !== 1 ? ' viewport-focus-btn--active' : ''}`}
+            onClick={handleFocusCycle}
+            title={`Camera focus: ${FOCUS_LABELS[focusLevel]} — click to cycle`}
+            aria-label={`Camera focus: ${FOCUS_LABELS[focusLevel]}`}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              {/* vertical rail */}
+              <line x1="8" y1="1.5" x2="8" y2="14.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.35"/>
+              {/* tick marks */}
+              <line x1="5.5" y1="3" x2="10.5" y2="3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+              <line x1="6" y1="8" x2="10" y2="8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+              <line x1="5.5" y1="13" x2="10.5" y2="13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.4"/>
+              {/* moving dot */}
+              <circle cx="8" cy={FOCUS_DOT_Y[focusLevel]} r="2.8" fill="currentColor"/>
+            </svg>
+          </button>
+
+          <button
             className="viewport-reset-btn"
-            onClick={() => viewerRef.current?.resetCamera()}
-            title="Reset camera to center"
+            onClick={() => { viewerRef.current?.resetCamera(); setFocusLevel(1); viewerRef.current?.setCameraFocus(1) }}
+            title="Reset camera to default"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M13.5 2.5v4.5h-4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>

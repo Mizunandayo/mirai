@@ -1420,6 +1420,44 @@ body.panel-resizing .designer-panel {
   height: 100%;
 }
 
+.viewport-focus-btn {
+  position: absolute;
+  top: 12px;
+  right: 56px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #444444;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease;
+  animation: fade-up 400ms 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.viewport-focus-btn:hover {
+  background: #ffffff;
+}
+
+.viewport-focus-btn--active {
+  background: #0d0d0d;
+  border-color: #0d0d0d;
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+}
+
+.viewport-focus-btn--active:hover {
+  background: #2a2a2a;
+  border-color: #2a2a2a;
+}
+
 .viewport-reset-btn {
   position: absolute;
   top: 12px;
@@ -1455,7 +1493,7 @@ body.panel-resizing .designer-panel {
 .viewport-hint {
   position: absolute;
   top: 12px;
-  right: 56px;
+  right: 100px;
   transform: none;
   z-index: 10;
   display: inline-flex;

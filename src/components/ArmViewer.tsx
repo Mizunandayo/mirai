@@ -7,7 +7,17 @@ import ReachEnvelope from './ReachEnvelope'
 import JointArcOverlay from './JointArcOverlay'
 import { showReachEnvelopeAtom, showJointArcsAtom } from '../store/atoms'
 
-export type ArmViewerHandle = { resetCamera: () => void }
+export type ArmViewerHandle = {
+  resetCamera: () => void
+  setCameraFocus: (level: 0 | 1 | 2) => void
+}
+
+// 0 = base, 1 = mid, 2 = top
+const FOCUS_TARGETS = [
+  [0, 0.10, 0],  // base — bottom of the arm
+  [0, 0.42, 0],  // mid  — default orbit point
+  [0, 0.82, 0],  // top  — near gripper
+] as const
 
 
 
@@ -90,6 +100,13 @@ const ArmViewer = forwardRef<ArmViewerHandle>((_, ref) => {
   useImperativeHandle(ref, () => ({
     resetCamera() {
       controlsRef.current?.reset()
+    },
+    setCameraFocus(level: 0 | 1 | 2) {
+      const ctrl = controlsRef.current
+      if (!ctrl) return
+      const [tx, ty, tz] = FOCUS_TARGETS[level]
+      ctrl.target.set(tx, ty, tz)
+      ctrl.update()
     },
   }))
 
