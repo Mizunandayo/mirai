@@ -1,5 +1,5 @@
 # Mirai — Session Context
-**Last updated:** Tuesday, May 12, 2026 — 1:00 AM PST
+**Last updated:** Tuesday, May 12, 2026 — Day 2 complete + extended UX polish. Day 3 starts next.
 
 ---
 
@@ -31,7 +31,7 @@
 ## Tech Stack (confirmed)
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 19 + TypeScript strict |
+| Frontend | React **18.3.1** + TypeScript strict (downgraded from 19 for R3F v8 compat) |
 | 3D | React Three Fiber + @react-three/drei |
 | Client physics | @react-three/rapier (Rapier WASM) — 60fps |
 | Server physics | MuJoCo 3.x (upgraded from PyBullet) |
@@ -43,7 +43,7 @@
 | Database | SQLite + SQLAlchemy |
 | Desktop wrapper | Tauri v2 (web-first for demo) |
 | Styling | TailwindCSS v4 + Framer Motion v11 |
-| Build | Vite 6 |
+| Build | Vite **7** |
 | Deploy | Vercel + Railway + Docker |
 
 ---
@@ -67,29 +67,62 @@
 ## Current File State
 | File | Status |
 |------|--------|
-| `MIRAI_BLUEPRINT.md` | ✅ v2.0 — fully updated, all sections complete |
+| `MIRAI_BLUEPRINT.md` | ✅ v2.0 — fully updated |
 | `MIRAI_BLUEPRINT.pdf` | ✅ Generated (1,017 KB) |
-| `backend/.env` | ✅ Has GEMINI_API_KEY, JWT_SECRET, DATABASE_URL |
-| `server/requirements.txt` | ✅ mujoco>=3.1.0 (pybullet replaced) |
-| `package.json` | ✅ All deps listed |
-| All scaffold files | ✅ Created (ArmViewer, RobotArm, atoms, App, etc.) |
+| `backend/.env` | ✅ GEMINI_API_KEY, JWT_SECRET, DATABASE_URL |
+| `server/requirements.txt` | ✅ mujoco>=3.1.0 |
+| `package.json` | ✅ All deps, npm installed |
+| `vite.config.js` | ✅ @tailwindcss/vite plugin, port 5173 |
+| `src/index.css` | ✅ @import tailwindcss + @theme tokens |
+| `src/vite-env.d.ts` | ✅ React 18 JSX augmentation |
+| `src/main.tsx` | ✅ Imports index.css + App.css + Atkinson font |
+| `src/App.tsx` | ✅ 3-zone layout (header + panel + viewport + footer) |
+| `src/App.css` | ✅ Full design system (~1,550 lines): hdr-* header + panel redesign + BOM :has() expand rules + panel-resize-handle + no-transition-while-resizing |
+| `src/types/arm.ts` | ✅ ArmSegment, GripperConfig, BOMItem, ValidationResult, ArmConfig |
+| `src/store/atoms.ts` | ✅ Fully typed Jotai atoms |
+| `src/utils/armPhysics.ts` | ✅ calculateMaxReach, calculateTorqueAtJoint, validateArm |
+| `src/utils/bomPricing.ts` | ✅ calculateBOM, getTotalBOMCost (72-piece BOM) |
+| `src/utils/armExport.ts` | ✅ exportArmConfig, parseArmConfig, loadArmConfigFromFile |
+| `src/components/ArmViewer.tsx` | ✅ Full R3F scene, lights, shadows, grid |
+| `src/components/RobotArm.tsx` | ✅ Dynamic segments, click-to-select, 3 gripper types |
+| `src/components/ReachEnvelope.tsx` | ✅ Wireframe reach sphere |
+| `src/components/JointArcOverlay.tsx` | ✅ Joint arc + fill |
+| `src/components/arm-designer/ArmDesignerPanel.tsx` | ✅ Topbar + toolbar (tabs + icon btns) + content + footer + right-edge drag-resize handle (min 336px, max 560px) |
+| `src/components/arm-designer/SegmentList.tsx` | ✅ Add/remove/edit with sliders |
+| `src/components/arm-designer/GripperLibrary.tsx` | ✅ 3 gripper types with expand controls |
+| `src/components/arm-designer/ValidationPanel.tsx` | ✅ Metrics + errors + warnings |
+| `src/components/arm-designer/BOMCounter.tsx` | ✅ Live cost + collapsible BOM; expanded: parts list top, Estimated cost row bottom (CSS order), no redundant total row |
+| `server/main.py` | ✅ FastAPI skeleton + health check |
 | `convert_blueprint.py` | Can be deleted |
 | `MIRAI_BLUEPRINT.html` | Can be deleted |
 
 ---
 
-## Pending (next session)
-1. `npm install --legacy-peer-deps` in project root
-2. `pip install -r server/requirements.txt` in `server/`
-3. Git init + push to `https://github.com/Mizunandayo/mirai.git`
-4. Start Day 2 coding: arm segment panel, reach envelope, BOM cost counter, gripper library
-5. Cleanup: delete `convert_blueprint.py` and `MIRAI_BLUEPRINT.html`
+## Extended Day 2 UX Polish — COMPLETE
+- ✅ Nav click toggles panel open/close (smooth CSS width transition)
+- ✅ `ArmViewer` converted to `forwardRef`, exposes `resetCamera()` via `useImperativeHandle`
+- ✅ Viewport camera reset button (top-right, SVG spin animation)
+- ✅ Dismissable viewport hint pill (left of reset button, SVG X close)
+- ✅ BOM expanded: fills full panel height; collapses `.panel-toolbar` + `.panel-content` via CSS `:has()`
+- ✅ BOM text quality: Poppins, no gray, no small text
+- ✅ BOM expanded layout: parts list at top, Estimated cost row at bottom, redundant total row removed
+- ✅ Panel right-edge drag-to-resize (min 336px · max 560px · no-transition while dragging · body cursor lock)
+
+## Next Up — Day 3 (Task Editor)
+1. Install reactflow: `npm install reactflow --legacy-peer-deps`
+2. Create `src/types/task.ts` — SceneGraph, TaskSpec, ValidationReport, ExecutionPlan
+3. Create `src/store/taskAtoms.ts` — taskBlocks, selectedBlockId, sceneObjects
+4. Build React Flow canvas with custom MOVE / GRIP / WAIT / LOOP / IF node types
+5. Wire live 3D ghost preview in ArmViewer as blocks are placed
+6. Export task as portable JSON
+7. Add error highlighting (red = impossible, yellow = near-limit)
+8. Add keyboard shortcuts: Ctrl+S, Ctrl+Z, Space, Delete
 
 ---
 
 ## Hackathon Deadline
 **May 19, 2026 — 8:00 AM Philippine Standard Time**
-Today is Day 2. 7 days remaining.
+Day 2 complete (+ extended polish). Day 3 (Task Editor / React Flow) starts next. 7 days remaining.
 
 ---
 

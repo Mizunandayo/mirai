@@ -75,32 +75,37 @@
 ---
 
 ### ─────────────────────────────────────────────
-### DAY 2 — May 12 (Tuesday) · Arm Design Studio 🔄 TODAY
+### DAY 2 — May 12 (Tuesday) · Arm Design Studio ✅ COMPLETE
 ### ─────────────────────────────────────────────
 
-**Carry-Over from Day 1 (do these FIRST)**
-- ❌ `npm install --legacy-peer-deps` (unblocks all frontend dev)
-- ❌ `pip install -r server/requirements.txt` (unblocks backend dev)
-- ❌ `git init ; git remote add origin https://github.com/Mizunandayo/mirai.git ; git add . ; git commit -m "init: Mirai scaffold v2.0" ; git push -u origin main`
-- ❌ Add `isAdvancedModeAtom` to `atoms.ts` (localStorage-persisted Simple/Advanced toggle)
-- ❌ Confirm app renders in browser: `npm run dev` → localhost
+**Carry-Over from Day 1 (DONE)**
+- ✅ `npm install --legacy-peer-deps`
+- ✅ `pip install -r server/requirements.txt`
+- ✅ `git init ; git remote add origin https://github.com/Mizunandayo/mirai.git ; git add . ; git commit -m "init: Mirai scaffold v2.0" ; git push -u origin main`
+- ✅ `isAdvancedModeAtom` added to `atoms.ts`
+- ✅ App renders in browser: `npm run dev` → localhost:5173
 
 **Arm Designer**
-- ❌ Arm segment panel — add/remove/resize segments in sidebar
-- ❌ Real-time joint limit arc visualization on 3D arm
-- ❌ Reach envelope heatmap (sphere of reachable space rendered in R3F)
-- ❌ Gripper library — parallel jaw, suction cup, magnetic (3D preview per type)
-- ❌ Arm config save/load (JSON → local file via Tauri or download)
-- ❌ Design validation — torque, payload, reachability feasibility check
-- ❌ **Real-time BOM cost counter** — live price total updates as segments added/resized ($0 → $287)
-- ❌ Jotai atoms wired to all arm state (replaces current placeholder atoms)
+- ✅ Arm segment panel — add/remove/resize segments in sidebar
+- ✅ Real-time joint limit arc visualization on 3D arm
+- ✅ Reach envelope sphere (wireframe + 80% inner ref) rendered in R3F
+- ✅ Gripper library — parallel jaw, suction cup, magnetic (3D preview per type)
+- ✅ Arm config save/load (JSON download/open)
+- ✅ Design validation — torque, payload, reachability feasibility check
+- ✅ **Real-time BOM cost counter** — live price total as segments added/resized
+- ✅ Jotai atoms wired to all arm state
+
+**UI/UX (extra — done this session)**
+- ✅ Header redesign: single-row `hdr-*` dark bar, sliding CSS mode toggle
+- ✅ Panel minimalist overhaul: flat tiles, underline tabs, 32px controls
+- ✅ Panel structure overhaul: topbar + toolbar, removed intro/context/toggle sections
 
 > **Day 2 Deliverable:** Full arm designer live in browser. BOM counter shows $0 → $287 as you build.
 
 ---
 
 ### ─────────────────────────────────────────────
-### DAY 3 — May 13 (Wednesday) · Task Editor (React Flow)
+### DAY 3 — May 13 (Wednesday) · Task Editor (React Flow) 🔄 TODAY
 ### ─────────────────────────────────────────────
 
 - ❌ React Flow canvas with custom node types
@@ -109,6 +114,9 @@
 - ❌ WAIT node — ms delay input
 - ❌ LOOP node — count + nested blocks
 - ❌ IF node — condition string + then/else branches
+- ❌ Shared schema contracts — `SceneGraph`, `TaskSpec`, `ValidationReport`, `ExecutionPlan`
+- ❌ Skill library — `move_to`, `grasp`, `release`, `place`, `stack`, `wait`, `align`
+- ❌ Named targets and scene object registry for shelf / table / box / drawer / fold zone
 - ❌ Live 3D ghost arm preview as blocks are placed (arm moves in viewport while editing)
 - ❌ Export task as portable JSON file
 - ❌ Error highlighting — red nodes for impossible coordinates, yellow for near-limit moves
@@ -125,6 +133,8 @@
 - ❌ Rapier rigid body setup for each arm segment (Box + Cylinder colliders)
 - ❌ Joint constraints — revolute (rotating), prismatic (sliding) in Rapier
 - ❌ Task executor — reads task JSON blocks, drives Rapier simulation frame-by-frame
+- ❌ Motion compiler — `TaskSpec` → deterministic motion primitives / execution frames
+- ❌ Browser skill executor — reliable pick/place/stack support before deformable demos
 - ❌ Playback controls — play / pause / rewind / step-frame / speed: 0.25x – 4x
 - ❌ Timeline scrubber — click any frame to jump to that position
 - ❌ Joint angle HUD overlay — J1–J5 angles + gripper state shown live during playback
@@ -143,12 +153,17 @@
 
 **Core AI**
 - ❌ FastAPI `POST /ai/plan` endpoint — Gemini Flash integration
+- ❌ FastAPI `POST /ai/repair` endpoint — constrained repair loop for invalid or unsafe plans
 - ❌ Arm-aware prompt construction (injects arm specs + workspace into every call)
+- ❌ Grounded prompt builder — injects `SceneGraph`, arm profile, and allowed skills into every request
 - ❌ Structured JSON output parsing and validation from Gemini response
+- ❌ TaskSpec-only output contract — Gemini returns typed skills, never direct joint commands
+- ❌ Static verifier loop — reach, payload, collision, and precondition checks before simulation
 - ❌ Auto-populate React Flow canvas from Gemini-returned task JSON
 - ❌ Conversational refinement — "make it slower at step 3" updates specific blocks
 - ❌ Gemini Pro error diagnosis — explain why simulation failed in plain English
 - ❌ Loading states + streaming indicator + error handling
+- ❌ Supported-language scope v1 — `pick`, `place`, `stack`, `sort`, `move`; cloth folding is curated scenario, not open-world promise
 
 **Edge Features (Day 5 Priority)**
 - ❌ **Voice input** — record audio → Gemini multimodal → task program in one step (demo wow moment)
@@ -173,7 +188,9 @@
 - ❌ WebSocket endpoint `WS /ws/simulate` for MuJoCo frame streaming
 - ❌ MuJoCo MJCF/URDF builder from arm config
 - ❌ Task executor in MuJoCo (runs same JSON task blocks as client-side Rapier)
+- ❌ MuJoCo validator consumes the same `ExecutionPlan` produced for Rapier playback
 - ❌ Accuracy comparison: MuJoCo vs. Rapier → UI accuracy badge ("94% accurate")
+- ❌ Confidence report derived from validation + deterministic rule checks
 - ❌ **Physics side-by-side replay** — Rapier (left) + MuJoCo (right) play simultaneously, divergence frames in red
 - ❌ **Servo lifespan predictor** — MuJoCo torque data → predicted hours per joint at current duty cycle
 
@@ -246,9 +263,9 @@
 
 | Day | Date | Focus | Status |
 |---|---|---|---|
-| Day 1 | May 11 (Sun) | Foundation + 3D Engine | 🟡 Partial — scaffold done, npm install pending |
-| Day 2 | May 12 (Tue) | Arm Design Studio | 🔄 In Progress — TODAY |
-| Day 3 | May 13 (Wed) | Task Editor (React Flow) | ❌ Not Started |
+| Day 1 | May 11 (Sun) | Foundation + 3D Engine | ✅ Complete |
+| Day 2 | May 12 (Tue) | Arm Design Studio | ✅ Complete + UI polished |
+| Day 3 | May 13 (Wed) | Task Editor (React Flow) | 🔄 In Progress — TODAY |
 | Day 4 | May 14 (Thu) | Physics Simulation (Rapier) | ❌ Not Started |
 | Day 5 | May 15 (Fri) | Gemini AI Integration | ❌ Not Started |
 | Day 6 | May 16 (Sat) | Backend + MuJoCo + Export | ❌ Not Started |
@@ -395,6 +412,7 @@ You want to build a robot arm. You find tutorials. They contradict each other. T
 | Collision Replay | Auto-rewinds to collision point, highlights collision zone in red | Core |
 | Path Visualization | Glowing trajectory trail showing arm's movement path | Enhanced |
 | Environment Objects | Add table, shelf, box, sock pile, drawer to workspace | Core |
+| **Deterministic Motion Compiler** | **Verified `TaskSpec` plans are compiled into explicit motion primitives shared by Rapier playback, MuJoCo validation, and code export.** | **Core** |
 | **Famous Task Preloads** | **3 seeded tasks: Boston Dynamics inspection, Tesla Optimus box-stacking, Toyota laundry fold — one-click import + Gemini adapts to your arm** | **Core** |
 | **Physics Side-by-Side Replay** | **After MuJoCo validation, Rapier (left) and MuJoCo (right) play simultaneously — divergence frames highlighted in red. Makes the dual physics architecture completely visible.** | **Core** |
 | **Servo Lifespan Predictor** | **From MuJoCo torque data, predict each servo's operational lifespan at current duty cycle. "J2: ~180hrs at this load — reduce speed 20% to reach ~540hrs". No simulator has ever done this.** | **Enhanced** |
@@ -412,6 +430,9 @@ You want to build a robot arm. You find tutorials. They contradict each other. T
 | **Side-by-Side Mode** | **Split view: left = simulation running live, right = code updating in real time as arm moves** | **Core** |
 | **Pre-Flight Safety Check** | **Before any simulation runs, Gemini audits the task and shows a checklist: torque warnings, path boundary violations, gripper force overloads. [Fix All with AI] one-click repair.** | **Core** |
 | **Agentic ReAct Loop** | **Multi-step Gemini agent: Think→Act→Observe loop. For complex tasks like "sort socks by color", agent adds DETECT block, generates IF/ELSE branches, verifies each step before moving to next. Real agent architecture, not single-prompt.** | **Core** |
+| **Grounded TaskSpec Pipeline** | **Every AI request is grounded against a known `SceneGraph` and arm profile; Gemini returns typed `TaskSpec` JSON using allowed skills only, never raw joint commands.** | **Core** |
+| **AI Repair Loop** | **If a plan fails validation, Mirai sends the error report back to Gemini and requests a corrected `TaskSpec` until the task is safe or rejected.** | **Core** |
+| **Curated Cloth Folding Scenario** | **Cloth folding ships as a guided demo with named corners, fold lines, and stack zones — high-impact without pretending to solve open-world deformable robotics.** | **Core** |
 | **Gemini Arm Advisor** | **After MuJoCo finds torque overloads, Gemini recommends a hardware upgrade: "Upgrade J2 from MG995→MG996R ($4 more) for 40% more torque headroom. New BOM: $291." BOM updates live.** | **Enhanced** |
 | Optimization Suggestions | "Your task could be 30% faster if you change block 3 to speed 2x" | Enhanced |
 | Error Diagnosis | Task fails in simulation → Gemini explains why + suggests fix | Enhanced |
@@ -484,7 +505,7 @@ You want to build a robot arm. You find tutorials. They contradict each other. T
 | 24 | PDF Generation | WeasyPrint | 62.x | Auto-generate DIY assembly guides as PDF | Python-native, CSS-styled PDFs |
 | 25 | 3D Export | OpenUSD (pxr) | 24.x | Universal Scene Description for robot models | Apple/Pixar/NVIDIA standard — future-proof |
 | 26 | Deployment | Vercel | latest | Frontend static deployment + serverless | Zero config, edge network |
-| 27 | Deployment | Railway | latest | FastAPI + PyBullet backend | Simple Python container hosting |
+| 27 | Deployment | Railway | latest | FastAPI + MuJoCo backend | Simple Python container hosting |
 | 28 | Containerization | Docker | 27.x | Reproducible backend environment | Consistent between dev and prod |
 | 29 | Version Control | Git + GitHub | — | Source control + release management | Public repo for submission |
 | 30 | CI/CD | GitHub Actions | — | Auto-deploy on push | Professional practice |
@@ -597,7 +618,7 @@ You want to build a robot arm. You find tutorials. They contradict each other. T
 │  ┌─────────────────────────────────────────────────────────────────────┐ │
 │  │                      FASTAPI 0.115 (Python 3.12)                    │ │
 │  │                                                                       │ │
-│  │  POST /simulate        → PyBullet accurate physics validation        │ │
+│  │  POST /simulate        → MuJoCo accurate physics validation          │ │
 │  │  POST /ai/plan         → Gemini 2.0 Flash task planning              │ │
 │  │  POST /ai/optimize     → Gemini 2.0 Pro deep reasoning               │ │
 │  │  POST /export/code     → Jinja2 Arduino/Python/MicroPython gen       │ │
@@ -636,18 +657,34 @@ You want to build a robot arm. You find tutorials. They contradict each other. T
 ```
 1. User designs arm in 3D (Rapier WASM validates reach/torque in browser)
 2. User types: "pick up socks, fold them, place in drawer"
-3. Frontend sends: { arm_config, task_description, workspace } to POST /ai/plan
-4. Backend sends to Gemini 2.0 Flash:
-   - Arm specs (joints, reach, payload)
-   - Workspace layout (object positions)
-   - Natural language task description
-5. Gemini returns structured JSON task program (MOVE/GRIP/WAIT/LOOP blocks)
-6. Frontend renders task blocks in React Flow
-7. User clicks Simulate → Rapier WASM runs 60fps physics client-side
-8. Simultaneously → POST /simulate sends task to MuJoCo for validation
-9. If MuJoCo disagrees with Rapier → frontend shows accuracy warning + UI badge
-10. User downloads: Arduino code + Python script + URDF + PDF guide + BOM
+3. Frontend builds `SceneGraph` + arm profile + user request and sends them to POST /ai/plan
+4. Backend grounds the request against known objects, named targets, and allowed skills
+5. Gemini returns a typed `TaskSpec` JSON plan (skills only, no direct joint commands)
+6. Static verifier checks reach, payload, collisions, and missing preconditions
+7. If invalid → POST /ai/repair sends `TaskSpec` + `ValidationReport` back to Gemini for constrained repair
+8. Compiler converts verified `TaskSpec` into `ExecutionPlan` motion primitives
+9. Frontend renders task blocks in React Flow and Rapier runs the same `ExecutionPlan` at 60fps
+10. MuJoCo validates the same `ExecutionPlan`, returns divergence + confidence, then export uses deterministic code generation
 ```
+
+### Grounded Language-to-Motion Pipeline (Edge Feature)
+
+```text
+Prompt/Voice
+  -> SceneGraph grounding
+  -> Gemini TaskSpec generation
+  -> Static verifier
+  -> Repair loop if needed
+  -> Deterministic motion compiler
+  -> Rapier playback + MuJoCo validation
+  -> Confidence report + export
+```
+
+- **`SceneGraph`** contains the current arm, gripper, workspace objects, named targets, and fold anchors for curated demos.
+- **`TaskSpec`** is the only valid Gemini output: a typed skill plan composed of allowed robot actions.
+- **`ValidationReport`** captures deterministic failures before motion runs.
+- **`ExecutionPlan`** is shared across browser playback, server validation, and export.
+- **Scope rule:** ship rigid-object commands first; cloth folding is a curated scenario, not an open-world claim.
 
 ### Dual Physics Architecture (Key Innovation)
 
@@ -689,7 +726,11 @@ taskMetaAtom           // name, version, description
 simulationFramesAtom   // Frame[] — joint angles per timestep
 simulationPlayheadAtom // number — current frame index (drives 3D animation)
 simulationStatusAtom   // 'idle' | 'running' | 'paused' | 'complete' | 'error'
-accuracyReportAtom     // PyBullet comparison result
+sceneGraphAtom         // SceneGraph — named objects, targets, fold anchors
+taskSpecAtom           // TaskSpec — Gemini output using allowed skills only
+validationReportAtom   // ValidationReport — deterministic pre-sim checks
+executionPlanAtom      // ExecutionPlan — compiled motion primitives for Rapier + MuJoCo
+accuracyReportAtom     // MuJoCo comparison result
 
 // Community
 communityTasksAtom     // CommunityTask[] — library
@@ -704,7 +745,7 @@ geminiContextAtom      // conversation history for multi-turn refinement
 ### 2. Physics Frame Streaming Protocol
 
 ```typescript
-// WebSocket message protocol for PyBullet streaming
+// WebSocket message protocol for MuJoCo streaming
 
 // Client → Server
 interface SimulateRequest {
@@ -843,20 +884,20 @@ ArmConfig + TaskProgram
 
 ## ENGINEERING DECISIONS & TRADE-OFFS
 
-### Decision 1: Dual Physics (Rapier WASM + PyBullet)
+### Decision 1: Dual Physics (Rapier WASM + MuJoCo)
 
 **The Problem**: Fast UX requires client-side physics. Accurate simulation requires server-side full IK.
 
 **The Decision**: Run BOTH simultaneously.
 - Rapier WASM in browser → instant visual feedback at 60fps
-- PyBullet on server → accurate validation, runs in background, returns accuracy score
+- MuJoCo on server → accurate validation, runs in background, returns accuracy score
 
 **Trade-off Analysis**:
 | Approach | Speed | Accuracy | Cost |
 |---|---|---|---|
 | Client-only (Rapier) | ✅ 60fps | ⚠️ ~85% accurate | $0/request |
-| Server-only (PyBullet) | ❌ 1-3s latency | ✅ 99% accurate | $0.001/request |
-| **Dual (Mirai approach)** | ✅ 60fps (Rapier) | ✅ 99% accurate (PyBullet validates) | $0.001/validate |
+| Server-only (MuJoCo) | ❌ 1-3s latency | ✅ 99% accurate | $0.001/request |
+| **Dual (Mirai approach)** | ✅ 60fps (Rapier) | ✅ 99% accurate (MuJoCo validates) | $0.001/validate |
 
 **Engineering Justification**: This is exactly how real robotics toolchains work (fast preview simulator + accurate physics engine). NVIDIA Isaac uses the same pattern. Engineers at Boston Dynamics, Tesla Optimus, and Figure AI will immediately recognize this as production-grade thinking.
 
@@ -1362,6 +1403,26 @@ Pre-Flight Check — 2 issues found
 - [ ] Submit to lablab.ai
 
 **Deliverable**: Live production app + demo video + polished pitch ready for stage
+
+---
+
+## DESIGN SYSTEM — UI RULES (enforced, do not break)
+
+> These rules apply to every component in Mirai. Set by the developer, must be respected in all AI-assisted edits.
+
+| Rule | Spec |
+|---|---|
+| **Font** | `Poppins` only — `@fontsource/poppins`, weights 400 / 500 / 600 / 700 |
+| **No emojis** | Use inline SVG icons only. Never emoji characters in UI |
+| **No small text** | Body min `0.82rem`, labels min `0.72rem`. Never below `0.7rem` for anything the user reads |
+| **No gray text** | Secondary text: `#555555` minimum. Primary text: `#0d0d0d` / `#1a1a1a`. No `#aaa`, `#999`, `rgba(0,0,0,0.3)` for content |
+| **Color palette** | Background `#ebebeb` · Surface `#ffffff` · Primary `#0d0d0d` · Border `rgba(0,0,0,0.07)` |
+| **No warm tones** | Banned: `#c4694a`, `#e8956a`, `#fdf0ea`, `#0b0907`, `#181410`, `#b5502d` |
+| **Glass effect** | Floating UI: `background: rgba(255,255,255,0.72)` + `backdrop-filter: blur(24px) saturate(180%)` + `border: 1px solid rgba(255,255,255,0.88)` |
+| **Animations** | `fade-up` on mount, `cubic-bezier(0.22, 1, 0.36, 1)`, durations `200–440ms` |
+| **SVG icons** | `14×14` / `16×16` viewBox, `currentColor`, `strokeWidth 1.5–1.6`, in `28×28px border-radius:8px` tinted containers |
+| **Touch targets** | Controls min 32px height. Header 56px. Status bar 44px |
+| **Minimalist** | No decorative gradients on content areas, no text shadows, no busy borders |
 
 ---
 

@@ -26,12 +26,19 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 **Core flow:**
 1. User designs a robot arm in 3D (segment panel, gripper library, joint config)
 2. Types or speaks a task in plain English ("pick up socks and fold them into the drawer")
-3. Gemini AI generates the motion program as visual blocks (React Flow)
-4. Rapier WASM physics engine simulates at 60fps in the browser
-5. MuJoCo (server-side) validates accuracy and predicts servo lifespan
-6. User downloads Arduino `.ino` / Python `.py` code + BOM to build for under $300
+3. Gemini grounds the request against the current arm + scene and returns a structured `TaskSpec`
+4. Mirai verifies and repairs unsafe or unreachable steps, then compiles them into deterministic motion skills
+5. Rapier WASM physics engine simulates the verified plan at 60fps in the browser
+6. MuJoCo (server-side) validates accuracy and predicts servo lifespan
+7. User downloads Arduino `.ino` / Python `.py` code + BOM to build for under $300
 
 **The key differentiator:** Zero setup, natural language input, real physics validation, community task sharing, bridge to real hardware — all in one browser tab.
+
+**Execution truth (must stay true):**
+- Gemini never drives joints or servos directly.
+- Mirai converts language into `SceneGraph -> TaskSpec -> ValidationReport -> ExecutionPlan`.
+- A deterministic verifier can reject or repair plans before any physics runs.
+- V1 natural-language support starts with rigid-object verbs (`pick`, `place`, `stack`, `sort`, `move`) plus one curated cloth-folding demo, not arbitrary open-world commands.
 
 ---
 
@@ -39,22 +46,22 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 
 | Day | Date | Blueprint Plan | What Was Actually Done |
 |---|---|---|---|
-| 1 | May 11 | Foundation + 3D Engine | ✅ Scaffold created: package.json, vite.config.js, tsconfig.json, index.html, tailwind.config.js, ArmViewer.tsx, RobotArm.tsx, App.tsx, atoms.ts, server/main.py, server/requirements.txt — npm install NOT yet run |
-| 2 | May 12 | Arm Design Studio | 🔄 In Progress — implementation guide written, Mizu coding now |
-| 3 | May 13 | Task Editor (React Flow) | ❌ Not Started |
-| 4 | May 14 | Physics Simulation (Rapier) | ❌ Not Started |
-| 5 | May 15 | Gemini AI Integration | ❌ Not Started |
-| 6 | May 16 | Backend + MuJoCo + Export | ❌ Not Started |
-| 7 | May 17 | Community + Famous Preloads | ❌ Not Started |
-| 8 | May 18–19 | Polish + Demo Prep + Submit | ❌ Not Started |
+| 1 | May 11 | Foundation + 3D Engine | ✅ Scaffold + dependencies + git push complete |
+| 2 | May 12 | Arm Design Studio | ✅ **COMPLETE** — All 12 files created, types defined, atoms/utils/components full stack, React 18 downgrade applied, app live at localhost:5173, TypeScript clean |
+| 3 | May 13 | Task Editor (React Flow) | 🔄 TODAY — Ready to Start |
+| 4 | May 14 | Physics Simulation (Rapier) | ⏳ Ready to Start |
+| 5 | May 15 | Gemini AI Integration | ⏳ Ready to Start |
+| 6 | May 16 | Backend + MuJoCo + Export | ⏳ Ready to Start |
+| 7 | May 17 | Community + Famous Preloads | ⏳ Ready to Start |
+| 8 | May 18–19 | Polish + Demo Prep + Submit | ⏳ Ready to Start |
 
-**⚠️ STATUS:** Implementation guide written for Day 2. Mizu is coding the files. See Day 2 task list for exact files to create/rewrite.
+**STATUS:** Day 1 and Day 2 both complete (incl. extended polish: nav toggle, camera reset, hint, BOM expanded layout, panel drag-resize). App live at localhost:5173. TypeScript clean. Day 3 (Task Editor) starts next.
 
 ---
 
 ## FULL TASK LIST (by day)
 
-### Day 1 (May 11) — Foundation + 3D Engine ✅ Partial
+### Day 1 (May 11) — Foundation + 3D Engine ✅ COMPLETE
 
 - ✅ GitHub repo created: `github.com/Mizunandayo/mirai`
 - ✅ `package.json` — all frontend deps declared
@@ -67,46 +74,71 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 - ✅ `src/App.tsx` — root component with ArmViewer mounted
 - ✅ `src/store/atoms.ts` — Jotai atoms: armSegments, gripper, task, simulation, community, Gemini state
 - ✅ `server/main.py` — FastAPI skeleton, CORS, health check + Gemini key status
-- ❌ `npm install --legacy-peer-deps` — run this first
-- ❌ `pip install -r server/requirements.txt`
-- ❌ `git init` + push to remote
-- ❌ `isAdvancedModeAtom` not added to `atoms.ts`
-- ❌ Segment click-to-select highlight not coded
+- ✅ `npm install --legacy-peer-deps`
+- ✅ `pip install -r server/requirements.txt`
+- ✅ `git init` + push to remote
+- ✅ `isAdvancedModeAtom` added to `atoms.ts`
+- ✅ Segment click-to-select highlight coded
 
-### Day 2 (May 12) — Arm Design Studio 🔄 TODAY
+### Day 2 (May 12) — Arm Design Studio ✅ COMPLETE
 
-**Carry-overs (terminal commands first):**
-- ❌ `npm install --legacy-peer-deps`
-- ❌ `pip install -r server/requirements.txt`
-- ❌ `git init ; git remote add origin https://github.com/Mizunandayo/mirai.git ; git add . ; git commit -m "feat: Day 1 scaffold" ; git push -u origin main`
-- ❌ `npm run dev` → confirm app renders at localhost:5173
+**Terminal commands:**
+- ✅ `npm install --legacy-peer-deps`
+- ✅ `pip install -r server/requirements.txt`
+- ✅ `git init ; git remote add origin https://github.com/Mizunandayo/mirai.git ; git push -u origin main`
+- ✅ `npm run dev` → app renders at localhost:5173
+- ✅ React 18.3.1 + react-dom 18.3.1 downgrade (R3F v8 compatibility)
+- ✅ `npx tsc --noEmit` passes with zero errors
 
-**Config fixes (before any new code):**
-- ❌ `vite.config.js` — rewrite to use `@tailwindcss/vite` plugin (v4 native)
-- ❌ `src/index.css` — NEW: `@import "tailwindcss"` + `@theme {}` design tokens
-- ❌ `src/main.tsx` — import `./index.css`
+**Config fixes:**
+- ✅ `vite.config.js` — rewritten to use `@tailwindcss/vite` plugin
+- ✅ `src/index.css` — `@import "tailwindcss"` + `@theme {}` design tokens
+- ✅ `src/main.tsx` — imports both `./index.css` and `./App.css`
+- ✅ `src/vite-env.d.ts` — React 18 JSX augmentation for R3F elements
 
-**New files to create:**
-- ❌ `src/types/arm.ts` — ArmSegment, GripperConfig, BOMItem, ValidationResult types
-- ❌ `src/store/atoms.ts` — REWRITE: fully typed, add isAdvancedModeAtom, selectedSegmentIdAtom
-- ❌ `src/utils/armPhysics.ts` — torque/reach calc + validateArm()
-- ❌ `src/utils/bomPricing.ts` — static BOM lookup + getTotalBOMCost()
-- ❌ `src/utils/armExport.ts` — exportArmConfig() + parseArmConfig() + loadArmConfigFromFile()
-- ❌ `src/components/ReachEnvelope.tsx` — wireframe reach sphere in R3F
-- ❌ `src/components/JointArcOverlay.tsx` — joint limit arc for selected segment
-- ❌ `src/components/arm-designer/BOMCounter.tsx` — live cost counter with expandable BOM
-- ❌ `src/components/arm-designer/SegmentList.tsx` — add/remove/edit segments panel
-- ❌ `src/components/arm-designer/GripperLibrary.tsx` — 3 gripper types with controls
-- ❌ `src/components/arm-designer/ValidationPanel.tsx` — torque/reach validation display
-- ❌ `src/components/arm-designer/ArmDesignerPanel.tsx` — composes all sidebar sections
+**Files created:**
+- ✅ `src/types/arm.ts` — ArmSegment, GripperConfig, BOMItem, ValidationResult, ArmConfig types
+- ✅ `src/store/atoms.ts` — fully typed atoms: armSegments, armGripper, selectedSegmentId, isAdvancedMode, showReachEnvelope, showJointArcs, activeDesignerTab, armName
+- ✅ `src/utils/armPhysics.ts` — calculateMaxReach(), calculateTorqueAtJoint(), validateArm()
+- ✅ `src/utils/bomPricing.ts` — calculateBOM(), getTotalBOMCost() with 72-piece fixed BOM
+- ✅ `src/utils/armExport.ts` — exportArmConfig(), parseArmConfig(), loadArmConfigFromFile()
+- ✅ `src/components/ReachEnvelope.tsx` — wireframe reach sphere + 80% inner reference
+- ✅ `src/components/JointArcOverlay.tsx` — orange arc + fill for joint rotation limits
+- ✅ `src/components/RobotArm.tsx` — dynamic 3-segment arm with click-to-select, gripper variants
+- ✅ `src/components/ArmViewer.tsx` — full R3F scene with camera, lights, grid, shadows, overlays
+- ✅ `src/App.tsx` — 3-zone layout: header + sidebar + viewport + statusbar with mode toggle
+- ✅ `src/App.css` — engineering workstation design system (~880 lines, all section groups)
+- ✅ `src/components/arm-designer/ArmDesignerPanel.tsx` — main sidebar with arm name, save/load, viewport toggles
+- ✅ `src/components/arm-designer/SegmentList.tsx` — add/remove/edit segments with sliders
+- ✅ `src/components/arm-designer/GripperLibrary.tsx` — parallel jaw / suction cup / magnetic selector
+- ✅ `src/components/arm-designer/ValidationPanel.tsx` — torque/reach metrics + error/warning display
+- ✅ `src/components/arm-designer/BOMCounter.tsx` — live total cost + expandable BOM breakdown
+
+**Deliverable:** Full arm designer live in browser. BOM counter shows live cost. Reach envelope and joint arcs toggle in viewport. Arm click-to-select, gripper swap, segment edit all functional.
+- ✅ `src/components/arm-designer/ArmDesignerPanel.tsx` — composes all sidebar sections
 
 **Full rewrites:**
-- ❌ `src/components/RobotArm.tsx` — dynamic segments from atoms, click-to-select
-- ❌ `src/components/ArmViewer.tsx` — lights, shadows, ReachEnvelope, JointArcOverlay
-- ❌ `src/App.tsx` — full 3-zone layout (header + sidebar + viewport + statusbar)
-- ❌ `src/App.css` — full engineering-workstation design system
+- ✅ `src/components/RobotArm.tsx` — dynamic segments from atoms, click-to-select
+- ✅ `src/components/ArmViewer.tsx` — lights, shadows, ReachEnvelope, JointArcOverlay
+- ✅ `src/App.tsx` — full 3-zone layout (header + sidebar + viewport + statusbar)
+- ✅ `src/App.css` — full engineering-workstation design system
 
-**Deliverable:** Full arm designer live in browser. BOM counter shows live total. Reach envelope and joint arcs toggle in viewport.
+**UI/UX redesigns (this session):**
+- ✅ `src/App.css` — header third redesign: single-row `hdr-*` namespace, 58px dark bar, sliding CSS mode toggle
+- ✅ `src/App.css` — full panel minimalist overhaul: flat tiles (9px radius, hairline borders), underline tabs (`#c4694a`), controls at 32px, BOM inline footer
+- ✅ `src/App.css` + `ArmDesignerPanel.tsx` — panel structure overhaul: `panel-topbar` (arm name + file actions), `panel-toolbar` (tabs + icon guide buttons), removed intro/context/toggle sections
+- ✅ `src/components/arm-designer/SegmentList.tsx` — simplified section header (count left, + Add right)
+- ✅ `src/components/arm-designer/GripperLibrary.tsx` — removed redundant section heading
+
+**Extended Day 2 UX polish (late session):**
+- ✅ `src/App.tsx` + `ArmDesignerPanel.tsx` — nav-click toggles panel: clicking the active nav item collapses/expands the panel with smooth CSS width transition
+- ✅ `src/components/ArmViewer.tsx` — converted to `forwardRef`; `useImperativeHandle` exposes `resetCamera()` via `ArmViewerHandle` type
+- ✅ `src/App.tsx` + `src/App.css` — viewport camera reset button (top-right, spin animation on click)
+- ✅ `src/App.tsx` + `src/App.css` — dismissable viewport hint pill (top-right, left of reset button, SVG close icon)
+- ✅ `src/App.css` — BOM expanded: CSS `:has()` collapses `.panel-toolbar` + `.panel-content`, grows `.panel-footer` to fill full panel height
+- ✅ `src/App.css` — BOM text: Poppins, no gray text (`#aaa` → `#555`/`#1a1a1a`), no small text (all bumped to 0.72–0.82rem)
+- ✅ `src/components/arm-designer/BOMCounter.tsx` — when expanded: `bom-breakdown` (parts list) shows at top, `bom-summary` (Estimated cost row) moves to bottom via CSS `order`; `bom-total-row` removed
+- ✅ `src/components/arm-designer/ArmDesignerPanel.tsx` + `src/App.css` — panel right-edge drag-to-resize: `panel-resize-handle` with pointer capture, min `336px`, max `560px`, no-transition while dragging
 
 ### Day 3 (May 13) — Task Editor (React Flow)
 
@@ -116,6 +148,9 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 - ❌ WAIT node — ms delay input
 - ❌ LOOP node — count + nested blocks
 - ❌ IF node — condition string + then/else branches
+- ❌ Shared contracts — `SceneGraph`, `TaskSpec`, `ValidationReport`, `ExecutionPlan` typed in both frontend and backend
+- ❌ Skill library mapping — `move_to`, `grasp`, `release`, `place`, `stack`, `wait`, `align`
+- ❌ Scene object registry — named objects and target zones for first supported environments
 - ❌ Live 3D ghost arm preview as blocks are placed
 - ❌ Export task as portable JSON file
 - ❌ Error highlighting — red nodes (impossible coords), yellow (near-limit)
@@ -128,6 +163,8 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 - ❌ Rapier rigid body per arm segment (Box + Cylinder colliders)
 - ❌ Joint constraints — revolute (rotating), prismatic (sliding)
 - ❌ Task executor — reads task JSON blocks, drives simulation frame-by-frame
+- ❌ Motion compiler — `TaskSpec` → deterministic motion primitives and execution frames
+- ❌ Browser skill executor — reliable support for pick/place/stack scenarios before cloth
 - ❌ Playback controls — play / pause / rewind / step-frame / speed 0.25x–4x
 - ❌ Timeline scrubber — click any frame to jump
 - ❌ Joint angle HUD — J1–J5 angles + gripper state live during playback
@@ -142,12 +179,17 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 
 **Core AI:**
 - ❌ FastAPI `POST /ai/plan` endpoint — Gemini Flash integration
+- ❌ FastAPI `POST /ai/repair` endpoint — constrained repair loop for invalid or unsafe plans
 - ❌ Arm-aware prompt construction (injects arm specs into every call)
+- ❌ Grounded prompt builder — injects `SceneGraph`, arm profile, and allowed skill list into every request
 - ❌ Structured JSON output parsing + validation
+- ❌ TaskSpec-only output contract — Gemini returns typed skills, never direct joint commands
+- ❌ Static verifier loop — reach, payload, collision, and precondition checks before simulation
 - ❌ Auto-populate React Flow canvas from Gemini-returned task JSON
 - ❌ Conversational refinement — "make it slower at step 3"
 - ❌ Gemini Pro error diagnosis — plain English failure explanation
 - ❌ Loading states + streaming indicator + error handling
+- ❌ Supported-language scope v1 — `pick`, `place`, `stack`, `sort`, `move`; cloth folding ships only as curated scenario
 
 **Gemini Award Critical Features:**
 - ❌ **Voice input** — record audio → Gemini multimodal → task program (demo wow moment)
@@ -167,7 +209,9 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 - ❌ WebSocket `WS /ws/simulate` — MuJoCo frame streaming
 - ❌ MuJoCo MJCF/URDF builder from arm config
 - ❌ Task executor in MuJoCo (same task JSON as Rapier)
+- ❌ MuJoCo validator consumes the same `ExecutionPlan` produced for Rapier playback
 - ❌ Accuracy comparison badge ("94% accurate") in UI
+- ❌ Confidence report derived from validation + rule checks, not raw LLM optimism
 - ❌ **Physics side-by-side replay** — Rapier (left) vs. MuJoCo (right), divergence frames in red
 - ❌ **Servo lifespan predictor** — torque data → predicted hours per joint
 
@@ -347,6 +391,14 @@ Browser (React + Vite)
 - **Multimodal voice:** Web Audio API → Gemini audio input → task JSON
 - **Arm-aware:** every prompt injects current arm config (segments, joint limits, reach)
 
+### Natural Language Execution Strategy
+- **`SceneGraph`:** current arm, gripper, workspace objects, named targets, and fold anchors for curated demos
+- **`TaskSpec`:** Gemini output expressed only in allowed high-level skills
+- **`ValidationReport`:** deterministic checks for reach, payload, collisions, and missing preconditions
+- **`ExecutionPlan`:** compiled motion primitives consumed by both Rapier and MuJoCo
+- **Repair loop:** invalid `TaskSpec` → `POST /ai/repair` → revalidate until safe or rejected
+- **Scope discipline:** first ship rigid-object commands; cloth folding is a curated scenario, not an open-world claim
+
 ---
 
 ## KEY ENGINEERING DECISIONS
@@ -355,6 +407,7 @@ Browser (React + Vite)
 |---|---|
 | Rapier WASM in-browser | 60fps with zero server latency — feels like a game engine |
 | MuJoCo server-side only | Python-only, can't run in browser; used for validation not real-time |
+| Constrained neuro-symbolic pipeline | Gemini handles intent; deterministic verifier/compiler handles safety, motion, and export |
 | Jinja2 for code export | Deterministic output — LLM hallucinations are dangerous in hardware code |
 | React Flow for task editor | Purpose-built for node graphs; drag/drop + custom nodes out of the box |
 | Jotai for state | Atomic model maps cleanly to arm segments, task blocks — granular re-renders |
@@ -398,6 +451,36 @@ git push -u origin main
 | Frontend | Vercel | `vercel --prod` from project root |
 | Backend | Railway | Docker container from `server/` |
 | Backend Dockerfile | TBD Day 6 | `FROM python:3.12-slim` + `pip install -r requirements.txt` |
+
+---
+
+## DESIGN SYSTEM — UI RULES (enforced, do not break)
+
+These rules apply to every component, every panel, every piece of UI in Mirai. They were set by the developer and must be respected in all AI-assisted edits.
+
+| Rule | Detail |
+|---|---|
+| **Font** | `Poppins` exclusively — imported via `@fontsource/poppins` (weights 400, 500, 600, 700) |
+| **No emojis** | Never use emoji characters in UI. Use inline SVG icons instead |
+| **No small text** | Minimum readable body size: `0.82rem`. Labels: `0.72rem` minimum. No `0.6x` or smaller |
+| **No gray text** | Avoid `#aaa`, `#999`, `rgba(0,0,0,0.3)` for meaningful text. Use `#555555` minimum for secondary text, `#0d0d0d` / `#1a1a1a` for primary text |
+| **Color theme** | White-primary, black-accent. Background: `#ebebeb`. Surfaces: `#ffffff`. Primary action: `#0d0d0d` |
+| **Glass effect** | Floating elements (header, modals, hints) use `background: rgba(255,255,255,0.72)` + `backdrop-filter: blur(24px) saturate(180%)` + white border |
+| **Animations** | Smooth — `fade-up` on mount, `cubic-bezier(0.22, 1, 0.36, 1)` easing for entrances, `200–360ms` durations |
+| **Icons** | Inline SVGs, 14×14 or 16×16 viewBox, `currentColor`, `strokeWidth: 1.5–1.6`. Placed in tinted square containers (`border-radius: 8px`, `28×28px`) |
+| **Minimalist** | No decorative gradients, no drop shadows on text, no warm/Anthropic tones (no `#c4694a`, `#e8956a`, `#fdf0ea`) |
+| **Ergonomic** | Controls at minimum 32px touch height. Panels `clamp(284px, 22vw, 336px)`. Header 56px. Status bar 44px |
+
+### CSS Namespace Reference
+- `hdr-*` — header bar (glass, 3-column grid, centered brand)
+- `panel-*` — designer sidebar (white, 16px border-radius)
+- `btn-*` — buttons (ghost, primary, topbar variants)
+- `segment-*` — arm segment rows
+- `gripper-*` — gripper library cards
+- `validation-*` / `metric-*` — design check panel
+- `bom-*` — bill-of-materials counter
+- `viewport-*` — 3D viewport wrapper
+- `status-*` — bottom status bar
 
 ---
 
