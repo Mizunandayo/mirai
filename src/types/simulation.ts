@@ -22,6 +22,7 @@ export interface SimFrame {
 
   isCollision: boolean
   collidingObjectId?: string
+  collidingLinkIndex?: number
 
   heldObjectId?: string
   heldObjectPos?: [number, number, number]

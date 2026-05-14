@@ -2,57 +2,81 @@ import { useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useAtomValue } from 'jotai'
 import { Quaternion, Mesh } from 'three'
-import { RigidBody, CuboidCollider, CylinderCollider, type RigidBodyApi } from '@react-three/rapier'
+import {
+  RigidBody,
+  CuboidCollider,
+  CylinderCollider,
+  type RigidBodyApi,
+} from '@react-three/rapier'
 import { sceneGraphAtom } from '../../store/taskAtoms'
-import { currentSimFrameAtom, currentFrameAtom } from '../../store/simAtoms'
+import {
+  currentSimFrameAtom,
+  currentFrameAtom,
+  collisionFlashMsAtom,
+} from '../../store/simAtoms'
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-function CollisionHaloBox({ w, h, d }: { w: number; h: number; d: number }) {
+function CollisionHaloBox({
+  w,
+  h,
+  d,
+  active,
+  flashMs,
+}: {
+  w: number
+  h: number
+  d: number
+  active: boolean
+  flashMs: number
+}) {
   const ref = useRef<Mesh>(null)
+
   useFrame(({ clock }) => {
     if (!ref.current) return
-    const wave = 1 + Math.sin(clock.elapsedTime * 16) * 0.03
-    ref.current.scale.set(wave, wave, wave)
+    ref.current.visible = active
+    if (!active) return
+
+    const pulse = 0.8 + Math.sin(clock.elapsedTime * 8) * 0.2
+    ref.current.scale.set(pulse, pulse, pulse)
     const mat = ref.current.material as any
-    mat.opacity = 0.12 + (Math.sin(clock.elapsedTime * 16) * 0.5 + 0.5) * 0.22
+    mat.opacity = 0.28 + (Math.sin(clock.elapsedTime * 8) * 0.5 + 0.5) * 0.12
   })
+
   return (
-    <mesh ref={ref}>
-      <boxGeometry args={[w * 1.03, h * 1.03, d * 1.03]} />
-      <meshBasicMaterial color="#ef4444" transparent opacity={0.18} depthWrite={false} />
+    <mesh ref={ref} visible={false}>
+      <boxGeometry args={[w * 1.04, h * 1.04, d * 1.04]} />
+      <meshBasicMaterial color="#dc2626" transparent opacity={0.32} depthWrite={false} />
     </mesh>
   )
 }
 
-
-
-
-
-function CollisionHaloCylinder({ r, h }: { r: number; h: number }) {
+function CollisionHaloCylinder({
+  r,
+  h,
+  active,
+  flashMs,
+}: {
+  r: number
+  h: number
+  active: boolean
+  flashMs: number
+}) {
   const ref = useRef<Mesh>(null)
+
   useFrame(({ clock }) => {
     if (!ref.current) return
-    const wave = 1 + Math.sin(clock.elapsedTime * 16) * 0.03
-    ref.current.scale.set(wave, wave, wave)
+    ref.current.visible = active
+    if (!active) return
+
+    const pulse = 0.8 + Math.sin(clock.elapsedTime * 8) * 0.2
+    ref.current.scale.set(pulse, pulse, pulse)
     const mat = ref.current.material as any
-    mat.opacity = 0.12 + (Math.sin(clock.elapsedTime * 16) * 0.5 + 0.5) * 0.22
+    mat.opacity = 0.28 + (Math.sin(clock.elapsedTime * 8) * 0.5 + 0.5) * 0.12
   })
+
   return (
-    <mesh ref={ref}>
-      <cylinderGeometry args={[r * 1.03, r * 1.03, h * 1.03, 18]} />
-      <meshBasicMaterial color="#ef4444" transparent opacity={0.18} depthWrite={false} />
+    <mesh ref={ref} visible={false}>
+      <cylinderGeometry args={[r * 1.04, r * 1.04, h * 1.04, 18]} />
+      <meshBasicMaterial color="#dc2626" transparent opacity={0.32} depthWrite={false} />
     </mesh>
   )
 }
@@ -61,6 +85,7 @@ export default function SceneObjects() {
   const scene = useAtomValue(sceneGraphAtom)
   const currentFrame = useAtomValue(currentSimFrameAtom)
   const frameNumber = useAtomValue(currentFrameAtom)
+  const flashMs = useAtomValue(collisionFlashMsAtom)
 
   const frameRef = useRef(currentFrame)
   frameRef.current = currentFrame
@@ -71,12 +96,14 @@ export default function SceneObjects() {
 
   useEffect(() => {
     if (frameNumber !== 0) return
+
     prevHeldIdRef.current = null
     gripOffsetRef.current = [0, 0, 0]
 
     for (const obj of scene.objects) {
       const body = bodyRefs.current.get(obj.id)
       if (!body) continue
+
       const [x, y, z] = obj.position
       body.setTranslation({ x, y, z }, true)
       body.setRotation(new Quaternion(0, 0, 0, 1), true)
@@ -115,6 +142,7 @@ export default function SceneObjects() {
       } else {
         gripOffsetRef.current = [0, 0, 0]
       }
+
       prevHeldIdRef.current = currentHeld
     }
 
@@ -124,33 +152,29 @@ export default function SceneObjects() {
 
     const [bx, by, bz] = frame.heldObjectPos
     const [ox, oy, oz] = gripOffsetRef.current
+
     body.setTranslation({ x: bx + ox, y: by + oy, z: bz + oz }, true)
     body.setLinvel({ x: 0, y: 0, z: 0 }, false)
     body.setAngvel({ x: 0, y: 0, z: 0 }, false)
   })
 
-
-
-
-
-
-  
   return (
     <>
       {scene.objects.map((obj) => {
         const [w, h, d] = obj.dimensions
         const [x, y, z] = obj.position
         const color = obj.color ?? '#c8b89a'
-        const isCollision = currentFrame?.isCollision && currentFrame.collidingObjectId === obj.id
+        const isCollisionTarget =
+          currentFrame?.isCollision && currentFrame.collidingObjectId === obj.id
 
         if (obj.type === 'surface') {
           return (
             <RigidBody key={obj.id} type="fixed" position={[x, y, z]} colliders={false}>
               <mesh castShadow receiveShadow>
                 <boxGeometry args={[w, h, d]} />
-                <meshStandardMaterial color={color} roughness={0.75} metalness={0} />
+                <meshStandardMaterial color={isCollisionTarget ? '#dc2626' : color} roughness={0.75} metalness={0} />
               </mesh>
-              {isCollision && <CollisionHaloBox w={w} h={h} d={d} />}
+              <CollisionHaloBox w={w} h={h} d={d} active={Boolean(isCollisionTarget)} flashMs={flashMs} />
               <CuboidCollider args={[w / 2, h / 2, d / 2]} />
             </RigidBody>
           )
@@ -173,9 +197,9 @@ export default function SceneObjects() {
             >
               <mesh castShadow>
                 <boxGeometry args={[w, h, d]} />
-                <meshStandardMaterial color={color} roughness={0.6} metalness={0.05} />
+                <meshStandardMaterial color={isCollisionTarget ? '#dc2626' : color} roughness={0.6} metalness={0.05} />
               </mesh>
-              {isCollision && <CollisionHaloBox w={w} h={h} d={d} />}
+              <CollisionHaloBox w={w} h={h} d={d} active={Boolean(isCollisionTarget)} flashMs={flashMs} />
               <CuboidCollider args={[w / 2, h / 2, d / 2]} restitution={0.1} friction={0.7} />
             </RigidBody>
           )
@@ -198,9 +222,9 @@ export default function SceneObjects() {
             >
               <mesh castShadow>
                 <cylinderGeometry args={[w / 2, w / 2, h, 16]} />
-                <meshStandardMaterial color={color} roughness={0.5} metalness={0.1} />
+                <meshStandardMaterial color={isCollisionTarget ? '#dc2626' : color} roughness={0.5} metalness={0.1} />
               </mesh>
-              {isCollision && <CollisionHaloCylinder r={w / 2} h={h} />}
+              <CollisionHaloCylinder r={w / 2} h={h} active={Boolean(isCollisionTarget)} flashMs={flashMs} />
               <CylinderCollider args={[h / 2, w / 2]} restitution={0.05} friction={0.7} />
             </RigidBody>
           )

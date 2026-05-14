@@ -7,6 +7,7 @@ import TaskEditorPanel from './components/task-editor/TaskEditorPanel'
 import TaskFlowCanvas from './components/task-editor/TaskFlowCanvas'
 import SimViewer from './components/simulation/SimViewer'
 import SimulationPanel from './components/simulation/SimulationPanel'
+import AIPanel from './components/ai-integration/AIPanel'
 
 
 
@@ -111,20 +112,22 @@ function HeaderDust() {
 
 
 
-type NavItem = 'design' | 'tasks' | 'simulate' | 'export'
+type NavItem = 'design' | 'tasks' | 'simulate' | 'ai' | 'export'
 const NAV_ITEMS: { id: NavItem; label: string }[] = [
   { id: 'design', label: 'Design' },
   { id: 'tasks', label: 'Tasks' },
   { id: 'simulate', label: 'Simulate' },
+  { id: 'ai', label: 'AI' },
   { id: 'export', label: 'Export' },
 ]
 
-const STEP_MAP: Record<NavItem, number> = { design: 1, tasks: 2, simulate: 3, export: 4 }
+const STEP_MAP: Record<NavItem, number> = { design: 1, tasks: 2, simulate: 3, ai: 4, export: 5 }
 
 const STATUS_MAP: Record<NavItem, string> = {
   design: 'arm designer active',
   tasks: 'task editor active',
   simulate: 'physics simulation',
+  ai: 'gemini planning active',
   export: 'export · coming day 6',
 }
 
@@ -190,7 +193,7 @@ function handleNavClick(nav: NavItem) {
         </div>
 
         <div className="hdr-right" style={{ position: 'relative', zIndex: 1 }}>
-          <span className="hdr-step">Step {STEP_MAP[activeNav]} of 4</span>
+          <span className="hdr-step">Step {STEP_MAP[activeNav]} of 5</span>
           <button
             className={`hdr-mode${isAdvanced ? ' hdr-mode--detailed' : ''}`}
             onClick={() => setIsAdvanced(!isAdvanced)}
@@ -207,9 +210,10 @@ function handleNavClick(nav: NavItem) {
         {activeNav === 'design' && <ArmDesignerPanel hidden={!panelOpen} />}
         {activeNav === 'tasks' && panelOpen && <TaskEditorPanel />}
         {activeNav === 'simulate' && panelOpen && <SimulationPanel />}
+        {activeNav === 'ai' && panelOpen && <AIPanel />}
 
         <main className="viewport-wrapper">
-          {activeNav === 'tasks' ? <TaskFlowCanvas /> : activeNav === 'simulate' ? <SimViewer /> : (<>
+          {activeNav === 'tasks' || activeNav === 'ai' ? <TaskFlowCanvas /> : activeNav === 'simulate' ? <SimViewer /> : (<>
           <ArmViewer ref={viewerRef} />
 
           <button

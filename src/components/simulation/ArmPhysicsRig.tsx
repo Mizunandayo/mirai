@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { CuboidCollider, RigidBody, type RigidBodyApi, useRapier } from '@react-three/rapier'
+import {
+  CuboidCollider,
+  CylinderCollider,
+  RigidBody,
+  type RigidBodyApi,
+  useRapier,
+} from '@react-three/rapier'
 import { Quaternion, Vector3 } from 'three'
 import type { ArmSegment } from '../../types/arm'
-import { forwardKinematics, clampPitchAngles } from '../../utils/forwardKinematics'
-
-
-
+import { clampPitchAngles, forwardKinematics } from '../../utils/forwardKinematics'
 
 interface ArmPhysicsRigProps {
   segments: ArmSegment[]
@@ -23,18 +26,19 @@ type JointMeta = {
   pitchIndex: number
 }
 
-
-
-
-
-
 const WORLD_UP = new Vector3(0, 1, 0)
-const V1 = new Vector3()
-const V2 = new Vector3()
-const Q = new Quaternion()
+const START = new Vector3()
+const END = new Vector3()
+const ROTATION = new Quaternion()
 
-
-
+const BASE_RADIUS = 0.1
+const LINK_WIDTH = 0.062
+const JOINT_RADIUS = 0.065
+const JOINT_HALF_DEPTH = 0.029
+const REVOLUTE_STIFFNESS = 80
+const REVOLUTE_DAMPING = 10
+const PRISMATIC_STIFFNESS = 70
+const PRISMATIC_DAMPING = 9
 
 function buildPitchIndexMap(segments: ArmSegment[]): number[] {
   let idx = 0
@@ -45,9 +49,6 @@ function buildPitchIndexMap(segments: ArmSegment[]): number[] {
     return out
   })
 }
-
-
-
 
 export default function ArmPhysicsRig({
   segments,
@@ -63,19 +64,15 @@ export default function ArmPhysicsRig({
 
   const pitchIndexMap = useMemo(() => buildPitchIndexMap(segments), [segments])
 
-
-
-
-
   useEffect(() => {
-    // Cleanup previous joints first
-    for (const j of createdJointsRef.current) {
+    for (const joint of createdJointsRef.current) {
       try {
-        world.removeImpulseJoint(j, true)
+        world.removeImpulseJoint(joint, true)
       } catch {
         // noop
       }
     }
+
     createdJointsRef.current = []
     jointsRef.current = []
 
@@ -85,6 +82,7 @@ export default function ArmPhysicsRig({
       const parent = bodyRefs.current[i - 1]
       const child = bodyRefs.current[i]
       const seg = segments[i]
+
       if (!parent || !child || seg.joint === 'fixed') continue
 
       const parentAnchor = { x: 0, y: segments[i - 1].length * 0.5, z: 0 }
@@ -92,59 +90,60 @@ export default function ArmPhysicsRig({
 
       if (seg.joint === 'revolute') {
         const axis = { x: 0, y: 0, z: 1 }
-        const jd = rapier.JointData.revolute(parentAnchor, childAnchor, axis)
-        jd.limitsEnabled = true
-        jd.limits = [
+        const jointData = rapier.JointData.revolute(parentAnchor, childAnchor, axis)
+
+        jointData.limitsEnabled = true
+        jointData.limits = [
           (seg.jointLimitMin * Math.PI) / 180,
           (seg.jointLimitMax * Math.PI) / 180,
         ]
 
-        const j = world.createImpulseJoint(jd, parent.raw(), child.raw(), true)
-        createdJointsRef.current.push(j)
+        const joint = world.createImpulseJoint(jointData, parent.raw(), child.raw(), true)
+
+        createdJointsRef.current.push(joint)
         jointsRef.current.push({
           segmentIndex: i,
           type: 'revolute',
-          joint: j,
+          joint,
           pitchIndex: pitchIndexMap[i],
         })
       }
 
       if (seg.joint === 'prismatic') {
         const axis = { x: 0, y: 1, z: 0 }
-        const jd = rapier.JointData.prismatic(parentAnchor, childAnchor, axis)
-        jd.limitsEnabled = true
-        jd.limits = [0, Math.max(0.03, seg.length * 0.35)]
+        const jointData = rapier.JointData.prismatic(parentAnchor, childAnchor, axis)
 
-        const j = world.createImpulseJoint(jd, parent.raw(), child.raw(), true)
-        createdJointsRef.current.push(j)
+        jointData.limitsEnabled = true
+        jointData.limits = [0, Math.max(0.03, seg.length * 0.35)]
+
+        const joint = world.createImpulseJoint(jointData, parent.raw(), child.raw(), true)
+
+        createdJointsRef.current.push(joint)
         jointsRef.current.push({
           segmentIndex: i,
           type: 'prismatic',
-          joint: j,
+          joint,
           pitchIndex: pitchIndexMap[i],
         })
       }
     }
 
     return () => {
-      for (const j of createdJointsRef.current) {
+      for (const joint of createdJointsRef.current) {
         try {
-          world.removeImpulseJoint(j, true)
+          world.removeImpulseJoint(joint, true)
         } catch {
           // noop
         }
       }
+
       createdJointsRef.current = []
       jointsRef.current = []
     }
   }, [enabled, segments, pitchIndexMap, rapier, world])
 
-
-
-  
   useFrame(() => {
-    if (!enabled) return
-    if (segments.length === 0) return
+    if (!enabled || segments.length === 0) return
 
     const safePitch = clampPitchAngles(segments, pitchAngles)
     const fk = forwardKinematics(segments, safePitch, waistYawDeg)
@@ -161,48 +160,44 @@ export default function ArmPhysicsRig({
       const cy = (start[1] + end[1]) * 0.5
       const cz = (start[2] + end[2]) * 0.5
 
-      V1.set(start[0], start[1], start[2])
-      V2.set(end[0], end[1], end[2])
-      const dir = V2.clone().sub(V1).normalize()
-      Q.setFromUnitVectors(WORLD_UP, dir)
+      START.set(start[0], start[1], start[2])
+      END.set(end[0], end[1], end[2])
+      const dir = END.clone().sub(START).normalize()
+
+      ROTATION.setFromUnitVectors(WORLD_UP, dir)
 
       body.setNextKinematicTranslation({ x: cx, y: cy, z: cz })
-      body.setNextKinematicRotation(Q)
+      body.setNextKinematicRotation(ROTATION)
     }
 
-    // Keep joint motors aligned with current plan pose
     for (const meta of jointsRef.current) {
-      const j = meta.joint as any
-      if (!j) continue
+      const joint = meta.joint as any
+      if (!joint) continue
 
       if (meta.type === 'revolute') {
         const angleDeg = safePitch[meta.pitchIndex] ?? 0
         const target = (angleDeg * Math.PI) / 180
-        if (typeof j.configureMotorPosition === 'function') {
-          j.configureMotorPosition(target, 80, 10)
+
+        if (typeof joint.configureMotorPosition === 'function') {
+          joint.configureMotorPosition(target, REVOLUTE_STIFFNESS, REVOLUTE_DAMPING)
         }
       }
 
       if (meta.type === 'prismatic') {
-        if (typeof j.configureMotorPosition === 'function') {
-          j.configureMotorPosition(0, 70, 9)
+        if (typeof joint.configureMotorPosition === 'function') {
+          joint.configureMotorPosition(0, PRISMATIC_STIFFNESS, PRISMATIC_DAMPING)
         }
       }
     }
   })
 
-
-
-
-
-
-
-
   return (
     <group>
       {segments.map((seg, i) => {
-        const width = seg.joint === 'fixed' ? 0.10 : 0.062
+        const isBase = seg.joint === 'fixed'
+        const width = isBase ? BASE_RADIUS * 2 : LINK_WIDTH
         const halfHeight = Math.max(seg.length * 0.5 - 0.01, 0.01)
+        const hasJointHousing = !isBase
 
         return (
           <RigidBody
@@ -216,11 +211,34 @@ export default function ArmPhysicsRig({
             restitution={0.02}
             canSleep={false}
           >
-            <CuboidCollider args={[width * 0.5, halfHeight, width * 0.5]} />
+            {isBase ? (
+              <CylinderCollider args={[halfHeight, BASE_RADIUS]} />
+            ) : (
+              <>
+                <CuboidCollider args={[width * 0.5, halfHeight, width * 0.5]} />
+                {hasJointHousing && (
+                  <CylinderCollider
+                    args={[JOINT_HALF_DEPTH, JOINT_RADIUS]}
+                    position={[0, -halfHeight + JOINT_HALF_DEPTH, 0]}
+                    rotation={[0, 0, Math.PI / 2]}
+                  />
+                )}
+              </>
+            )}
+
             {debug && (
               <mesh>
-                <boxGeometry args={[width, halfHeight * 2, width]} />
-                <meshBasicMaterial color="#0d0d0d" wireframe transparent opacity={0.22} />
+                {isBase ? (
+                  <cylinderGeometry args={[BASE_RADIUS, BASE_RADIUS, halfHeight * 2, 20]} />
+                ) : (
+                  <boxGeometry args={[width, halfHeight * 2, width]} />
+                )}
+                <meshBasicMaterial
+                  color="#0d0d0d"
+                  wireframe
+                  transparent
+                  opacity={0.22}
+                />
               </mesh>
             )}
           </RigidBody>

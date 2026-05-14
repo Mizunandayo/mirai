@@ -49,13 +49,13 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 | 1 | May 11 | Foundation + 3D Engine | ✅ Scaffold + dependencies + git push complete |
 | 2 | May 12 | Arm Design Studio | ✅ **COMPLETE** — All 12 files created, types defined, atoms/utils/components full stack, React 18 downgrade applied, app live at localhost:5173, TypeScript clean |
 | 3 | May 13 | Task Editor (React Flow) | ✅ **COMPLETE** — All 14 files created, 7 node types, palette, canvas, deletable edges, validation, Ctrl+S export, Ctrl+Z undo, TypeScript clean |
-| 4 | May 14 | Physics Simulation (Rapier) | 🔄 **IN PROGRESS** — Sim pipeline live (compiler/FK/IK/viewer/playback/timeline/HUD/metrics), collision markers + grip-empty warning, loop/skip-collision/reverse/reset controls, camera focus/reset, live viewport X/Y point readout, approach-target freeze + no-snap carry implemented |
+| 4 | May 14 | Physics Simulation (Rapier) | ✅ **COMPLETE** — Sim pipeline finalized with arm-link collision detection, segment rigid bodies, revolute/prismatic constraints, and collision flash polish |
 | 5 | May 15 | Gemini AI Integration | ⏳ Ready to Start |
 | 6 | May 16 | Backend + MuJoCo + Export | ⏳ Ready to Start |
 | 7 | May 17 | Community + Famous Preloads | ⏳ Ready to Start |
 | 8 | May 18–19 | Polish + Demo Prep + Submit | ⏳ Ready to Start |
 
-**STATUS:** Days 1–3 complete. Day 4 is actively in progress with core simulation systems working and multiple physics/UX fixes applied.
+**STATUS:** Days 1–4 complete. Day 5 is ready to start.
 
 ---
 
@@ -79,7 +79,7 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 ✅ Canvas clear control shipped: trash icon above zoom controls with Clear all confirmation dialog; clearing resets flow and task-name local storage
 ❌ None pending for Day 3
 
-### Day 4 — Physics Simulation (In Progress)
+### Day 4 — Physics Simulation ✅ COMPLETE
 ✅ FK/IK + deterministic motion compiler pipeline operational
 ✅ Playback transport: play/pause/step/rewind/jump/speed + loop + skip-collision + reverse + reset
 ✅ Timeline collision/grip-empty markers, live Joint HUD, live Physics Metrics completed
@@ -94,9 +94,12 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 ✅ Starting regular playback now auto-disables Teach mode and Lock/Free camera mode
 ✅ Simulation player header now shows loaded task metadata name (`taskNameAtom`) instead of Start-node label
 ✅ Collision detection upgraded from end-effector-only checks to arm-link sampling (non-fixed segments), so arm-vs-surface contacts (e.g., floating shelf/table) now trigger `Collision Detected`
-❌ Rapier rigid body setup for each arm segment
-❌ Revolute/prismatic joint constraints in Rapier
-❌ Collision highlight flash + auto-rewind polish
+✅ Rapier rigid body setup for each arm segment
+✅ Revolute/prismatic joint constraints in Rapier
+✅ Collision highlight flash polish
+✅ Collision highlighting made persistent (stays red while colliding, not time-out based)
+✅ Collision highlighting applied to both arm segments AND environment objects simultaneously
+✅ Object positioning adjusted to minimize gap between objects and work table surface
 
 ### Day 5 — Gemini AI Integration (Not Started)
 ❌ `/ai/plan` + `/ai/repair` endpoints
@@ -285,9 +288,9 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 - ✅ Grip carry no-snap offset tracking implemented
 - ✅ Approach-target freeze + runtime-correct grab alignment implemented (`approachTargetId` in `SimFrame`)
 - ✅ Tasks canvas state now persists when switching tabs away from and back to Tasks
-- ❌ Rapier rigid body per arm segment (Box + Cylinder colliders)
-- ❌ Joint constraints — revolute (rotating), prismatic (sliding)
-- ❌ Collision highlight mesh flash + auto-rewind polish
+- ✅ Rapier rigid body per arm segment (Box + Cylinder colliders)
+- ✅ Joint constraints — revolute (rotating), prismatic (sliding)
+- ✅ Collision highlight mesh flash polish
 
 **Deliverable:** Smooth 60fps physics simulation. Collision detection working.
 

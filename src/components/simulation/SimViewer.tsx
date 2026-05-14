@@ -411,6 +411,8 @@ export default function SimViewer() {
     complete: { label: 'Complete', color: '#3b82f6' },
   }
   const statusInfo = STATUS_INFO[status] ?? STATUS_INFO.idle
+  const hasFrameCollision = currentSimFrame?.isCollision ?? false
+  const visibleStatusInfo = hasFrameCollision ? STATUS_INFO.collision_paused : statusInfo
   const isTransportPlaying = status === 'playing' || status === 'reverse_playing'
 
   useEffect(() => {
@@ -637,8 +639,8 @@ export default function SimViewer() {
       {/* Status + Labels toggle — top-right overlay */}
       <div style={{ position: 'absolute', top: 12, right: 104, display: 'flex', alignItems: 'center', gap: 8, zIndex: 22 }}>
         <div className="sim-status-row sim-status-row--compact sim-status-pill" style={{ flexShrink: 0 }}>
-          <span className="sim-status-dot" style={{ background: statusInfo.color }} />
-          <span className="sim-status-label" style={{ color: statusInfo.color }}>{statusInfo.label}</span>
+          <span className="sim-status-dot" style={{ background: visibleStatusInfo.color }} />
+          <span className="sim-status-label" style={{ color: visibleStatusInfo.color }}>{visibleStatusInfo.label}</span>
         </div>
         <button
           className={`sim-teach-toggle${teachMode ? ' sim-teach-toggle--active' : ''}`}

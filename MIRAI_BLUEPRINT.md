@@ -39,7 +39,7 @@
 
 ## DAILY PROGRESS TRACKER
 
-> **Today:** Thursday, May 14, 2026 (Day 4 of 8 — in progress) | **Deadline:** Monday, May 19, 2026 — 8:00 AM PST (Philippine Standard Time)
+> **Today:** Thursday, May 14, 2026 (Day 4 of 8 — complete) | **Deadline:** Monday, May 19, 2026 — 8:00 AM PST (Philippine Standard Time)
 > **Legend:** ✅ Done &nbsp; ❌ Not Started &nbsp; 🔄 In Progress (today)
 
 ---
@@ -64,7 +64,7 @@
 ✅ Canvas clear control shipped: trash icon above zoom controls with Clear all confirmation dialog; clearing resets flow and task-name local storage
 ❌ None pending for Day 3
 
-### Day 4 — Physics Simulation (In Progress)
+### Day 4 — Physics Simulation ✅ COMPLETE
 ✅ FK/IK + deterministic motion compiler pipeline operational
 ✅ Playback transport: play/pause/step/rewind/jump/speed + loop + skip-collision + reverse + reset
 ✅ Timeline collision/grip-empty markers, live Joint HUD, live Physics Metrics completed
@@ -79,9 +79,12 @@
 ✅ Starting regular playback now auto-disables Teach + Lock/Free
 ✅ Simulation player header now shows loaded task metadata name (not Start-node label)
 ✅ Collision detection upgraded from end-effector-only checks to arm-link sampling (non-fixed segments), so arm-vs-surface contacts now trigger `Collision Detected`
-❌ Rapier rigid body setup for each arm segment
-❌ Revolute/prismatic joint constraints in Rapier
-❌ Collision highlight flash + auto-rewind polish
+✅ Rapier rigid body setup for each arm segment
+✅ Revolute/prismatic joint constraints in Rapier
+✅ Collision highlight flash polish
+✅ Collision highlighting made persistent (stays red while colliding, not time-out based)
+✅ Collision highlighting applied to both arm segments AND environment objects simultaneously
+✅ Object positioning adjusted to minimize gap between objects and work table surface
 
 ### Day 5 — Gemini AI Integration (Not Started)
 ❌ `/ai/plan` + `/ai/repair` endpoints
@@ -211,9 +214,9 @@
 - ✅ Live tool-point coordinate readout (X/Y) added in simulation viewport (bottom-right)
 - ✅ Physics metrics switched to per-joint line-by-line row layout for readability
 - ✅ Tasks canvas state now persists when switching tabs away from and back to Tasks
-- ❌ Rapier rigid body setup for each arm segment (Box + Cylinder colliders)
-- ❌ Joint constraints — revolute/prismatic in Rapier
-- ❌ Collision highlight visual polish (red mesh flash + auto-rewind behavior polish)
+- ✅ Rapier rigid body setup for each arm segment (Box + Cylinder colliders)
+- ✅ Joint constraints — revolute/prismatic in Rapier
+- ✅ Collision highlight visual polish (red mesh flash)
 
 > **Day 4 Deliverable:** Smooth 60fps physics simulation of any task JSON. Collision detection working.
 
@@ -1389,13 +1392,13 @@ Pre-Flight Check — 2 issues found
 **Goal**: Real-time physics playback in browser at 60fps
 
 **Tasks**:
-- [ ] Rapier rigid body setup for each arm segment
-- [ ] Joint constraints (revolute, prismatic) in Rapier
-- [ ] Task executor: reads JSON blocks, drives Rapier simulation
-- [ ] Playback controls: play/pause/rewind/speed/scrub
-- [ ] Timeline component with frame markers
-- [ ] Joint angle HUD overlay during playback
-- [ ] Collision highlight (red mesh flash on contact)
+- [x] Rapier rigid body setup for each arm segment
+- [x] Joint constraints (revolute, prismatic) in Rapier
+- [x] Task executor: reads JSON blocks, drives Rapier simulation
+- [x] Playback controls: play/pause/rewind/speed/scrub
+- [x] Timeline component with frame markers
+- [x] Joint angle HUD overlay during playback
+- [x] Collision highlight (red mesh flash on contact)
 - [ ] Path trail visualization (glowing trajectory line)
 
 **Deliverable**: Smooth 60fps physics simulation of any task

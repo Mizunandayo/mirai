@@ -1,0 +1,43 @@
+.confidence-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  margin-top: 16px;
+}
+
+.confidence-score {
+  font-family: Poppins, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.confidence-label {
+  font-family: Poppins, sans-serif;
+  font-size: 0.68rem;
+  color: #555555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.confidence-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.warning-flag {
+  padding: 6px 8px;
+  font-family: Poppins, sans-serif;
+  font-size: 0.68rem;
+  color: #854d0e;
+  background: rgba(217, 119, 6, 0.1);
+  border-radius: 4px;
+  text-align: center;
+}

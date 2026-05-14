@@ -8,11 +8,6 @@ import { currentSimFrameAtom, collisionFlashMsAtom } from '../../store/simAtoms'
 import type { ArmSegment, GripperConfig } from '../../types/arm'
 import ArmPhysicsRig from './ArmPhysicsRig'
 
-
-
-
-
-
 const C = {
   linkAlum: '#c2c6ce',
   baseAlum: '#93979f',
@@ -31,10 +26,6 @@ const C = {
 const STEEL = { metalness: 0.78, roughness: 0.16 } as const
 const ALUM = { metalness: 0.62, roughness: 0.28 } as const
 const RUBB = { metalness: 0.02, roughness: 0.88 } as const
-
-
-
-
 
 function JointHousing({ r = 0.065 }: { r?: number }) {
   return (
@@ -58,9 +49,6 @@ function JointHousing({ r = 0.065 }: { r?: number }) {
     </group>
   )
 }
-
-
-
 
 function GripperVisual({
   gripper,
@@ -124,7 +112,6 @@ function GripperVisual({
     )
   }
 
-
   if (gripper.type === 'suction_cup') {
     return (
       <group
@@ -152,14 +139,6 @@ function GripperVisual({
     )
   }
 
-
-
-
-
-
-
-
-
   return (
     <group
       onPointerEnter={onHover ? (e) => { e.stopPropagation(); onHover() } : undefined}
@@ -172,7 +151,7 @@ function GripperVisual({
     >
       <mesh position={[0, 0.016, 0]}>
         <cylinderGeometry args={[0.068, 0.068, 0.032, 24]} />
-        <meshStandardMaterial color={C.waist} {...STEEL} emissive={selectedEmissive} emissiveIntensity={selectedIntensity} />
+        <meshStandardMaterial color={C.waist} {...STEEL} emissive="#000000" emissiveIntensity={0} />
       </mesh>
       <mesh position={[0, -0.014, 0]}>
         <cylinderGeometry args={[0.07, 0.075, 0.05, 32]} />
@@ -186,9 +165,6 @@ function GripperVisual({
   )
 }
 
-
-
-
 interface ChainProps {
   segments: ArmSegment[]
   segIndex: number
@@ -196,7 +172,8 @@ interface ChainProps {
   revolveIdx: { current: number }
   gripper: GripperConfig
   gripperOpen: boolean
-  isCollision: boolean
+  flashActive: boolean
+  collidingLinkIndex?: number
   cumulativePitchRad: number
   interactive: boolean
   selectedPartId: string | null
@@ -207,8 +184,20 @@ interface ChainProps {
 }
 
 function SegmentChain({
-  segments, segIndex, pitchAngles, revolveIdx, gripper, gripperOpen, isCollision,
-  cumulativePitchRad, interactive, selectedPartId, hoveredPartId, onHoverPart, onBeginManipulation,
+  segments,
+  segIndex,
+  pitchAngles,
+  revolveIdx,
+  gripper,
+  gripperOpen,
+  flashActive,
+  collidingLinkIndex,
+  cumulativePitchRad,
+  interactive,
+  selectedPartId,
+  hoveredPartId,
+  onHoverPart,
+  onBeginManipulation,
 }: ChainProps) {
   if (segIndex >= segments.length) {
     return (
@@ -235,18 +224,16 @@ function SegmentChain({
     revolveIdx.current += 1
   }
 
-  const W = isBase ? 0.1 : 0.062
-  const H = seg.length
+  const width = isBase ? 0.1 : 0.062
+  const height = seg.length
   const partId = isBase ? 'waist' : `segment-${segIndex}`
   const isSelected = selectedPartId === partId
   const isHovered = hoveredPartId === partId
   const isActive = isSelected || isHovered
-
-
-
-
-
-
+  const isCollidedLink =
+    flashActive &&
+    !isBase &&
+    (typeof collidingLinkIndex === 'number' ? collidingLinkIndex === segIndex : true)
 
   return (
     <group
@@ -261,27 +248,33 @@ function SegmentChain({
     >
       {!isBase && <JointHousing />}
 
-      <mesh position={[0, H / 2, 0]} castShadow>
+      <mesh position={[0, height / 2, 0]} castShadow>
         {isBase
-          ? <cylinderGeometry args={[W, W * 1.25, H, 22]} />
-          : <boxGeometry args={[W, Math.max(H - 0.046, 0.01), W]} />
+          ? <cylinderGeometry args={[width, width * 1.25, height, 22]} />
+          : <boxGeometry args={[width, Math.max(height - 0.046, 0.01), width]} />
         }
         <meshStandardMaterial
           color={isBase ? C.baseAlum : C.linkAlum}
           {...ALUM}
-          emissive={isCollision && !isBase ? '#ef4444' : isActive ? '#2563eb' : '#000000'}
-          emissiveIntensity={isCollision && !isBase ? 0.45 : isActive ? 0.35 : 0}
+          emissive={isCollidedLink ? '#ef4444' : isActive ? '#2563eb' : '#000000'}
+          emissiveIntensity={isCollidedLink ? 0.6 : isActive ? 0.35 : 0}
         />
       </mesh>
 
       {!isBase && (
-        <mesh position={[0, H - 0.015, 0]}>
+        <mesh position={[0, height - 0.015, 0]}>
           <boxGeometry args={[0.072, 0.022, 0.072]} />
-          <meshStandardMaterial color="#4e525a" metalness={0.7} roughness={0.2} />
+          <meshStandardMaterial
+            color="#4e525a"
+            metalness={0.7}
+            roughness={0.2}
+            emissive={isCollidedLink ? '#ef4444' : '#000000'}
+            emissiveIntensity={isCollidedLink ? 0.3 : 0}
+          />
         </mesh>
       )}
 
-      <group position={[0, H, 0]}>
+      <group position={[0, height, 0]}>
         <SegmentChain
           segments={segments}
           segIndex={segIndex + 1}
@@ -289,7 +282,8 @@ function SegmentChain({
           revolveIdx={revolveIdx}
           gripper={gripper}
           gripperOpen={gripperOpen}
-          isCollision={isCollision}
+          flashActive={flashActive}
+          collidingLinkIndex={collidingLinkIndex}
           cumulativePitchRad={cumulativePitchRad + (isBase ? 0 : pitchRad)}
           interactive={interactive}
           selectedPartId={selectedPartId}
@@ -315,10 +309,6 @@ interface SimulatedArmProps {
   } | null
 }
 
-
-
-
-
 export default function SimulatedArm({
   interactive = false,
   selectedPartId = null,
@@ -336,6 +326,7 @@ export default function SimulatedArm({
   const waistYawDeg = poseOverride?.waistYawDeg ?? frame?.waistYawDeg ?? 0
   const gripperOpen = frame?.gripperOpen ?? true
   const isCollision = frame?.isCollision ?? false
+  const collidingLinkIndex = frame?.collidingLinkIndex
   const endEffector = poseOverride?.endEffectorPos ?? frame?.endEffectorPos ?? [0, 0, 0]
 
   const kinematicRef = useRef<RigidBodyApi>(null)
@@ -344,11 +335,11 @@ export default function SimulatedArm({
   const flashUntilRef = useRef<number>(0)
 
   useEffect(() => {
-    if (isCollision && !prevCollisionRef.current) {
-      flashUntilRef.current = performance.now() + flashMs
+    if (isCollision) {
+      flashUntilRef.current = performance.now() + 10000 // Stay active while colliding
     }
     prevCollisionRef.current = isCollision
-  }, [isCollision, flashMs])
+  }, [isCollision])
 
   useFrame(() => {
     if (kinematicRef.current) {
@@ -360,34 +351,28 @@ export default function SimulatedArm({
     }
 
     if (collisionLightRef.current) {
-      const now = performance.now()
-      const active = now < flashUntilRef.current
+      const active = isCollision
       collisionLightRef.current.visible = active
+
       if (active) {
-        const t = now * 0.024
-        collisionLightRef.current.intensity = 2.2 + Math.abs(Math.sin(t)) * 2.4
+        const now = performance.now()
+        const pulse = Math.abs(Math.sin(now * 0.024))
+        collisionLightRef.current.intensity = 2.2 + pulse * 2.4
       }
     }
   })
 
   const revolveIdx = useMemo(() => ({ current: 0 }), [pitchAngles, waistYawDeg])
   revolveIdx.current = 0
+  const flashActive = isCollision
 
-
-
-
-
-
-
-
-
-  
   return (
     <group>
       <mesh position={[0, -0.026, 0]} receiveShadow>
         <cylinderGeometry args={[0.25, 0.27, 0.052, 36]} />
         <meshStandardMaterial color={C.plate} {...ALUM} />
       </mesh>
+
       <mesh position={[0, -0.001, 0]}>
         <cylinderGeometry args={[0.172, 0.192, 0.008, 36]} />
         <meshStandardMaterial color={C.plateLip} metalness={0.62} roughness={0.34} />
@@ -407,7 +392,8 @@ export default function SimulatedArm({
             revolveIdx={revolveIdx}
             gripper={gripper}
             gripperOpen={gripperOpen}
-            isCollision={isCollision}
+            flashActive={flashActive}
+            collidingLinkIndex={collidingLinkIndex}
             cumulativePitchRad={0}
             interactive={interactive}
             selectedPartId={selectedPartId}

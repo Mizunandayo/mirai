@@ -1,10 +1,12 @@
 .sim-viewer button:not(:disabled),
 .sim-viewer [role="button"],
-.sim-viewer .sim-timeline-track {
+.sim-viewer .sim-timeline-track,
+.sim-panel-dropdown-toggle {
   cursor: pointer;
 }
 
-.sim-viewer button:disabled {
+.sim-viewer button:disabled,
+.sim-panel-dropdown-toggle:disabled {
   cursor: not-allowed;
 }
 
@@ -22,7 +24,8 @@
     box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
     background 180ms ease,
     border-color 180ms ease,
-    color 180ms ease;
+    color 180ms ease,
+    opacity 180ms ease;
 }
 
 .sim-labels-toggle:hover,
@@ -30,35 +33,20 @@
 .sim-teach-lock-btn:hover:not(:disabled),
 .sim-ptp-clear-btn:hover,
 .sim-ptp-save-btn:hover,
-.sim-transport-btn:hover:not(:disabled) {
+.sim-transport-btn:hover:not(:disabled),
+.sim-panel-dropdown-toggle:hover {
   transform: translateY(-1px);
 }
 
 .sim-status-pill {
-  transition: box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1), border-color 180ms ease;
+  transition:
+    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .sim-status-pill:hover {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.10);
-}
-
-.sim-rewind-frames {
-  width: 64px;
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid #0d0d0d;
-  background: #ffffff;
-  color: #111111;
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 600;
-  text-align: center;
-  outline: none;
-  transition: box-shadow 180ms ease, border-color 180ms ease;
-}
-
-.sim-rewind-frames:focus {
-  box-shadow: 0 0 0 3px rgba(13, 13, 13, 0.18);
 }
 
 .sim-tool-point-label,

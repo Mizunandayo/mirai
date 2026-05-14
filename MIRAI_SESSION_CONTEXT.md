@@ -1,5 +1,5 @@
 # Mirai — Session Context
-**Last updated:** Thursday, May 14, 2026 — Days 1–3 complete. Day 4 (Physics Simulation) is in progress with core sim systems, navigation-state persistence, and latest simulation UX fixes implemented.
+**Last updated:** Thursday, May 14, 2026 — Days 1–4 complete. Day 4 (Physics Simulation) finalized with arm-link collision detection, segment rigid-body rigging, joint constraints, and collision flash polish.
 
 ---
 
@@ -84,7 +84,7 @@
 ✅ Canvas clear control shipped: trash icon above zoom controls with Clear all confirmation dialog; clearing resets flow and task-name local storage
 ❌ None pending for Day 3
 
-### Day 4 — Physics Simulation (In Progress)
+### Day 4 — Physics Simulation ✅ COMPLETE
 ✅ FK/IK + deterministic motion compiler pipeline operational
 ✅ Playback transport: play/pause/step/rewind/jump/speed + loop + skip-collision + reverse + reset
 ✅ Timeline collision/grip-empty markers, live Joint HUD, live Physics Metrics completed
@@ -98,10 +98,13 @@
 ✅ Playback interlocks shipped: PlaybackControls disable during PTP sequence; PTP Play-all disables during regular transport playback
 ✅ Teach interlock shipped: starting regular transport playback auto-disables Teach mode and Lock/Free camera mode
 ✅ Simulation header now shows loaded task metadata name (`taskNameAtom`) instead of Start-node label
+✅ Collision highlighting made persistent (stays red while colliding, not time-out based)
+✅ Collision highlighting applied to both arm segments AND environment objects simultaneously
+✅ Object positioning adjusted to minimize gap between objects and work table surface
 ✅ Collision detection upgraded from end-effector-only checks to arm-link sampled checks (non-fixed links), so arm-vs-surface contacts now correctly trigger `collision_paused` / `Collision Detected`
-❌ Rapier rigid body setup for each arm segment
-❌ Revolute/prismatic joint constraints in Rapier
-❌ Collision highlight flash + auto-rewind polish
+✅ Rapier rigid body setup for each arm segment
+✅ Revolute/prismatic joint constraints in Rapier
+✅ Collision highlight flash polish
 
 ### Day 5 — Gemini AI Integration (Not Started)
 ❌ `/ai/plan` + `/ai/repair` endpoints
