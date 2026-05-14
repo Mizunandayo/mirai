@@ -233,6 +233,7 @@ export default function SimViewer() {
   const [showLabels, setShowLabels] = useState(false)
   const [focusLevel, setFocusLevel] = useState<0 | 1 | 2>(1)
   const [resetSignal, setResetSignal] = useState(0)
+  const [ptpPoints, setPtpPoints] = useState<Array<{ x: number; y: number; z: number }>>([])
 
   const [toolX = 0, toolY = 0] = currentSimFrame?.endEffectorPos ?? [0, 0, 0]
 
@@ -257,6 +258,29 @@ export default function SimViewer() {
   function handleReset() {
     setFocusLevel(1)
     setResetSignal((s) => s + 1)
+  }
+
+  function handleSaveCurrentPoint() {
+    const nextPoint = {
+      x: parseFloat(toolX.toFixed(3)),
+      y: parseFloat(toolY.toFixed(3)),
+      z: parseFloat((currentSimFrame?.endEffectorPos?.[2] ?? 0).toFixed(3)),
+    }
+
+    setPtpPoints((prev) => [
+      // Avoid adding exact duplicate saved coordinates.
+      ...(prev.some((pt) => pt.x === nextPoint.x && pt.y === nextPoint.y && pt.z === nextPoint.z)
+        ? prev
+        : [...prev, nextPoint]),
+    ])
+  }
+
+  function handleDeletePoint(indexToDelete: number) {
+    setPtpPoints((prev) => prev.filter((_, index) => index !== indexToDelete))
+  }
+
+  function handleClearPoints() {
+    setPtpPoints([])
   }
 
   return (
@@ -319,11 +343,54 @@ export default function SimViewer() {
         </button>
       </div>
 
-      {/* Live tool-point coordinates */}
-      <div className="sim-tool-point-readout" aria-live="polite">
-        <span className="sim-tool-point-label">Point</span>
-        <span className="sim-tool-point-coord">X {toolX.toFixed(3)}</span>
-        <span className="sim-tool-point-coord">Y {toolY.toFixed(3)}</span>
+      {/* PTP stack + live tool-point coordinates */}
+      <div className="sim-tool-point-stack">
+        <div className="sim-ptp-list" aria-label="Saved PTP coordinates">
+          {ptpPoints.length === 0 ? (
+            <div className="sim-ptp-empty">No saved coordinates</div>
+          ) : (
+            ptpPoints.map((pt, index) => (
+              <div key={`${pt.x}-${pt.y}-${pt.z}-${index}`} className="sim-ptp-item">
+                <span className="sim-ptp-item-text">P{index + 1}:   X {pt.x.toFixed(3)},  Y {pt.y.toFixed(3)},  Z {pt.z.toFixed(3)}</span>
+                <button
+                  type="button"
+                  className="sim-ptp-item-delete"
+                  onClick={() => handleDeletePoint(index)}
+                  title="Delete saved point"
+                  aria-label={`Delete saved point ${index + 1}`}
+                >
+                  x
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {ptpPoints.length > 0 && (
+          <button
+            className="sim-ptp-clear-btn"
+            onClick={handleClearPoints}
+            type="button"
+            title="Clear all saved points"
+          >
+            Clear all
+          </button>
+        )}
+
+        <button
+          className="sim-ptp-save-btn"
+          onClick={handleSaveCurrentPoint}
+          type="button"
+          title="Save current tool-point coordinates"
+        >
+          Save current point
+        </button>
+
+        <div className="sim-tool-point-readout" aria-live="polite">
+          <span className="sim-tool-point-label">Point</span>
+          <span className="sim-tool-point-coord">X {toolX.toFixed(3)}</span>
+          <span className="sim-tool-point-coord">Y {toolY.toFixed(3)}</span>
+        </div>
       </div>
     </div>
   )
