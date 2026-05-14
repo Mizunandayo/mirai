@@ -5,7 +5,7 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, Grid, Html } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import { useAtom, useAtomValue } from 'jotai'
-import { compiledPlanAtom, playbackStatusAtom, currentFrameAtom, currentSimFrameAtom, playbackSpeedAtom, loopAtom, skipCollisionPauseAtom, ptpSequencePlayingAtom } from '../../store/simAtoms'
+import { compiledPlanAtom, playbackStatusAtom, currentFrameAtom, currentSimFrameAtom, playbackSpeedAtom, loopAtom, skipCollisionPauseAtom, ptpSequencePlayingAtom, autoRewindOnCollisionAtom, collisionRewindFramesAtom, collisionFlashMsAtom } from '../../store/simAtoms'
 import { sceneGraphAtom } from '../../store/taskAtoms'
 import { armSegmentsAtom } from '../../store/atoms'
 import { forwardKinematics, clampPitchAngles } from '../../utils/forwardKinematics'
@@ -13,6 +13,7 @@ import { solveIK } from '../../utils/inverseKinematics'
 import SceneObjects from './SceneObjects'
 import SimulatedArm from './SimulatedArm'
 import PathTrail from './PathTrail'
+import './simulation-polish.css'
 
 
 
@@ -27,7 +28,11 @@ function useSimPlayback() {
   const speed          = useAtomValue(playbackSpeedAtom)
   const loop                = useAtomValue(loopAtom)
   const skipCollisionPause  = useAtomValue(skipCollisionPauseAtom)
+  const autoRewindOnCollision = useAtomValue(autoRewindOnCollisionAtom)
+  const collisionRewindFrames = useAtomValue(collisionRewindFramesAtom)
+  const collisionFlashMs = useAtomValue(collisionFlashMsAtom)
   const intervalRef         = useRef<number | null>(null)
+  const rewindTimeoutRef    = useRef<number | null>(null)
   
   
 
@@ -37,6 +42,10 @@ function useSimPlayback() {
     if (intervalRef.current !== null) {
         window.clearInterval(intervalRef.current)
         intervalRef.current = null
+    }
+    if (rewindTimeoutRef.current !== null) {
+        window.clearTimeout(rewindTimeoutRef.current)
+        rewindTimeoutRef.current = null
     }
   }, [])
 
@@ -77,6 +86,19 @@ function useSimPlayback() {
           // First collision frame — pause and let user see it (unless bypass is on)
           setStatus('collision_paused')
           clearTick()
+
+          if (autoRewindOnCollision) {
+            const flashDelayMs = Math.max(120, Math.min(3000, collisionFlashMs || 420))
+            const rewindBy = Math.max(1, Math.min(240, Math.floor(collisionRewindFrames || 12)))
+            const rewindTarget = Math.max(0, next - rewindBy)
+
+            rewindTimeoutRef.current = window.setTimeout(() => {
+              setFrame(rewindTarget)
+              setStatus('paused')
+              rewindTimeoutRef.current = null
+            }, flashDelayMs)
+          }
+
           return next
         }
         return next
@@ -84,7 +106,7 @@ function useSimPlayback() {
     }, msPerFrame)
 
     return clearTick
-  }, [status, plan, speed, loop, skipCollisionPause, setFrame, setStatus, clearTick])
+  }, [status, plan, speed, loop, skipCollisionPause, autoRewindOnCollision, collisionRewindFrames, collisionFlashMs, setFrame, setStatus, clearTick])
 
 
 }

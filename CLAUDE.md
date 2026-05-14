@@ -93,6 +93,7 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 ✅ Interlock behavior shipped: PlaybackControls disable during PTP sequence, while PTP Play-all disables during regular transport playback
 ✅ Starting regular playback now auto-disables Teach mode and Lock/Free camera mode
 ✅ Simulation player header now shows loaded task metadata name (`taskNameAtom`) instead of Start-node label
+✅ Collision detection upgraded from end-effector-only checks to arm-link sampling (non-fixed segments), so arm-vs-surface contacts (e.g., floating shelf/table) now trigger `Collision Detected`
 ❌ Rapier rigid body setup for each arm segment
 ❌ Revolute/prismatic joint constraints in Rapier
 ❌ Collision highlight flash + auto-rewind polish

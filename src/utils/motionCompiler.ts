@@ -21,6 +21,7 @@ const MIN_MOVE_FRAMES   = 12
 const GRIP_HOLD_FRAMES  = 20    
 const COLLISION_MARGIN  = 0.05
 const GRAB_RANGE        = 0.18   // metres — max distance to snap-grab an object
+const LINK_COLLISION_SAMPLES = 6 // points sampled along each arm link for collision checks
 
 
 
@@ -119,6 +120,37 @@ function checkAABBCollision(
   return null
 }
 
+function checkArmLinkCollision(
+  segments: ArmSegment[],
+  jointPositions: [number, number, number][],
+  scene: SceneGraph,
+  ignoreId?: string,
+): string | null {
+  for (let segIndex = 0; segIndex < segments.length; segIndex++) {
+    const seg = segments[segIndex]
+    // Base/fixed segment rests on support surfaces by design; skip false positives.
+    if (seg.joint === 'fixed') continue
+
+    const a = jointPositions[segIndex]
+    const b = jointPositions[segIndex + 1]
+    if (!a || !b) continue
+
+    for (let s = 0; s <= LINK_COLLISION_SAMPLES; s++) {
+      const t = s / LINK_COLLISION_SAMPLES
+      const sample: [number, number, number] = [
+        a[0] + (b[0] - a[0]) * t,
+        a[1] + (b[1] - a[1]) * t,
+        a[2] + (b[2] - a[2]) * t,
+      ]
+
+      const collisionId = checkAABBCollision(sample, scene, ignoreId)
+      if (collisionId) return collisionId
+    }
+  }
+
+  return null
+}
+
 
 
 
@@ -204,7 +236,9 @@ export function compileTask(
     const velocities = estimateVelocities(prevPitch, safePitch, FRAME_DT_MS / 1000)
     // Ignore the held object AND the object currently being approached (intentional pick contact is not a crash)
     const ignoreId = heldObjectId ?? approachTargetId ?? undefined
-    const collisionId = checkAABBCollision(fk.endEffector, scene, ignoreId)
+    const collisionId =
+      checkArmLinkCollision(segments, fk.jointPositions, scene, ignoreId) ??
+      checkAABBCollision(fk.endEffector, scene, ignoreId)
 
     // If holding an object, compute its world position = endEffector + baked offset
     const heldObjectPos: [number, number, number] | undefined =

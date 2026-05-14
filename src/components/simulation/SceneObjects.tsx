@@ -1,40 +1,79 @@
-// src/components/simulation/SceneObjects.tsx
-
 import { useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useAtomValue } from 'jotai'
-import { Quaternion } from 'three'
+import { Quaternion, Mesh } from 'three'
 import { RigidBody, CuboidCollider, CylinderCollider, type RigidBodyApi } from '@react-three/rapier'
 import { sceneGraphAtom } from '../../store/taskAtoms'
 import { currentSimFrameAtom, currentFrameAtom } from '../../store/simAtoms'
 
 
-export default function SceneObjects() {
-  const scene        = useAtomValue(sceneGraphAtom)
-  const currentFrame = useAtomValue(currentSimFrameAtom)
-  const frameNumber  = useAtomValue(currentFrameAtom)
 
-  // Mirror current frame in a ref so useFrame callback is never stale
+
+
+
+
+
+
+
+
+
+
+
+function CollisionHaloBox({ w, h, d }: { w: number; h: number; d: number }) {
+  const ref = useRef<Mesh>(null)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    const wave = 1 + Math.sin(clock.elapsedTime * 16) * 0.03
+    ref.current.scale.set(wave, wave, wave)
+    const mat = ref.current.material as any
+    mat.opacity = 0.12 + (Math.sin(clock.elapsedTime * 16) * 0.5 + 0.5) * 0.22
+  })
+  return (
+    <mesh ref={ref}>
+      <boxGeometry args={[w * 1.03, h * 1.03, d * 1.03]} />
+      <meshBasicMaterial color="#ef4444" transparent opacity={0.18} depthWrite={false} />
+    </mesh>
+  )
+}
+
+
+
+
+
+function CollisionHaloCylinder({ r, h }: { r: number; h: number }) {
+  const ref = useRef<Mesh>(null)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    const wave = 1 + Math.sin(clock.elapsedTime * 16) * 0.03
+    ref.current.scale.set(wave, wave, wave)
+    const mat = ref.current.material as any
+    mat.opacity = 0.12 + (Math.sin(clock.elapsedTime * 16) * 0.5 + 0.5) * 0.22
+  })
+  return (
+    <mesh ref={ref}>
+      <cylinderGeometry args={[r * 1.03, r * 1.03, h * 1.03, 18]} />
+      <meshBasicMaterial color="#ef4444" transparent opacity={0.18} depthWrite={false} />
+    </mesh>
+  )
+}
+
+export default function SceneObjects() {
+  const scene = useAtomValue(sceneGraphAtom)
+  const currentFrame = useAtomValue(currentSimFrameAtom)
+  const frameNumber = useAtomValue(currentFrameAtom)
+
   const frameRef = useRef(currentFrame)
   frameRef.current = currentFrame
 
-  // Map of object id → Rapier RigidBodyApi for dynamic objects
   const bodyRefs = useRef<Map<string, RigidBodyApi>>(new Map())
+  const prevHeldIdRef = useRef<string | null>(null)
+  const gripOffsetRef = useRef<[number, number, number]>([0, 0, 0])
 
-  // Grip-offset carry: tracks which object was held last tick and the
-  // positional delta between its actual Rapier position and the baked
-  // heldObjectPos at the moment grip closed. Carrying with this offset
-  // prevents the object from snapping to the compiled position when it was
-  // physically displaced during the arm's approach phase.
-  const prevHeldIdRef  = useRef<string | null>(null)
-  const gripOffsetRef  = useRef<[number, number, number]>([0, 0, 0])
-
-  // When playback resets to frame 0 (loop or manual rewind), teleport every
-  // dynamic body back to its original position so the scene looks fresh.
   useEffect(() => {
     if (frameNumber !== 0) return
     prevHeldIdRef.current = null
     gripOffsetRef.current = [0, 0, 0]
+
     for (const obj of scene.objects) {
       const body = bodyRefs.current.get(obj.id)
       if (!body) continue
@@ -47,14 +86,9 @@ export default function SceneObjects() {
   }, [frameNumber, scene.objects])
 
   useFrame(() => {
-    const frame        = frameRef.current
-    const currentHeld  = frame?.heldObjectId ?? null
+    const frame = frameRef.current
+    const currentHeld = frame?.heldObjectId ?? null
 
-    // ── Freeze approach target ───────────────────────────────────────────────
-    // While the arm is descending toward an object (grip still open), pin that
-    // object to its original scene position so the kinematic arm collider
-    // cannot push it away. This guarantees the arm arrives at the exact
-    // compiled grab center.
     if (frame?.approachTargetId && !currentHeld) {
       const approachBody = bodyRefs.current.get(frame.approachTargetId)
       if (approachBody) {
@@ -68,11 +102,8 @@ export default function SceneObjects() {
       }
     }
 
-    // ── Detect grip-close transition ─────────────────────────────────────────
     if (currentHeld !== prevHeldIdRef.current) {
       if (currentHeld && frame?.heldObjectPos) {
-        // Grip just closed — snapshot the delta between the object's actual
-        // Rapier position and the baked heldObjectPos so carry is snap-free.
         const body = bodyRefs.current.get(currentHeld)
         if (body) {
           const actual = body.translation()
@@ -82,16 +113,15 @@ export default function SceneObjects() {
           gripOffsetRef.current = [0, 0, 0]
         }
       } else {
-        // Grip opened — clear offset
         gripOffsetRef.current = [0, 0, 0]
       }
       prevHeldIdRef.current = currentHeld
     }
 
-    // ── Carry: pin held object to gripper + recorded offset ──────────────────
     if (!currentHeld || !frame?.heldObjectPos) return
     const body = bodyRefs.current.get(currentHeld)
     if (!body) return
+
     const [bx, by, bz] = frame.heldObjectPos
     const [ox, oy, oz] = gripOffsetRef.current
     body.setTranslation({ x: bx + ox, y: by + oy, z: bz + oz }, true)
@@ -99,12 +129,19 @@ export default function SceneObjects() {
     body.setAngvel({ x: 0, y: 0, z: 0 }, false)
   })
 
+
+
+
+
+
+  
   return (
     <>
       {scene.objects.map((obj) => {
         const [w, h, d] = obj.dimensions
         const [x, y, z] = obj.position
         const color = obj.color ?? '#c8b89a'
+        const isCollision = currentFrame?.isCollision && currentFrame.collidingObjectId === obj.id
 
         if (obj.type === 'surface') {
           return (
@@ -113,6 +150,7 @@ export default function SceneObjects() {
                 <boxGeometry args={[w, h, d]} />
                 <meshStandardMaterial color={color} roughness={0.75} metalness={0} />
               </mesh>
+              {isCollision && <CollisionHaloBox w={w} h={h} d={d} />}
               <CuboidCollider args={[w / 2, h / 2, d / 2]} />
             </RigidBody>
           )
@@ -137,6 +175,7 @@ export default function SceneObjects() {
                 <boxGeometry args={[w, h, d]} />
                 <meshStandardMaterial color={color} roughness={0.6} metalness={0.05} />
               </mesh>
+              {isCollision && <CollisionHaloBox w={w} h={h} d={d} />}
               <CuboidCollider args={[w / 2, h / 2, d / 2]} restitution={0.1} friction={0.7} />
             </RigidBody>
           )
@@ -161,13 +200,13 @@ export default function SceneObjects() {
                 <cylinderGeometry args={[w / 2, w / 2, h, 16]} />
                 <meshStandardMaterial color={color} roughness={0.5} metalness={0.1} />
               </mesh>
+              {isCollision && <CollisionHaloCylinder r={w / 2} h={h} />}
               <CylinderCollider args={[h / 2, w / 2]} restitution={0.05} friction={0.7} />
             </RigidBody>
           )
         }
 
         if (obj.type === 'zone') {
-          // Zone = visual dashed outline + faint fill, no physics body
           return (
             <group key={obj.id} position={[x, y, z]}>
               <mesh>
@@ -181,7 +220,6 @@ export default function SceneObjects() {
         return null
       })}
 
-      {/* Target zones — flat disc indicators on floor level */}
       {scene.targetZones.map((zone) => (
         <mesh key={zone.id} position={zone.position} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[zone.radius * 0.7, zone.radius, 24]} />

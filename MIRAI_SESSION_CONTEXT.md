@@ -98,6 +98,7 @@
 ✅ Playback interlocks shipped: PlaybackControls disable during PTP sequence; PTP Play-all disables during regular transport playback
 ✅ Teach interlock shipped: starting regular transport playback auto-disables Teach mode and Lock/Free camera mode
 ✅ Simulation header now shows loaded task metadata name (`taskNameAtom`) instead of Start-node label
+✅ Collision detection upgraded from end-effector-only checks to arm-link sampled checks (non-fixed links), so arm-vs-surface contacts now correctly trigger `collision_paused` / `Collision Detected`
 ❌ Rapier rigid body setup for each arm segment
 ❌ Revolute/prismatic joint constraints in Rapier
 ❌ Collision highlight flash + auto-rewind polish
@@ -203,6 +204,7 @@ Core simulation pipeline is live: FK/IK + motion compiler + SimViewer + SceneObj
 
 Completed in-session fixes:
 - Surface collision warnings fixed (table/shelf now counted)
+- Arm-link collision detection added in compiler (`motionCompiler.ts`) using sampled points along each non-fixed segment, fixing missed collisions where links hit surfaces but end-effector does not
 - Camera focus cycle + reset controls
 - Loop playback toggle + skip-collision-pause toggle
 - Reverse playback + reset transport controls added

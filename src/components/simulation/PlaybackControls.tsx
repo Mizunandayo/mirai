@@ -1,5 +1,3 @@
-// src/components/simulation/PlaybackControls.tsx
-
 import { useAtom, useAtomValue } from 'jotai'
 import { useEffect } from 'react'
 import { taskNodesAtom, taskEdgesAtom, sceneGraphAtom, taskNameAtom } from '../../store/taskAtoms'
@@ -17,18 +15,13 @@ import { compileTask } from '../../utils/motionCompiler'
 import TimelineScrubber from './TimelineScrubber'
 import type { PlaybackSpeed } from '../../types/simulation'
 
-
-
-
-
-
 const SPEEDS: PlaybackSpeed[] = [0.25, 0.5, 1, 2, 4]
 const SPEED_LABELS: Record<PlaybackSpeed, string> = {
   0.25: '1/4x',
-  0.5:  '1/2x',
-  1:    '1x',
-  2:    '2x',
-  4:    '4x',
+  0.5: '1/2x',
+  1: '1x',
+  2: '2x',
+  4: '4x',
 }
 
 
@@ -36,24 +29,29 @@ const SPEED_LABELS: Record<PlaybackSpeed, string> = {
 
 
 
+
+
+
+
+
+
+
+
 export default function PlaybackControls() {
-  const nodes    = useAtomValue(taskNodesAtom)
-  const edges    = useAtomValue(taskEdgesAtom)
+  const nodes = useAtomValue(taskNodesAtom)
+  const edges = useAtomValue(taskEdgesAtom)
   const segments = useAtomValue(armSegmentsAtom)
-  const scene    = useAtomValue(sceneGraphAtom)
+  const scene = useAtomValue(sceneGraphAtom)
   const taskName = useAtomValue(taskNameAtom)
 
-  const [plan,   setPlan]   = useAtom(compiledPlanAtom)
+  const [plan, setPlan] = useAtom(compiledPlanAtom)
   const [status, setStatus] = useAtom(playbackStatusAtom)
-  const [frame,  setFrame]  = useAtom(currentFrameAtom)
-  const [speed,  setSpeed]  = useAtom(playbackSpeedAtom)
+  const [frame, setFrame] = useAtom(currentFrameAtom)
+  const [speed, setSpeed] = useAtom(playbackSpeedAtom)
   const [loop, setLoop] = useAtom(loopAtom)
   const [skipCollisionPause, setSkipCollisionPause] = useAtom(skipCollisionPauseAtom)
   const ptpSequencePlaying = useAtomValue(ptpSequencePlayingAtom)
 
-
-
-  // ── Auto-compile on dependency change ──
   useEffect(() => {
     const compiled = compileTask(nodes, edges, segments, scene, taskName)
     if (compiled) {
@@ -61,23 +59,17 @@ export default function PlaybackControls() {
       setStatus('idle')
       setFrame(0)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodes, edges, segments, scene, taskName])
+  }, [nodes, edges, segments, scene, taskName, setPlan, setStatus, setFrame])
 
-  // ── Transport ──
   const handlePlay = () => {
     if (!plan) return
-    if (status === 'complete') {
-      setFrame(0)
-    }
+    if (status === 'complete') setFrame(0)
     setStatus('playing')
   }
 
   const handleReversePlay = () => {
     if (!plan) return
-    if (frame <= 0) {
-      setFrame(plan.totalFrames - 1)
-    }
+    if (frame <= 0) setFrame(plan.totalFrames - 1)
     setStatus('reverse_playing')
   }
 
@@ -101,10 +93,22 @@ export default function PlaybackControls() {
     setStatus('paused')
   }
 
-  const isPlaying  = status === 'playing' || status === 'reverse_playing'
-  const noplan     = !plan
+  const isPlaying = status === 'playing' || status === 'reverse_playing'
+  const noPlan = !plan
   const totalFrames = plan?.totalFrames ?? 0
 
+
+
+
+
+
+
+
+
+
+
+
+  
   return (
     <section className="sim-section" aria-disabled={ptpSequencePlaying} style={ptpSequencePlaying ? { opacity: 0.56 } : undefined}>
       <div className="sim-playback-top">
@@ -114,9 +118,9 @@ export default function PlaybackControls() {
             style={{
               minWidth: 0,
               fontFamily: 'Poppins, sans-serif',
-              fontSize: '0.76rem',
+              fontSize: '0.86rem',
               fontWeight: 600,
-              color: '#555555',
+              color: '#1a1a1a',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -127,7 +131,6 @@ export default function PlaybackControls() {
             Task: {taskName}
           </div>
         </div>
-        
       </div>
 
       <div className="sim-action-group" style={{ marginTop: 8, marginBottom: 0, flexWrap: 'nowrap' }}>
@@ -140,13 +143,12 @@ export default function PlaybackControls() {
           aria-pressed={loop}
           type="button"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M2.5 5.5A4.5 4.5 0 0 1 7 1h4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            <path d="M10 3.5L11.5 1.9L13 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M13.5 10.5A4.5 4.5 0 0 1 9 15H4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            <path d="M6 12.5L4.5 14.1L3 12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M10.6 4.7A4.1 4.1 0 0 0 3.9 4.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+            <path d="M3.9 4.1v2.2h2.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3.4 9.3A4.1 4.1 0 0 0 10.1 9.9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+            <path d="M10.1 9.9V7.7H7.9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span className="sr-only">Loop</span>
         </button>
 
         <button
@@ -158,100 +160,69 @@ export default function PlaybackControls() {
           aria-pressed={skipCollisionPause}
           type="button"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 2.5C8 2.5 3.5 3.5 3.5 6.5c0 4.5 4.5 7 4.5 7s4.5-2.5 4.5-7c0-3-4.5-4-4.5-4Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-            <path d="M8 7.5v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-            <circle cx="8" cy="6.2" r="0.7" fill="currentColor"/>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 1.8l4.3 1.5v3.1c0 2.3-1.6 4.3-4.3 5.9-2.7-1.6-4.3-3.6-4.3-5.9V3.3L7 1.8Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+            <path d="M5.4 7.2l1.1 1.1 2-2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span className="sr-only">Bypass collision pause</span>
         </button>
 
-                <button
+        <button
           className="sim-transport-btn sim-transport-btn--small"
           onClick={handleReset}
-          disabled={noplan || ptpSequencePlaying}
+          disabled={noPlan || ptpSequencePlaying}
           title="Reset playback"
         >
-          <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
-            <path d="M11.8 4.8A4.8 4.8 0 1 0 12 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-            <path d="M9.2 2.2h2.8V5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M11.6 3.2v3.2H8.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M11.5 6.6A4.9 4.9 0 1 1 9.2 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
           </svg>
         </button>
       </div>
 
       <div className="sim-transport sim-transport--centered" style={{ marginTop: 8, marginBottom: 0 }}>
-
-        <button
-          className="sim-transport-btn sim-transport-btn--small"
-          onClick={handleStepBack}
-          disabled={noplan || frame === 0 || ptpSequencePlaying}
-          title="Step back"
-        >
-          <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
-            <path d="M9 3L4 7l5 4V3z" fill="currentColor"/>
-            <line x1="3" y1="3" x2="3" y2="11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+        <button className="sim-transport-btn sim-transport-btn--small" onClick={handleStepBack} disabled={noPlan || frame === 0 || ptpSequencePlaying} title="Step back" aria-label="Step back">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <path d="M10.8 3.2L5.7 7.5l5.1 4.3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M4 3.1v8.8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+          </svg>
+        </button>
+        <button className="sim-transport-btn sim-transport-btn--small" onClick={handleReversePlay} disabled={noPlan || ptpSequencePlaying} title="Play in reverse" aria-label="Play in reverse">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <path d="M9.8 3.4L4.4 7.5l5.4 4.1V3.4Z" fill="currentColor"/>
+            <path d="M11.7 3.4v8.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
           </svg>
         </button>
 
-        <button
-          className="sim-transport-btn sim-transport-btn--small"
-          onClick={handleReversePlay}
-          disabled={noplan || ptpSequencePlaying}
-          title="Play in reverse"
-        >
-          <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
-            <polygon points="11,2 2,7 11,12" fill="currentColor"/>
-          </svg>
-        </button>
         {isPlaying ? (
-          <button
-            className="sim-transport-btn sim-transport-btn--primary"
-            onClick={handlePause}
-            disabled={ptpSequencePlaying}
-            title="Pause"
-          >
-            <svg width="18" height="18" viewBox="0 0 14 14" fill="none">
-              <rect x="3" y="2" width="3" height="10" rx="1" fill="currentColor"/>
-              <rect x="8" y="2" width="3" height="10" rx="1" fill="currentColor"/>
+          <button className="sim-transport-btn sim-transport-btn--primary" onClick={handlePause} disabled={ptpSequencePlaying} title="Pause" aria-label="Pause">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <rect x="4.2" y="3.8" width="3.2" height="10.4" rx="1" fill="currentColor"/>
+              <rect x="10.6" y="3.8" width="3.2" height="10.4" rx="1" fill="currentColor"/>
             </svg>
           </button>
         ) : (
-          <button
-            className="sim-transport-btn sim-transport-btn--primary"
-            onClick={handlePlay}
-            disabled={noplan || ptpSequencePlaying}
-            title="Play"
-          >
-            <svg width="18" height="18" viewBox="0 0 14 14" fill="none">
-              <polygon points="3,2 12,7 3,12" fill="currentColor"/>
+          <button className="sim-transport-btn sim-transport-btn--primary" onClick={handlePlay} disabled={noPlan || ptpSequencePlaying} title="Play" aria-label="Play">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M5.6 3.9L14 9l-8.4 5.1V3.9Z" fill="currentColor"/>
             </svg>
           </button>
         )}
-        <button
-          className="sim-transport-btn sim-transport-btn--small"
-          onClick={handleStepForward}
-          disabled={noplan || frame >= totalFrames - 1 || ptpSequencePlaying}
-          title="Step forward"
-        >
-          <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
-            <path d="M5 3l5 4-5 4V3z" fill="currentColor"/>
-            <line x1="11" y1="3" x2="11" y2="11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+
+        <button className="sim-transport-btn sim-transport-btn--small" onClick={handleStepForward} disabled={noPlan || frame >= totalFrames - 1 || ptpSequencePlaying} title="Step forward" aria-label="Step forward">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <path d="M4.2 3.2l5.1 4.3-5.1 4.3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M11 3.1v8.8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
           </svg>
         </button>
-        <button
-          className="sim-transport-btn sim-transport-btn--small"
-          onClick={() => { setFrame(totalFrames - 1); setStatus('complete') }}
-          disabled={noplan || ptpSequencePlaying}
-          title="Jump to end"
-        >
-          <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
-            <path d="M2 3l6 4-6 4V3zM12 2v10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+        <button className="sim-transport-btn sim-transport-btn--small" onClick={() => { setFrame(totalFrames - 1); setStatus('complete') }} disabled={noPlan || ptpSequencePlaying} title="Jump to end" aria-label="Jump to end">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <path d="M3.4 3.4l5.4 4.1-5.4 4.1V3.4Z" fill="currentColor"/>
+            <path d="M10.8 3.3v8.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
           </svg>
         </button>
       </div>
+
       <div className="sim-speed-group" style={{ marginTop: 8, marginBottom: 0 }}>
-
-
         {SPEEDS.map((s) => (
           <button
             key={s}
@@ -267,6 +238,7 @@ export default function PlaybackControls() {
           </button>
         ))}
       </div>
+
       <div style={ptpSequencePlaying ? { pointerEvents: 'none', opacity: 0.55 } : undefined}>
         <TimelineScrubber />
       </div>

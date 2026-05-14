@@ -1,0 +1,79 @@
+.sim-viewer button:not(:disabled),
+.sim-viewer [role="button"],
+.sim-viewer .sim-timeline-track {
+  cursor: pointer;
+}
+
+.sim-viewer button:disabled {
+  cursor: not-allowed;
+}
+
+.sim-labels-toggle,
+.sim-teach-toggle,
+.sim-teach-lock-btn,
+.sim-ptp-clear-btn,
+.sim-ptp-save-btn,
+.sim-transport-btn {
+  min-height: 32px;
+  font-size: 0.82rem;
+  color: #1a1a1a;
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.sim-labels-toggle:hover,
+.sim-teach-toggle:hover,
+.sim-teach-lock-btn:hover:not(:disabled),
+.sim-ptp-clear-btn:hover,
+.sim-ptp-save-btn:hover,
+.sim-transport-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.sim-status-pill {
+  transition: box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1), border-color 180ms ease;
+}
+
+.sim-status-pill:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.10);
+}
+
+.sim-rewind-frames {
+  width: 64px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid #0d0d0d;
+  background: #ffffff;
+  color: #111111;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  outline: none;
+  transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.sim-rewind-frames:focus {
+  box-shadow: 0 0 0 3px rgba(13, 13, 13, 0.18);
+}
+
+.sim-tool-point-label,
+.sim-playback-label,
+.sim-ptp-empty {
+  color: #1a1a1a;
+  font-size: 0.82rem;
+}
+
+.sim-scene-label {
+  font-size: 0.82rem;
+  color: #0d0d0d;
+}
+
+.sim-timeline-time {
+  font-size: 0.84rem;
+  color: #1a1a1a;
+}

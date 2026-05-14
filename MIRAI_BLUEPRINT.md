@@ -78,6 +78,7 @@
 ✅ Interlock behavior shipped: PlaybackControls disable during PTP sequence, and PTP Play-all disables during regular transport playback
 ✅ Starting regular playback now auto-disables Teach + Lock/Free
 ✅ Simulation player header now shows loaded task metadata name (not Start-node label)
+✅ Collision detection upgraded from end-effector-only checks to arm-link sampling (non-fixed segments), so arm-vs-surface contacts now trigger `Collision Detected`
 ❌ Rapier rigid body setup for each arm segment
 ❌ Revolute/prismatic joint constraints in Rapier
 ❌ Collision highlight flash + auto-rewind polish
@@ -200,6 +201,7 @@
 - ✅ Path trail visualization active in simulation viewer
 - ✅ Environment objects active (table, shelf, box/cylinder/targets) with Rapier bodies
 - ✅ Surface collision warnings fixed (shelf/table now contribute to collision warnings)
+- ✅ Arm-link collision detection now samples non-fixed links in `motionCompiler.ts`, fixing missed status triggers when links collide but the tool point does not
 - ✅ Camera UX added (focus cycle + reset)
 - ✅ Loop toggle + skip-collision-pause toggle shipped
 - ✅ Reverse playback + reset transport controls shipped
