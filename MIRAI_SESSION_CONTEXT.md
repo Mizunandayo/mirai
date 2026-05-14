@@ -80,6 +80,8 @@
 ✅ 7 node types, palette, deletable edges, validation, undo/export, keyboard shortcuts completed
 ✅ Node interaction polish (`nodrag`, semantic grip toggle, edge delete UX) completed
 ✅ Task canvas now persists when leaving and returning to Tasks tab
+✅ Task canvas now persists across full webpage reload via local storage
+✅ Canvas clear control shipped: trash icon above zoom controls with Clear all confirmation dialog; clearing resets flow and task-name local storage
 ❌ None pending for Day 3
 
 ### Day 4 — Physics Simulation (In Progress)
@@ -162,7 +164,7 @@
 | `src/components/task-editor/DeletableEdge.tsx` | ✅ Custom edge with × button at midpoint (hover/selected reveal, 36×36 hit zone) |
 | `src/components/task-editor/NodePalette.tsx` | ✅ Drag-to-canvas + click-to-add, 6 block types |
 | `src/components/task-editor/TaskEditorPanel.tsx` | ✅ Task name, description, palette, validation footer |
-| `src/components/task-editor/TaskFlowCanvas.tsx` | ✅ ReactFlowProvider + FlowEditor, NODE_TYPES, EDGE_TYPES, 20-step undo, Ctrl+S export, Ctrl+Z undo |
+| `src/components/task-editor/TaskFlowCanvas.tsx` | ✅ ReactFlowProvider + FlowEditor, NODE_TYPES, EDGE_TYPES, 20-step undo, Ctrl+S export, Ctrl+Z undo, localStorage reload persistence, trash clear control + Clear all dialog |
 | `src/components/task-editor/nodes/StartNode.tsx` | ✅ Start (no delete, always required) |
 | `src/components/task-editor/nodes/EndNode.tsx` | ✅ End with delete button |
 | `src/components/task-editor/nodes/MoveNode.tsx` | ✅ Target preset, XYZ, speed, approach; delete + issue icons |
@@ -212,6 +214,8 @@ Completed in-session fixes:
 - Physics metrics panel switched to line-by-line per-joint rows (instead of compact card row)
 - Simulation panel child layout redesigned to a more minimal, scannable structure
 - Task canvas state now persists when navigating away from and back to the Tasks tab
+- Task canvas now persists across webpage reload via localStorage (`mirai_task_flow_v1`)
+- Task canvas clear flow shipped: red-outline trash button above zoom controls, Clear all dialog, and task-name localStorage reset (`mirai_task_name`)
 - Manual teach/PTP interaction shipped: hover-highlight arm parts, hold left-click + drag to drive hovered joint
 - Teach UX polish shipped: camera lock toggle, drag-time highlight latch, and updated on-screen guidance
 - PTP stack shipped: save current point, duplicate-save block, per-point delete, clear-all action, scrollable saved list

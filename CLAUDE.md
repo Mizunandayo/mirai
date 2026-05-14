@@ -75,6 +75,8 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 ✅ 7 node types, palette, deletable edges, validation, undo/export, keyboard shortcuts completed
 ✅ Node interaction polish (`nodrag`, semantic grip toggle, edge delete UX) completed
 ✅ Task canvas now persists when leaving and returning to Tasks tab
+✅ Task canvas now persists across full webpage reload via local storage
+✅ Canvas clear control shipped: trash icon above zoom controls with Clear all confirmation dialog; clearing resets flow and task-name local storage
 ❌ None pending for Day 3
 
 ### Day 4 — Physics Simulation (In Progress)
@@ -222,7 +224,7 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 - ✅ `src/components/task-editor/DeletableEdge.tsx` — custom edge with ×  button at midpoint (hover-reveal + selected-reveal), `interactionWidth: 20`
 - ✅ `src/components/task-editor/NodePalette.tsx` — drag-to-canvas + click-to-add, 6 block types
 - ✅ `src/components/task-editor/TaskEditorPanel.tsx` — task name, description, palette, validation footer
-- ✅ `src/components/task-editor/TaskFlowCanvas.tsx` — ReactFlowProvider + FlowEditor, NODE_TYPES, EDGE_TYPES, 20-step undo history, Ctrl+S export, Ctrl+Z undo, drag-drop, fit-view, Background + Controls
+- ✅ `src/components/task-editor/TaskFlowCanvas.tsx` — ReactFlowProvider + FlowEditor, NODE_TYPES, EDGE_TYPES, 20-step undo history, Ctrl+S export, Ctrl+Z undo, drag-drop, fit-view, Background + Controls, localStorage reload persistence, trash clear control + Clear all dialog
 
 **Modified files:**
 - ✅ `src/main.tsx` — added `import '@xyflow/react/dist/style.css'` before local CSS
@@ -235,6 +237,8 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 - ✅ Delete (×) button on every deletable node header — `deleteElements` via useReactFlow
 - ✅ GripNode open/close: green active (`#15803d`) / red active (`#991b1b`)
 - ✅ Edge delete: transparent 36×36 hit zone at midpoint, fades in on hover or edge selection
+- ✅ Task flow now persists across full webpage reload via local storage
+- ✅ Clear-task UX shipped: red-outline trash control above zoom controls with Clear all confirmation dialog; clear action resets flow and task-name local storage
 
 **Deliverable:** Visual task programmer with 7 node types, validation, drag-to-add palette, deletable edges, Ctrl+S export, Ctrl+Z undo, portable JSON download.
 

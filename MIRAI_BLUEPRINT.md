@@ -60,6 +60,8 @@
 ✅ 7 node types, palette, deletable edges, validation, undo/export, keyboard shortcuts completed
 ✅ Node interaction polish (`nodrag`, semantic grip toggle, edge delete UX) completed
 ✅ Task canvas now persists when leaving and returning to Tasks tab
+✅ Task canvas now persists across full webpage reload via local storage
+✅ Canvas clear control shipped: trash icon above zoom controls with Clear all confirmation dialog; clearing resets flow and task-name local storage
 ❌ None pending for Day 3
 
 ### Day 4 — Physics Simulation (In Progress)
@@ -180,6 +182,8 @@
 - ✅ Node palette — drag-to-canvas + click-to-add, 6 block types
 - ✅ All node bodies `nodrag` — no React Flow drag hijacking on sliders/inputs
 - ✅ `ghostArmTargetAtom` pre-wired for Day 4 ArmViewer consumption
+- ✅ Task flow now persists across full webpage reload via local storage
+- ✅ Clear-task UX shipped: red-outline trash control above zoom controls with Clear all confirmation dialog; clear action resets flow and task-name local storage
 
 > **Day 3 Deliverable:** ✅ Visual task programmer with 7 node types, validation, drag-to-add palette, deletable edges, Ctrl+S export, Ctrl+Z undo, portable JSON download.
 
