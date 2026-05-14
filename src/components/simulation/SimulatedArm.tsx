@@ -48,25 +48,46 @@ function JointHousing({ r = 0.065 }: { r?: number }) {
 function GripperVisual({
   gripper,
   open,
+  isSelected,
+  isHovered,
+  onHover,
+  onHoverEnd,
+  onBeginManipulation,
 }: {
   gripper: GripperConfig
   open: boolean
+  isSelected: boolean
+  isHovered: boolean
+  onHover?: () => void
+  onHoverEnd?: () => void
+  onBeginManipulation?: () => void
 }) {
   const hw = gripper.width / 2
   const jawOffset = hw * (open ? 1.0 : 0.18)
+  const active = isSelected || isHovered
+  const selectedEmissive = active ? '#2563eb' : '#000000'
+  const selectedIntensity = active ? 0.35 : 0
 
   if (gripper.type === 'parallel_jaw') {
     return (
-      <group>
+      <group
+        onPointerEnter={onHover ? (e) => { e.stopPropagation(); onHover() } : undefined}
+        onPointerLeave={onHoverEnd ? (e) => { e.stopPropagation(); onHoverEnd() } : undefined}
+        onPointerDown={onBeginManipulation ? (e) => {
+          if (e.button !== 0) return
+          e.stopPropagation()
+          onBeginManipulation()
+        } : undefined}
+      >
         {/* Mount collar — sits at arm tip */}
         <mesh position={[0, 0.016, 0]}>
           <cylinderGeometry args={[0.076, 0.076, 0.032, 24]} />
-          <meshStandardMaterial color={C.waist} {...STEEL} />
+          <meshStandardMaterial color={C.waist} {...STEEL} emissive={selectedEmissive} emissiveIntensity={selectedIntensity} />
         </mesh>
         {/* Palm body */}
         <mesh position={[0, -0.010, 0]}>
           <boxGeometry args={[hw * 2 + 0.044, 0.038, 0.066]} />
-          <meshStandardMaterial color={C.gripBody} {...ALUM} />
+          <meshStandardMaterial color={C.gripBody} {...ALUM} emissive={selectedEmissive} emissiveIntensity={selectedIntensity} />
         </mesh>
         {/* Left jaw — hangs downward, spreads ±X */}
         <mesh position={[-(jawOffset + 0.008), -0.050, 0]}>
@@ -94,10 +115,18 @@ function GripperVisual({
 
   if (gripper.type === 'suction_cup') {
     return (
-      <group>
+      <group
+        onPointerEnter={onHover ? (e) => { e.stopPropagation(); onHover() } : undefined}
+        onPointerLeave={onHoverEnd ? (e) => { e.stopPropagation(); onHoverEnd() } : undefined}
+        onPointerDown={onBeginManipulation ? (e) => {
+          if (e.button !== 0) return
+          e.stopPropagation()
+          onBeginManipulation()
+        } : undefined}
+      >
         <mesh position={[0, 0.016, 0]}>
           <cylinderGeometry args={[0.060, 0.060, 0.032, 24]} />
-          <meshStandardMaterial color={C.waist} {...STEEL} />
+          <meshStandardMaterial color={C.waist} {...STEEL} emissive={selectedEmissive} emissiveIntensity={selectedIntensity} />
         </mesh>
         <mesh position={[0, -0.008, 0]}>
           <cylinderGeometry args={[0.038, 0.043, 0.040, 20]} />
@@ -112,10 +141,18 @@ function GripperVisual({
   }
 
   return (
-    <group>
+    <group
+      onPointerEnter={onHover ? (e) => { e.stopPropagation(); onHover() } : undefined}
+      onPointerLeave={onHoverEnd ? (e) => { e.stopPropagation(); onHoverEnd() } : undefined}
+      onPointerDown={onBeginManipulation ? (e) => {
+        if (e.button !== 0) return
+        e.stopPropagation()
+        onBeginManipulation()
+      } : undefined}
+    >
       <mesh position={[0, 0.016, 0]}>
         <cylinderGeometry args={[0.068, 0.068, 0.032, 24]} />
-        <meshStandardMaterial color={C.waist} {...STEEL} />
+        <meshStandardMaterial color={C.waist} {...STEEL} emissive={selectedEmissive} emissiveIntensity={selectedIntensity} />
       </mesh>
       <mesh position={[0, -0.014, 0]}>
         <cylinderGeometry args={[0.070, 0.075, 0.050, 32]} />
@@ -140,12 +177,17 @@ interface ChainProps {
   gripperOpen: boolean
   isCollision: boolean
   cumulativePitchRad: number  // accumulated pitch from all parent joints
+  interactive: boolean
+  selectedPartId: string | null
+  hoveredPartId: string | null
+  onHoverPart?: (partId: string | null) => void
+  onBeginManipulation?: (partId: string) => void
   children?: ReactNode
 }
 
 function SegmentChain({
   segments, segIndex, pitchAngles, revolveIdx, gripper, gripperOpen, isCollision,
-  cumulativePitchRad,
+  cumulativePitchRad, interactive, selectedPartId, hoveredPartId, onHoverPart, onBeginManipulation,
 }: ChainProps) {
   if (segIndex >= segments.length) {
     // Leaf: counter-rotate the gripper by the total accumulated pitch so it
@@ -154,7 +196,15 @@ function SegmentChain({
     // down-at-objects on the table.
     return (
       <group rotation={[-cumulativePitchRad, 0, 0]}>
-        <GripperVisual gripper={gripper} open={gripperOpen} />
+        <GripperVisual
+          gripper={gripper}
+          open={gripperOpen}
+          isSelected={selectedPartId === 'gripper'}
+          isHovered={hoveredPartId === 'gripper'}
+          onHover={interactive ? () => onHoverPart?.('gripper') : undefined}
+          onHoverEnd={interactive ? () => onHoverPart?.(null) : undefined}
+          onBeginManipulation={interactive ? () => onBeginManipulation?.('gripper') : undefined}
+        />
       </group>
     )
   }
@@ -170,11 +220,25 @@ function SegmentChain({
 
   const W = isBase ? 0.100 : 0.062
   const H = seg.length
+  const partId = isBase ? 'waist' : `segment-${segIndex}`
+  const isSelected = selectedPartId === partId
+  const isHovered = hoveredPartId === partId
+  const isActive = isSelected || isHovered
+  const selectedIntensity = isActive ? 0.35 : 0
 
   return (
     // This group's rotation = this joint's DELTA angle.
     // All children (next segment + gripper) rotate with it.
-    <group rotation={[pitchRad, 0, 0]}>
+    <group
+      rotation={[pitchRad, 0, 0]}
+      onPointerEnter={interactive ? (e) => { e.stopPropagation(); onHoverPart?.(partId) } : undefined}
+      onPointerLeave={interactive ? (e) => { e.stopPropagation(); onHoverPart?.(null) } : undefined}
+      onPointerDown={interactive ? (e) => {
+        if (e.button !== 0) return
+        e.stopPropagation()
+        onBeginManipulation?.(partId)
+      } : undefined}
+    >
       {!isBase && <JointHousing />}
 
       {/* Segment body */}
@@ -186,8 +250,8 @@ function SegmentChain({
         <meshStandardMaterial
           color={isBase ? C.baseAlum : C.linkAlum}
           {...(isBase ? ALUM : ALUM)}
-          emissive={isCollision && !isBase ? '#ef4444' : '#000000'}
-          emissiveIntensity={isCollision && !isBase ? 0.45 : 0}
+          emissive={isCollision && !isBase ? '#ef4444' : (isActive ? '#2563eb' : '#000000')}
+          emissiveIntensity={isCollision && !isBase ? 0.45 : selectedIntensity}
         />
       </mesh>
 
@@ -209,6 +273,11 @@ function SegmentChain({
           gripperOpen={gripperOpen}
           isCollision={isCollision}
           cumulativePitchRad={cumulativePitchRad + (isBase ? 0 : pitchRad)}
+          interactive={interactive}
+          selectedPartId={selectedPartId}
+          hoveredPartId={hoveredPartId}
+          onHoverPart={onHoverPart}
+          onBeginManipulation={onBeginManipulation}
         />
       </group>
     </group>
@@ -217,16 +286,36 @@ function SegmentChain({
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export default function SimulatedArm() {
+interface SimulatedArmProps {
+  interactive?: boolean
+  selectedPartId?: string | null
+  hoveredPartId?: string | null
+  onHoverPart?: (partId: string | null) => void
+  onBeginManipulation?: (partId: string) => void
+  poseOverride?: {
+    waistYawDeg: number
+    pitchAngles: number[]
+    endEffectorPos: [number, number, number]
+  } | null
+}
+
+export default function SimulatedArm({
+  interactive = false,
+  selectedPartId = null,
+  hoveredPartId = null,
+  onHoverPart,
+  onBeginManipulation,
+  poseOverride = null,
+}: SimulatedArmProps) {
   const segments   = useAtomValue(armSegmentsAtom)
   const gripper    = useAtomValue(armGripperAtom)
   const frame      = useAtomValue(currentSimFrameAtom)
 
-  const pitchAngles  = frame?.pitchAngles ?? []
-  const waistYawDeg  = frame?.waistYawDeg ?? 0
+  const pitchAngles  = poseOverride?.pitchAngles ?? frame?.pitchAngles ?? []
+  const waistYawDeg  = poseOverride?.waistYawDeg ?? frame?.waistYawDeg ?? 0
   const gripperOpen  = frame?.gripperOpen ?? true
   const isCollision  = frame?.isCollision ?? false
-  const endEffector  = frame?.endEffectorPos ?? [0, 0, 0]
+  const endEffector  = poseOverride?.endEffectorPos ?? frame?.endEffectorPos ?? [0, 0, 0]
 
   // Kinematic Rapier body — tracked by FK, pushes environment objects
   const kinematicRef = useRef<RigidBodyApi>(null)
@@ -278,6 +367,11 @@ export default function SimulatedArm() {
             gripperOpen={gripperOpen}
             isCollision={isCollision}
             cumulativePitchRad={0}
+            interactive={interactive}
+            selectedPartId={selectedPartId}
+            hoveredPartId={hoveredPartId}
+            onHoverPart={onHoverPart}
+            onBeginManipulation={onBeginManipulation}
           />
         </group>
       </group>

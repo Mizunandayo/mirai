@@ -1,12 +1,14 @@
 // src/components/simulation/SimViewer.tsx
 
-import { useRef, useEffect, useCallback, useState } from 'react'
+import { useRef, useEffect, useCallback, useState, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, Grid, Html } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import { useAtom, useAtomValue } from 'jotai'
 import { compiledPlanAtom, playbackStatusAtom, currentFrameAtom, currentSimFrameAtom, playbackSpeedAtom, loopAtom, skipCollisionPauseAtom } from '../../store/simAtoms'
 import { sceneGraphAtom } from '../../store/taskAtoms'
+import { armSegmentsAtom } from '../../store/atoms'
+import { forwardKinematics, clampPitchAngles } from '../../utils/forwardKinematics'
 import SceneObjects from './SceneObjects'
 import SimulatedArm from './SimulatedArm'
 import PathTrail from './PathTrail'
@@ -150,7 +152,31 @@ function SceneLabels() {
   )
 }
 
-function SimScene({ showLabels, focusLevel, resetSignal }: { showLabels: boolean; focusLevel: 0 | 1 | 2; resetSignal: number }) {
+function SimScene({
+  showLabels,
+  focusLevel,
+  resetSignal,
+  teachMode,
+  controlsLocked,
+  selectedPartId,
+  hoveredPartId,
+  isManipulating,
+  poseOverride,
+  onHoverPart,
+  onBeginManipulation,
+}: {
+  showLabels: boolean
+  focusLevel: 0 | 1 | 2
+  resetSignal: number
+  teachMode: boolean
+  controlsLocked: boolean
+  selectedPartId: string | null
+  hoveredPartId: string | null
+  isManipulating: boolean
+  poseOverride: { waistYawDeg: number; pitchAngles: number[]; endEffectorPos: [number, number, number] } | null
+  onHoverPart: (partId: string | null) => void
+  onBeginManipulation: (partId: string) => void
+}) {
   const controlsRef = useRef<any>(null)
 
   useEffect(() => {
@@ -166,6 +192,7 @@ function SimScene({ showLabels, focusLevel, resetSignal }: { showLabels: boolean
       <PerspectiveCamera makeDefault position={[2.0, 1.4, 2.6]} fov={38} />
       <OrbitControls
         ref={controlsRef}
+        enabled={!isManipulating && !(teachMode && controlsLocked)}
         enableDamping
         dampingFactor={0.06}
         maxDistance={6}
@@ -208,7 +235,14 @@ function SimScene({ showLabels, focusLevel, resetSignal }: { showLabels: boolean
       {/* Physics world — environment objects + kinematic arm collider */}
       <Physics gravity={[0, -9.81, 0]} timeStep="vary">
         <SceneObjects />
-        <SimulatedArm />
+        <SimulatedArm
+          interactive={teachMode}
+          selectedPartId={selectedPartId}
+          hoveredPartId={hoveredPartId}
+          onHoverPart={onHoverPart}
+          onBeginManipulation={onBeginManipulation}
+          poseOverride={poseOverride}
+        />
       </Physics>
 
       {/* Path trail (outside Physics — purely visual) */}
@@ -230,12 +264,105 @@ export default function SimViewer() {
   useSimPlayback()
   const status = useAtomValue(playbackStatusAtom)
   const currentSimFrame = useAtomValue(currentSimFrameAtom)
+  const segments = useAtomValue(armSegmentsAtom)
   const [showLabels, setShowLabels] = useState(false)
   const [focusLevel, setFocusLevel] = useState<0 | 1 | 2>(1)
   const [resetSignal, setResetSignal] = useState(0)
+  const [teachMode, setTeachMode] = useState(false)
+  const [teachCameraLocked, setTeachCameraLocked] = useState(false)
+  const [selectedPartId, setSelectedPartId] = useState<string | null>(null)
+  const [hoveredPartId, setHoveredPartId] = useState<string | null>(null)
+  const [dragPartId, setDragPartId] = useState<string | null>(null)
+  const [isMouseIkDragging, setIsMouseIkDragging] = useState(false)
+  const [teachPitchAngles, setTeachPitchAngles] = useState<number[]>([])
+  const [teachWaistYawDeg, setTeachWaistYawDeg] = useState(0)
   const [ptpPoints, setPtpPoints] = useState<Array<{ x: number; y: number; z: number }>>([])
 
-  const [toolX = 0, toolY = 0] = currentSimFrame?.endEffectorPos ?? [0, 0, 0]
+  const activeHighlightPartId = isMouseIkDragging ? (dragPartId ?? selectedPartId) : selectedPartId
+
+  const frameTool = currentSimFrame?.endEffectorPos ?? [0, 0, 0]
+  const framePitchAngles = currentSimFrame?.pitchAngles ?? []
+  const frameWaistYaw = currentSimFrame?.waistYawDeg ?? 0
+
+  useEffect(() => {
+    if (teachMode) {
+      setTeachPitchAngles(framePitchAngles)
+      setTeachWaistYawDeg(frameWaistYaw)
+    }
+  }, [teachMode])
+
+  const teachPose = useMemo(() => {
+    if (!teachMode) return null
+    const clamped = clampPitchAngles(segments, teachPitchAngles)
+    const fk = forwardKinematics(segments, clamped, teachWaistYawDeg)
+    return {
+      waistYawDeg: teachWaistYawDeg,
+      pitchAngles: clamped,
+      endEffectorPos: fk.endEffector,
+    }
+  }, [teachMode, teachPitchAngles, teachWaistYawDeg, segments])
+
+  const activeTool = teachMode && teachPose ? teachPose.endEffectorPos : frameTool
+  const [toolX = 0, toolY = 0, toolZ = 0] = activeTool
+
+  function getRevoluteIndexForPart(partId: string | null): number {
+    if (!partId) return -1
+    const revolveCount = segments.filter((s) => s.joint !== 'fixed').length
+    if (revolveCount === 0) return -1
+
+    if (partId === 'gripper') return revolveCount - 1
+    if (!partId.startsWith('segment-')) return -1
+
+    const segIndex = Number.parseInt(partId.replace('segment-', ''), 10)
+    if (Number.isNaN(segIndex) || segIndex < 0) return -1
+
+    let revolveIndex = -1
+    for (let i = 0; i <= segIndex && i < segments.length; i++) {
+      if (segments[i].joint !== 'fixed') revolveIndex += 1
+    }
+    return revolveIndex
+  }
+
+  useEffect(() => {
+    if (!isMouseIkDragging || !teachMode) return
+
+    function onPointerMove(ev: PointerEvent) {
+      const dx = ev.movementX ?? 0
+      const dy = ev.movementY ?? 0
+
+      if (!dragPartId) return
+
+      if (dragPartId === 'waist') {
+        setTeachWaistYawDeg((prev) => prev + dx * 0.25)
+        return
+      }
+
+      const idx = getRevoluteIndexForPart(dragPartId)
+      if (idx < 0) return
+
+      setTeachPitchAngles((prev) => {
+        const next = [...prev]
+        const current = next[idx] ?? 0
+        const delta = ev.ctrlKey ? (-dy * 0.10) : (-dy * 0.22 + dx * 0.06)
+        next[idx] = current + delta
+        return clampPitchAngles(segments, next)
+      })
+    }
+
+    function onPointerUp() {
+      setIsMouseIkDragging(false)
+      setDragPartId(null)
+      // Return to hover-only highlight behavior after drag ends.
+      setSelectedPartId(null)
+    }
+
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', onPointerUp)
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('pointerup', onPointerUp)
+    }
+  }, [isMouseIkDragging, teachMode, dragPartId, segments])
 
   const STATUS_INFO: Record<string, { label: string; color: string }> = {
     idle: { label: 'Ready', color: '#555555' },
@@ -264,7 +391,7 @@ export default function SimViewer() {
     const nextPoint = {
       x: parseFloat(toolX.toFixed(3)),
       y: parseFloat(toolY.toFixed(3)),
-      z: parseFloat((currentSimFrame?.endEffectorPos?.[2] ?? 0).toFixed(3)),
+      z: parseFloat(toolZ.toFixed(3)),
     }
 
     setPtpPoints((prev) => [
@@ -283,14 +410,60 @@ export default function SimViewer() {
     setPtpPoints([])
   }
 
+  function handleTeachModeToggle() {
+    setTeachMode((prev) => {
+      const next = !prev
+      if (next) {
+        // Default teach mode to locked camera so drag gestures control teaching only.
+        setTeachCameraLocked(true)
+      }
+      if (!next) {
+        setSelectedPartId(null)
+        setHoveredPartId(null)
+        setDragPartId(null)
+        setIsMouseIkDragging(false)
+        setTeachCameraLocked(false)
+      }
+      return next
+    })
+  }
+
+  function handleTeachCameraLockToggle() {
+    if (!teachMode) return
+    setTeachCameraLocked((prev) => !prev)
+  }
+
   return (
     <div className="sim-viewer">
       <Canvas
         shadows
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         camera={{ fov: 38 }}
+        onContextMenu={(e) => {
+          if (teachMode) e.preventDefault()
+        }}
       >
-        <SimScene showLabels={showLabels} focusLevel={focusLevel} resetSignal={resetSignal} />
+        <SimScene
+          showLabels={showLabels}
+          focusLevel={focusLevel}
+          resetSignal={resetSignal}
+          teachMode={teachMode}
+          controlsLocked={teachCameraLocked}
+          selectedPartId={activeHighlightPartId}
+          hoveredPartId={hoveredPartId}
+          isManipulating={isMouseIkDragging}
+          poseOverride={teachPose}
+          onBeginManipulation={(partId) => {
+            setSelectedPartId(partId)
+            setHoveredPartId(partId)
+            setDragPartId(partId)
+            setIsMouseIkDragging(true)
+          }}
+          onHoverPart={(partId) => {
+            if (isMouseIkDragging) return
+            setHoveredPartId(partId)
+          }}
+        />
       </Canvas>
 
       {/* Camera focus cycle — Base / Mid / Top */}
@@ -328,6 +501,23 @@ export default function SimViewer() {
           <span className="sim-status-label" style={{ color: statusInfo.color }}>{statusInfo.label}</span>
         </div>
         <button
+          className={`sim-teach-toggle${teachMode ? ' sim-teach-toggle--active' : ''}`}
+          onClick={handleTeachModeToggle}
+          title={teachMode ? 'Disable teach mode' : 'Enable teach mode'}
+          aria-pressed={teachMode}
+        >
+          Teach
+        </button>
+        <button
+          className={`sim-teach-lock-btn${teachMode && teachCameraLocked ? ' sim-teach-lock-btn--active' : ''}`}
+          onClick={handleTeachCameraLockToggle}
+          title={teachMode ? (teachCameraLocked ? 'Unlock viewport camera' : 'Lock viewport camera') : 'Enable Teach mode first'}
+          aria-pressed={teachMode && teachCameraLocked}
+          disabled={!teachMode}
+        >
+          {teachCameraLocked ? 'Lock' : 'Free'}
+        </button>
+        <button
           className={`sim-labels-toggle${showLabels ? ' sim-labels-toggle--active' : ''}`}
           onClick={() => setShowLabels((v) => !v)}
           title={showLabels ? 'Hide object labels' : 'Show object labels'}
@@ -345,6 +535,14 @@ export default function SimViewer() {
 
       {/* PTP stack + live tool-point coordinates */}
       <div className="sim-tool-point-stack">
+        {teachMode && (
+          <div className="sim-teach-hint">
+            {selectedPartId || hoveredPartId
+              ? `Part: ${hoveredPartId ?? selectedPartId}. Hover auto-highlights. Hold left-click and move mouse to drive that joint. Camera ${teachCameraLocked ? 'locked' : 'free'}.`
+              : 'Teach mode: hover a robot part, hold left-click, then move mouse to drive it.'}
+          </div>
+        )}
+
         <div className="sim-ptp-list" aria-label="Saved PTP coordinates">
           {ptpPoints.length === 0 ? (
             <div className="sim-ptp-empty">No saved coordinates</div>
