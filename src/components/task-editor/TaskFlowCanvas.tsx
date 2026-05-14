@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -55,6 +55,32 @@ const EDGE_TYPES = {
   default: DeletableEdge,
 } as const
 
+const TASK_FLOW_STORAGE_KEY = 'mirai_task_flow_v1'
+
+type StoredTaskFlow = {
+  nodes: Node<TaskBlock>[]
+  edges: Edge[]
+}
+
+function loadStoredTaskFlow(): StoredTaskFlow | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(TASK_FLOW_STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Partial<StoredTaskFlow>
+    if (!Array.isArray(parsed.nodes) || !Array.isArray(parsed.edges)) return null
+    return { nodes: parsed.nodes as Node<TaskBlock>[], edges: parsed.edges as Edge[] }
+  } catch {
+    return null
+  }
+}
+
+function persistTaskFlow(nodes: Node<TaskBlock>[], edges: Edge[]) {
+  if (typeof window === 'undefined') return
+  const payload: StoredTaskFlow = { nodes, edges }
+  window.localStorage.setItem(TASK_FLOW_STORAGE_KEY, JSON.stringify(payload))
+}
+
 
 
 
@@ -94,11 +120,20 @@ function createNodeData(type: string): TaskBlock {
 function FlowEditor() {
   const initialNodes = useAtomValue(taskNodesAtom)
   const initialEdges = useAtomValue(taskEdgesAtom)
+  const storedFlow = loadStoredTaskFlow()
+  const seededNodes =
+    storedFlow?.nodes.length
+      ? storedFlow.nodes
+      : initialNodes.length > 0
+        ? initialNodes
+        : [INITIAL_START_NODE]
+  const seededEdges = storedFlow?.edges ?? initialEdges
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<TaskBlock>>(
-    initialNodes.length > 0 ? initialNodes : [INITIAL_START_NODE],
+    seededNodes,
   )
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdges)
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(seededEdges)
+  const [showClearDialog, setShowClearDialog] = useState(false)
   const { screenToFlowPosition } = useReactFlow()
 
   const setTaskNodes   = useSetAtom(taskNodesAtom)
@@ -106,6 +141,7 @@ function FlowEditor() {
   const setValidation  = useSetAtom(taskValidationAtom)
   const setSelectedId  = useSetAtom(selectedNodeIdAtom)
   const setGhostTarget = useSetAtom(ghostArmTargetAtom)
+  const setTaskName    = useSetAtom(taskNameAtom)
   const armSegments    = useAtomValue(armSegmentsAtom)
   const taskName       = useAtomValue(taskNameAtom)
   const description    = useAtomValue(taskDescriptionAtom)
@@ -124,9 +160,12 @@ function FlowEditor() {
   useEffect(() => {
     setTaskNodes(nodes)
     setTaskEdges(edges)
+    persistTaskFlow(nodes, edges)
     const report = validateTask(nodes, edges, armSegments)
     setValidation(report)
   }, [nodes, edges, armSegments, setTaskNodes, setTaskEdges, setValidation])
+
+  const hasUserTasks = nodes.length > 1 || edges.length > 0
 
 
   //  Push to undo history
@@ -245,6 +284,21 @@ function FlowEditor() {
       setEdges(prev.edges)
     }
   }, [setNodes, setEdges])
+
+  const handleClearAll = useCallback(() => {
+    const resetNodes: Node<TaskBlock>[] = [INITIAL_START_NODE]
+    const resetEdges: Edge[] = []
+    setNodes(resetNodes)
+    setEdges(resetEdges)
+    setTaskName('Untitled Task')
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('mirai_task_name')
+    }
+    setSelectedId(null)
+    setGhostTarget(null)
+    pushHistory(resetNodes, resetEdges)
+    setShowClearDialog(false)
+  }, [setNodes, setEdges, setSelectedId, setGhostTarget, setTaskName, pushHistory])
 
 
 
@@ -379,6 +433,41 @@ function FlowEditor() {
         showInteractive={false}
         className="task-flow-controls"
       />
+
+      {hasUserTasks && (
+        <button
+          type="button"
+          className="task-clear-control"
+          onClick={() => setShowClearDialog(true)}
+          title="Clear task graph"
+          aria-label="Clear task graph"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 3h6" />
+            <path d="M4 6h16" />
+            <path d="M8 6v13a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" />
+            <path d="M10 10v7" />
+            <path d="M14 10v7" />
+          </svg>
+        </button>
+      )}
+
+      {showClearDialog && (
+        <div className="task-clear-dialog-backdrop" role="presentation">
+          <div className="task-clear-dialog" role="dialog" aria-modal="true" aria-label="Clear all tasks">
+            <h3>Clear all tasks?</h3>
+            <p>This will remove all task blocks and connections from the canvas.</p>
+            <div className="task-clear-dialog-actions">
+              <button type="button" className="task-clear-cancel" onClick={() => setShowClearDialog(false)}>
+                Cancel
+              </button>
+              <button type="button" className="task-clear-confirm" onClick={handleClearAll}>
+                Clear all
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </ReactFlow>
   )
 }

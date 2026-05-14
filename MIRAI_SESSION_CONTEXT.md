@@ -90,6 +90,12 @@
 ✅ Dynamic object reset at frame 0, approach-target freeze, and no-snap carry behavior completed
 ✅ Manual teach/PTP mode shipped: hover-to-highlight arm parts, hold left-click + mouse move to drive joints in real time, camera lock toggle, highlight latch during drag
 ✅ PTP point stack controls shipped in viewport: save current point, duplicate-save prevention, per-point delete, clear all, scrollable list
+✅ Live PTP coordinate inputs upgraded to editable X/Y/Z with IK-driven arm updates from typed values
+✅ Live coordinate inputs now auto-sync whenever end-effector position changes
+✅ PTP "Play all" sequence shipped: replays saved coordinates as a smooth IK path
+✅ Playback interlocks shipped: PlaybackControls disable during PTP sequence; PTP Play-all disables during regular transport playback
+✅ Teach interlock shipped: starting regular transport playback auto-disables Teach mode and Lock/Free camera mode
+✅ Simulation header now shows loaded task metadata name (`taskNameAtom`) instead of Start-node label
 ❌ Rapier rigid body setup for each arm segment
 ❌ Revolute/prismatic joint constraints in Rapier
 ❌ Collision highlight flash + auto-rewind polish
@@ -134,7 +140,7 @@
 | `src/types/simulation.ts` | ✅ SimFrame, ExecutionPlan, PlaybackStatus, JointMetrics (`approachTargetId`, `gripEmpty`) |
 | `src/store/atoms.ts` | ✅ Fully typed Jotai atoms |
 | `src/store/taskAtoms.ts` | ✅ taskNodes, taskEdges, pendingAddNode, ghostArmTarget, selectedNodeId |
-| `src/store/simAtoms.ts` | ✅ compiledPlan, playbackStatus, currentFrame, playbackSpeed, loop, skipCollisionPause |
+| `src/store/simAtoms.ts` | ✅ compiledPlan, playbackStatus, currentFrame, playbackSpeed, loop, skipCollisionPause, ptpSequencePlaying |
 | `src/utils/armPhysics.ts` | ✅ calculateMaxReach, calculateTorqueAtJoint, validateArm |
 | `src/utils/bomPricing.ts` | ✅ calculateBOM, getTotalBOMCost (72-piece BOM) |
 | `src/utils/armExport.ts` | ✅ exportArmConfig, parseArmConfig, loadArmConfigFromFile |
@@ -167,8 +173,8 @@
 | `src/components/simulation/SceneObjects.tsx` | ✅ Rapier bodies + held-object pinning + approach-target freeze + frame-0 reset |
 | `src/components/simulation/SimulatedArm.tsx` | ✅ FK-driven nested articulation + kinematic gripper collider + hover/drag teach interaction hooks |
 | `src/components/simulation/PathTrail.tsx` | ✅ End-effector trail rendering |
-| `src/components/simulation/SimViewer.tsx` | ✅ Canvas + playback engine + camera focus/reset + manual teach/PTP overlay controls |
-| `src/components/simulation/PlaybackControls.tsx` | ✅ Compile/transport/speed + loop + skip-collision toggles + redesigned layout |
+| `src/components/simulation/SimViewer.tsx` | ✅ Canvas + playback engine + camera focus/reset + manual teach/PTP overlay controls + editable live XYZ + PTP Play-all sequence + playback/teach interlocks |
+| `src/components/simulation/PlaybackControls.tsx` | ✅ Compile/transport/speed + loop + skip-collision toggles + redesigned layout + disabled during PTP sequence + header shows loaded task metadata name |
 | `src/components/simulation/TimelineScrubber.tsx` | ✅ Seekable timeline + collision + grip-empty markers |
 | `src/components/simulation/JointHUD.tsx` | ✅ Live joint state + compact redesigned layout |
 | `src/components/simulation/PhysicsMetrics.tsx` | ✅ Per-joint metrics + collision/grip-empty alerts + redesigned layout |
@@ -209,6 +215,10 @@ Completed in-session fixes:
 - Manual teach/PTP interaction shipped: hover-highlight arm parts, hold left-click + drag to drive hovered joint
 - Teach UX polish shipped: camera lock toggle, drag-time highlight latch, and updated on-screen guidance
 - PTP stack shipped: save current point, duplicate-save block, per-point delete, clear-all action, scrollable saved list
+- Live XYZ inputs are editable and drive IK in real time; values auto-sync from arm motion
+- PTP Play-all sequence shipped in viewport (saved points replay)
+- Interlocks shipped: PTP sequence disables PlaybackControls; transport playback disables PTP Play-all and turns off Teach + Lock/Free
+- Simulation player header now renders loaded task name from task metadata (`taskNameAtom`), not Start block label
 
 ### RobotArm Industrial Redesign ✅ (Day 2 extended — completed Day 3)
 Complete `RobotArm.tsx` rewrite with:

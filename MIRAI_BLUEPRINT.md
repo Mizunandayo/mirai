@@ -70,6 +70,12 @@
 ✅ Dynamic object reset at frame 0, approach-target freeze, and no-snap carry behavior completed
 ✅ Manual teach/PTP interaction shipped in simulation: hover-highlight arm parts, hold left-click + mouse move to drive hovered joint in real time
 ✅ Teach UX controls shipped: camera lock toggle, drag-time highlight latch, and viewport PTP point stack (save, duplicate block, delete, clear, scroll)
+✅ Live tool-point coordinate inputs upgraded to editable X/Y/Z with IK-driven arm updates
+✅ Live coordinate inputs auto-sync as end-effector moves (manual drag, teach, playback)
+✅ PTP "Play all" sequence shipped to replay saved coordinates as a smooth IK path
+✅ Interlock behavior shipped: PlaybackControls disable during PTP sequence, and PTP Play-all disables during regular transport playback
+✅ Starting regular playback now auto-disables Teach + Lock/Free
+✅ Simulation player header now shows loaded task metadata name (not Start-node label)
 ❌ Rapier rigid body setup for each arm segment
 ❌ Revolute/prismatic joint constraints in Rapier
 ❌ Collision highlight flash + auto-rewind polish

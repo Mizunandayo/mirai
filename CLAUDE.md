@@ -85,6 +85,12 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 ✅ Dynamic object reset at frame 0, approach-target freeze, and no-snap carry behavior completed
 ✅ Manual teach/PTP interaction shipped in simulation: hover-highlight arm parts, hold left-click + mouse move to drive hovered joint in real time
 ✅ Teach UX controls shipped: camera lock toggle, drag-time highlight latch, and viewport PTP point stack (save, duplicate block, delete, clear, scroll)
+✅ Live tool-point coordinate inputs upgraded to editable X/Y/Z and now drive IK in real time
+✅ Live coordinate inputs auto-sync from end-effector motion during teach/drag/playback
+✅ PTP "Play all" sequence shipped (replays saved coordinates with smooth IK interpolation)
+✅ Interlock behavior shipped: PlaybackControls disable during PTP sequence, while PTP Play-all disables during regular transport playback
+✅ Starting regular playback now auto-disables Teach mode and Lock/Free camera mode
+✅ Simulation player header now shows loaded task metadata name (`taskNameAtom`) instead of Start-node label
 ❌ Rapier rigid body setup for each arm segment
 ❌ Revolute/prismatic joint constraints in Rapier
 ❌ Collision highlight flash + auto-rewind polish
@@ -241,12 +247,12 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 - `src/utils/forwardKinematics.ts` — FK for serial arm (Y-up, cumulative pitch + waist yaw)
 - `src/utils/inverseKinematics.ts` — FABRIK IK (N joints, 2D plane + yaw decomposition)
 - `src/utils/motionCompiler.ts` — compileTask(): graph traversal → SimFrame[] with baked IK + collision check
-- `src/store/simAtoms.ts` — compiledPlan, playbackStatus, currentFrame, playbackSpeed, pathTrail (derived)
+- `src/store/simAtoms.ts` — compiledPlan, playbackStatus, currentFrame, playbackSpeed, pathTrail (derived), `ptpSequencePlaying`
 - `src/components/simulation/SceneObjects.tsx` — env objects with Rapier bodies (fixed surfaces, dynamic boxes/cylinders)
 - `src/components/simulation/SimulatedArm.tsx` — FK-driven NESTED GROUP arm (proper articulation), kinematic Rapier sphere at gripper, hover/drag teach hooks
 - `src/components/simulation/PathTrail.tsx` — glowing end-effector trail (BufferGeometry, pre-allocated)
-- `src/components/simulation/SimViewer.tsx` — R3F Canvas + Physics wrapper + useSimPlayback() engine + manual teach/PTP controls
-- `src/components/simulation/PlaybackControls.tsx` — compile + play/pause/step/rewind + 5 speed presets
+- `src/components/simulation/SimViewer.tsx` — R3F Canvas + Physics wrapper + useSimPlayback() engine + manual teach/PTP controls + editable live XYZ + PTP Play-all + playback/teach interlocks
+- `src/components/simulation/PlaybackControls.tsx` — compile + play/pause/step/rewind + 5 speed presets + PTP-sequence disable state + loaded task metadata name in header
 - `src/components/simulation/TimelineScrubber.tsx` — seekable timeline with collision markers
 - `src/components/simulation/JointHUD.tsx` — J0–JN angles + torque + velocity + at-limit highlight
 - `src/components/simulation/PhysicsMetrics.tsx` — per-joint torque/speed cards + collision alert
@@ -504,7 +510,7 @@ mirai/
 | src/types/simulation.ts | ✅ Complete | SimFrame, ExecutionPlan, PlaybackStatus, JointMetrics (+ `approachTargetId`, `gripEmpty`) |
 | src/components/ArmViewer.tsx | ✅ Complete | forwardRef + resetCamera(), lights, shadows |
 | src/components/RobotArm.tsx | ✅ Complete | Industrial redesign: JointHousing, useFrame animations, 3 grippers |
-| src/store/simAtoms.ts | ✅ Complete | compiledPlan, playbackStatus, frame/speed, loop, skipCollisionPause |
+| src/store/simAtoms.ts | ✅ Complete | compiledPlan, playbackStatus, frame/speed, loop, skipCollisionPause, ptpSequencePlaying |
 | src/utils/forwardKinematics.ts | ✅ Complete | FK solver for serial arm |
 | src/utils/inverseKinematics.ts | ✅ Complete | FABRIK IK solver |
 | src/utils/motionCompiler.ts | ✅ Complete | Task graph -> SimFrame[] compiler with collision + grip semantics |
