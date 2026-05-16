@@ -1,0 +1,91 @@
+"""
+Mirai Robot Arm Controller — Python
+Task:      {{ task_name }}
+Arm:       {{ arm_name }}
+Generated: {{ generated_at }}
+SHA-256:   {{ sha256 }}
+"""
+
+from __future__ import annotations
+
+import time
+from dataclasses import dataclass
+from typing import List
+
+try:
+    import serial
+except ImportError:
+    serial = None
+
+
+@dataclass
+class Waypoint:
+    index: int
+    pitch_angles: List[float]
+    servo_angles: List[int]
+    gripper_servo: int
+    gripper_open: bool
+    gripper_force: float
+    duration_ms: int
+    hold_ms: int
+    label: str = ""
+
+
+WAYPOINTS = [
+{%- for wp in waypoints %}
+    Waypoint(
+        index={{ loop.index }},
+        pitch_angles={{ wp.pitch_angles }},
+        servo_angles={{ wp.servo_angles }},
+        gripper_servo={{ wp.gripper_servo }},
+        gripper_open={{ 'True' if wp.gripper_open else 'False' }},
+        gripper_force={{ wp.gripper_force }},
+        duration_ms={{ wp.duration_ms }},
+        hold_ms={{ wp.hold_ms }},
+        label={{ wp.label|tojson }},
+    ),
+{%- endfor %}
+]
+
+
+SERVO_CHANNELS = {{ joint_channels }}
+GRIPPER_CHANNEL = {{ gripper_channel }}
+GRIPPER_TYPE = {{ gripper_type|tojson }}
+
+
+def _sleep_ms(ms: int) -> None:
+    time.sleep(max(0, ms) / 1000.0)
+
+
+def connect_serial(port: str = "/dev/ttyACM0", baudrate: int = 115200):
+    if serial is None:
+        raise RuntimeError("pyserial is not installed. Install pyserial to run the generated controller.")
+    return serial.Serial(port, baudrate=baudrate, timeout=1)
+
+
+def move_to(ser, servo_angles: List[int], gripper_servo: int, duration_ms: int) -> None:
+    payload = {
+        "servo_angles": servo_angles,
+        "gripper_servo": gripper_servo,
+        "duration_ms": duration_ms,
+    }
+    ser.write((str(payload) + "\n").encode("utf-8"))
+    ser.flush()
+    _sleep_ms(duration_ms)
+
+
+def run_task(ser) -> None:
+    print(f"Mirai | {{ arm_name }}")
+    print(f"Task  : {{ task_name }}")
+    print(f"Gripper: {GRIPPER_TYPE}")
+    for wp in WAYPOINTS:
+        label = f" ({wp.label})" if wp.label else ""
+        print(f"Step {wp.index}{label}")
+        move_to(ser, wp.servo_angles, wp.gripper_servo, wp.duration_ms)
+        _sleep_ms(wp.hold_ms)
+    print("Done.")
+
+
+if __name__ == "__main__":
+    print("This is a generated controller preview.")
+    print("Use connect_serial() and run_task() in your hardware runtime.")
