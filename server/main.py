@@ -820,67 +820,13 @@ async def stream_task_plan(request: Request, payload: TaskSpecRequest):
                 task_seed['warnings'] = list(dict.fromkeys(list(task_seed.get('warnings', [])) + normalization_notes))
 
             task_spec = TaskSpec(**task_seed)
-            preflight = SafetyValidator.validate_task_spec(task_spec, arm_context)
+            preflight = SafetyValidator.validate_task_spec(task_spec, arm_context, list(payload.scene_objects))
 
-            # Deterministic + model-guided repair loop.
-            repair_iterations = 0
-            max_repair_iterations = 4
-            while preflight.errors and repair_iterations < max_repair_iterations:
-                repair_iterations += 1
-                repair_prompt = build_repair_prompt(task_spec.model_dump(by_alias=True), preflight.errors, arm_context)
-
-                repair_text = ''
-                repair_last_exc: Exception | None = None
-                for idx, model_name in enumerate(GEMINI_MODELS):
-                    try:
-                        repair_text = generate_text(model_name, repair_prompt)
-                        break
-                    except Exception as exc:
-                        repair_last_exc = exc
-                        should_fallback = (
-                            (is_quota_or_rate_error(exc) or is_model_unavailable_error(exc))
-                            and idx < len(GEMINI_MODELS) - 1
-                        )
-                        if should_fallback:
-                            continue
-                        raise
-
-                if not repair_text and repair_last_exc is not None:
-                    raise repair_last_exc
-
-                repaired_raw = extract_json_dict(repair_text)
-                repaired_payload = normalize_task_payload(repaired_raw, task_spec.model_dump(by_alias=True))
-
-                loop_notes = []
-                loop_notes.extend(ensure_pickup_flow(repaired_payload, payload.user_input))
-                loop_notes.extend(enforce_pickup_target_consistency(repaired_payload))
-                if loop_notes:
-                    repaired_payload['warnings'] = list(
-                        dict.fromkeys(list(repaired_payload.get('warnings', [])) + loop_notes)
-                    )
-
-                task_spec = TaskSpec(**repaired_payload)
-                preflight = SafetyValidator.validate_task_spec(task_spec, arm_context)
-
-                if preflight.errors and repair_iterations >= 2:
-                    deterministic_notes = apply_deterministic_refinements(
-                        repaired_payload,
-                        [err.model_dump() for err in preflight.errors],
-                        arm_context.max_reach,
-                    )
-                    if deterministic_notes:
-                        repaired_payload['warnings'] = list(
-                            dict.fromkeys(list(repaired_payload.get('warnings', [])) + deterministic_notes)
-                        )
-                        task_spec = TaskSpec(**repaired_payload)
-                        preflight = SafetyValidator.validate_task_spec(task_spec, arm_context)
-
-            if preflight.errors:
-                raise RuntimeError(
-                    'Unable to produce a fully safe plan after iterative repair. '
-                    'Try simplifying the command or allowing automatic arm reconfiguration.'
-                )
-
+            # Stream immediately — no backend repair loop.
+            # Architecture: backend is a thin Gemini proxy. The frontend's
+            # 4-layer algorithm (normalize → direct-planner → repair → fallback)
+            # handles quality. Removing the backend repair loop cuts latency
+            # from 4-6 min to 15-30 s for typical pick-and-place prompts.
             payload_out = {
                 'type': 'task_spec',
                 'task': task_spec.model_dump(by_alias=True),

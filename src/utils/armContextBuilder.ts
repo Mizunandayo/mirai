@@ -1,79 +1,57 @@
-// src/utils/armContextBuilder.ts
+/**
+ * Arm context builder — converts frontend arm/scene state into AI-ready formats.
+ * Uses scenePlanner to include computed safe heights in scene descriptions,
+ * giving Gemini the geometric information it needs for collision-free planning.
+ */
 
-import { ArmSegment, GripperConfig } from '../types/arm';
-import { AIPlanRequest } from '../types/ai';
-import type { SceneGraph } from '../types/task';
+import type { ArmSegment, GripperConfig } from '../types/arm'
+import type { AIPlanRequest } from '../types/ai'
+import type { SceneGraph } from '../types/task'
+import { buildRichSceneContext } from './scenePlanner'
 
 const GRIPPER_TYPE_MAP: Record<GripperConfig['type'], AIPlanRequest['armContext']['gripper']['type']> = {
   parallel_jaw: 'parallel',
   suction_cup: 'suction',
   magnetic: 'magnetic',
-};
+}
 
-
-
-
+/** Build arm context DTO for the /ai/plan request. */
 export function buildArmContext(
   segments: ArmSegment[],
   gripper: GripperConfig,
-  _scene: unknown
+  _scene: unknown,
 ): AIPlanRequest['armContext'] {
-  /**
-   * Convert arm state to Gemini-friendly format.
-   */
-  
-  const totalLength = segments.reduce((sum, seg) => sum + seg.length, 0);
-  const maxReach = totalLength * 1.1; // 10% margin
-  
+  const totalLength = segments.reduce((sum, s) => sum + s.length, 0)
+  const maxReach = totalLength * 1.1
+
   return {
-    segments: segments.map((seg) => ({
-      name: seg.name,
-      length: seg.length,
-      mass: seg.mass,
+    segments: segments.map(s => ({
+      name: s.name,
+      length: s.length,
+      mass: s.mass,
+      jointLimits: { min: s.jointLimitMin ?? -180, max: s.jointLimitMax ?? 180 },
     })),
-    gripper: {
-      type: GRIPPER_TYPE_MAP[gripper.type],
-    },
+    gripper: { type: GRIPPER_TYPE_MAP[gripper.type] },
     maxReach,
     payloadLimit: 2.0,
-  };
-}
-
-
-
-
-
-
-
-export function getSceneObjectNames(scene: unknown): string[] {
-  /**
-   * Extract list of named objects in scene.
-   * Used as context for Gemini (e.g., "red_box", "shelf", "work_table").
-   */
-  const sg = scene as SceneGraph | null
-  if (sg && Array.isArray(sg.objects)) {
-    const objectLines = sg.objects.map((obj) => {
-      const [x, y, z] = obj.position
-      const [w, h, d] = obj.dimensions
-      return `${obj.name} (${obj.id}) type=${obj.type} pos=(${x.toFixed(3)},${y.toFixed(3)},${z.toFixed(3)}) size=(${w.toFixed(3)},${h.toFixed(3)},${d.toFixed(3)})`
-    })
-
-    const zoneLines = Array.isArray(sg.targetZones)
-      ? sg.targetZones.map((zone) => {
-          const [x, y, z] = zone.position
-          return `${zone.name} (${zone.id}) zone pos=(${x.toFixed(3)},${y.toFixed(3)},${z.toFixed(3)}) radius=${zone.radius.toFixed(3)}`
-        })
-      : []
-
-    return [...objectLines, ...zoneLines]
   }
-
-  return ['Work Table', 'Box A', 'Box B', 'Cylinder A', 'Shelf', 'Drawer Zone'];
 }
 
+/**
+ * Build rich scene context strings for Gemini.
+ *
+ * Includes computed safe approach heights, grip heights, and transit height
+ * so the backend can generate explicit collision-free waypoints in its prompt.
+ * Replaces the previous plain text object list.
+ */
+export function getSceneObjectDescriptions(scene: SceneGraph): string[] {
+  return buildRichSceneContext(scene)
+}
+
+// Keep legacy name as alias so existing call-sites don't break.
+export { getSceneObjectDescriptions as getSceneObjectNames }
+
+/** Allowed rigid-object verbs for v1 scope. */
 export function buildAllowedVerbs(): string[] {
-  /**
-   * Day 5 scope: rigid object manipulation only.
-   */
-  return ['pick', 'place', 'stack', 'move', 'sort'];
+  return ['pick', 'place', 'stack', 'move', 'sort']
 }

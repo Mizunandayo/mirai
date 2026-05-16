@@ -62,7 +62,7 @@ export default function AIPanel() {
       const request = {
         userInput: input,
         armContext,
-        sceneObjects: getSceneObjectNames({}),
+        sceneObjects: getSceneObjectNames({ objects: [], targetZones: [] }),
         allowedVerbs: buildAllowedVerbs(),
       }
 

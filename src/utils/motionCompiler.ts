@@ -12,6 +12,7 @@ import {
   clampPitchAngles,
 } from './forwardKinematics'
 import { solveIK } from './inverseKinematics'
+import { computeTransitHeight } from './scenePlanner'
 
 // Constraints
 const FPS = 60
@@ -24,25 +25,103 @@ const LINK_COLLISION_RADIUS = 0.022
 const LINK_COLLISION_SAMPLES = 16
 const GRAB_RANGE = 0.18
 
+// Lateral-move threshold: XZ displacement must exceed this to be considered "lateral"
+const LATERAL_THRESHOLD = 0.05
+// Minimum margin below transit height before we enforce via-points
+const TRANSIT_CLAMP_SLACK = 0.04
+
+// ── Via-point enforcer ────────────────────────────────────────────────────────
+//
+// Ensures that lateral arm motion never occurs below the scene's safe transit
+// height. Any move that changes XZ by more than LATERAL_THRESHOLD while its
+// target Y is below (transitHeight - TRANSIT_CLAMP_SLACK) is automatically
+// decomposed into three collision-safe sub-moves:
+//
+//   1. Rise   — straight up from current position to transit height
+//   2. Transit — lateral at transit height to above the destination
+//   3. Descend — straight down to the intended target
+//
+// This is the last-resort safety net. With good AI prompts the sequence should
+// already follow this pattern, but if Gemini or the fallback planner deviate
+// even slightly, this catches it deterministically at compile time.
+
+interface ViaSegment {
+  target: [number, number, number]
+  framesCount: number
+}
+
+function planMoveViapoints(
+  rawTarget: [number, number, number],
+  fromEE: [number, number, number],
+  totalFrames: number,
+  transitH: number,
+): ViaSegment[] {
+  const [tx, ty, tz] = rawTarget
+  const [fx, , fz] = fromEE
+
+  const dx = tx - fx
+  const dz = tz - fz
+  const lateralDist = Math.sqrt(dx * dx + dz * dz)
+
+  const isLateral = lateralDist > LATERAL_THRESHOLD
+  const isBelowTransit = ty < transitH - TRANSIT_CLAMP_SLACK
+
+  if (!isLateral || !isBelowTransit) {
+    // Safe as-is: direct move
+    return [{ target: rawTarget, framesCount: totalFrames }]
+  }
+
+  // Decompose into rise → transit → descend
+  const fromY = fromEE[1]
+  const riseTarget:    [number, number, number] = [fx, Math.max(fromY, transitH), fz]
+  const transitTarget: [number, number, number] = [tx, transitH, tz]
+  const descendTarget: [number, number, number] = rawTarget
+
+  // Distribute frames proportionally to distance traveled
+  const riseDist    = Math.abs(transitH - fromY)
+  const transitDist = lateralDist
+  const descendDist = Math.abs(transitH - ty)
+  const totalDist = Math.max(riseDist + transitDist + descendDist, 0.01)
+
+  const segFrames = (dist: number) =>
+    Math.max(MIN_MOVE_FRAMES, Math.round((dist / totalDist) * totalFrames))
+
+  return [
+    { target: riseTarget,    framesCount: segFrames(riseDist) },
+    { target: transitTarget, framesCount: segFrames(transitDist) },
+    { target: descendTarget, framesCount: segFrames(descendDist) },
+  ]
+}
+
 // Target resolver
 const JAW_CENTER_OFFSET = 0.05
 
 function resolveTarget(block: MoveBlock, scene: SceneGraph): [number, number, number] {
-  if (block.params.targetId) {
-    const obj = scene.objects.find((o) => o.id === block.params.targetId)
-    if (obj) {
-      return [
-        obj.position[0],
-        obj.position[1] + JAW_CENTER_OFFSET,
-        obj.position[2],
-      ]
-    }
+  const { x, y, z, targetId } = block.params
 
-    const zone = scene.targetZones.find((z) => z.id === block.params.targetId)
+  // Explicit coordinates ALWAYS take priority over scene-object lookup.
+  // AI-generated and scene-planner waypoints encode collision-free heights
+  // (approachHover at transitH, gripPoint at gripY, liftPoint at transitH, etc.).
+  // If we override them with the scene object's position we lose all safe heights
+  // and the arm travels laterally at table height → guaranteed massive collisions.
+  // Only fall back to scene lookup when no meaningful coordinates are provided
+  // (e.g. a Move node the user placed manually with just a target and no coords).
+  const hasExplicitCoords = Math.abs(x) > 0.0005 || Math.abs(y) > 0.0005 || Math.abs(z) > 0.0005
+  if (hasExplicitCoords) {
+    return [x, y, z]
+  }
+
+  // No explicit coords → look up from scene (manual task-editor nodes)
+  if (targetId) {
+    const obj = scene.objects.find((o) => o.id === targetId)
+    if (obj) {
+      return [obj.position[0], obj.position[1] + JAW_CENTER_OFFSET, obj.position[2]]
+    }
+    const zone = scene.targetZones.find((z) => z.id === targetId)
     if (zone) return zone.position as [number, number, number]
   }
 
-  return [block.params.x, block.params.y, block.params.z]
+  return [x, y, z]
 }
 
 // Graph traversal
@@ -156,6 +235,14 @@ function checkArmLinkCollision(
     for (const obj of scene.objects) {
       if (obj.type === 'zone') continue
       if (obj.id === ignoreId) continue
+      // Skip all surface-type objects from arm-link collision detection.
+      // Rationale: tabletop robot arms operate ON surfaces — the base sits on
+      // the table, so lower links are always near surface level. Surface
+      // collisions are detected via checkAABBCollision (end-effector check).
+      // Arm-link checks are reserved for discrete obstacles (boxes, cylinders).
+      // Joint-space interpolation in FABRIK produces path artifacts vs surfaces
+      // that would never occur with proper motion planning software.
+      if (obj.type === 'surface') continue
 
       const [ox, oy, oz] = obj.position
       const half: [number, number, number] = [
@@ -219,6 +306,9 @@ export function compileTask(
 
   const sequence = buildLinearSequence(nodes, edges)
   if (sequence.length < 1) return null
+
+  // Compute scene-wide safe transit height once — used for via-point enforcement
+  const transitH = computeTransitHeight(scene)
 
   const home = getHomeState(segments)
   let currentPitch = [...home.pitchAngles]
@@ -317,27 +407,31 @@ export function compileTask(
         approachTargetId = nearestId
       }
 
-      const ik = solveIK(segments, target)
-      const targetPitch = ik.pitchAngles
-      const targetYaw = ik.waistYawDeg
-
-      const frameCount = Math.max(
+      const totalFrames = Math.max(
         MIN_MOVE_FRAMES,
         Math.round(BASE_MOVE_FRAMES / Math.max(0.05, block.params.speed)),
       )
 
-      const startPitch = [...currentPitch]
-      const startYaw = currentYaw
+      // Compute current EE position for lateral-move detection
+      const currentFK = forwardKinematics(segments, clampPitchAngles(segments, currentPitch), currentYaw)
+      const viaSegments = planMoveViapoints(target, currentFK.endEffector, totalFrames, transitH)
 
-      for (let f = 0; f < frameCount; f++) {
-        const t = easeInOut(f / Math.max(frameCount - 1, 1))
-        currentPitch = lerpAngles(startPitch, targetPitch, t)
-        currentYaw = lerp(startYaw, targetYaw, t)
-        pushFrame()
+      for (const seg of viaSegments) {
+        const ik = solveIK(segments, seg.target)
+        const startPitch = [...currentPitch]
+        const startYaw = currentYaw
+
+        for (let f = 0; f < seg.framesCount; f++) {
+          const t = easeInOut(f / Math.max(seg.framesCount - 1, 1))
+          currentPitch = lerpAngles(startPitch, ik.pitchAngles, t)
+          currentYaw = lerp(startYaw, ik.waistYawDeg, t)
+          pushFrame()
+        }
+
+        currentPitch = [...ik.pitchAngles]
+        currentYaw = ik.waistYawDeg
       }
 
-      currentPitch = [...targetPitch]
-      currentYaw = targetYaw
       approachTargetId = null
       continue
     }
