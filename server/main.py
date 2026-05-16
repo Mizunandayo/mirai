@@ -971,6 +971,7 @@ async def export_bundle(request: Request, payload: BundleRequest):
         raise HTTPException(status_code=400, detail='Too many waypoints')
 
     from datetime import datetime, timezone
+    import re
     generated_at = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 
     # Placeholder SHA256 (will be replaced by bundle.py with real hash)
@@ -1003,7 +1004,8 @@ async def export_bundle(request: Request, payload: BundleRequest):
         qr_png     = qr_png,
     )
 
-    slug = payload.task.task_name.lower().replace(' ', '_')[:32] or 'mirai_task'
+    safe_slug = re.sub(r'[^a-z0-9_-]+', '_', payload.task.task_name.lower()).strip('_-')[:32]
+    slug = safe_slug or 'mirai_task'
 
     return Response(
         content=zip_bytes,
