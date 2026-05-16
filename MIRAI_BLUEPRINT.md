@@ -309,27 +309,30 @@
 ---
 
 ### ─────────────────────────────────────────────
-### DAY 6 — May 16 (Saturday) · Backend + MuJoCo + Export
+
+### DAY 6 — May 16 (Saturday) · Backend + MuJoCo + Export ✅ COMPLETE
 ### ─────────────────────────────────────────────
 
 **Backend & Physics**
-- ❌ FastAPI backend deployed to Railway (Docker container)
-- ❌ WebSocket endpoint `WS /ws/simulate` for MuJoCo frame streaming
-- ❌ MuJoCo MJCF/URDF builder from arm config
-- ❌ Task executor in MuJoCo (runs same JSON task blocks as client-side Rapier)
-- ❌ MuJoCo validator consumes the same `ExecutionPlan` produced for Rapier playback
-- ❌ Accuracy comparison: MuJoCo vs. Rapier → UI accuracy badge ("94% accurate")
-- ❌ Confidence report derived from validation + deterministic rule checks
-- ❌ **Physics side-by-side replay** — Rapier (left) + MuJoCo (right) play simultaneously, divergence frames in red
-- ❌ **Servo lifespan predictor** — MuJoCo torque data → predicted hours per joint at current duty cycle
+✅ FastAPI backend deployed to Railway (Docker container)
+✅ WebSocket endpoint `WS /ws/simulate` for MuJoCo frame streaming
+✅ MuJoCo MJCF/URDF builder from arm config
+✅ Task executor in MuJoCo (runs same JSON task blocks as client-side Rapier)
+✅ MuJoCo validator consumes the same `ExecutionPlan` produced for Rapier playback
+✅ Accuracy comparison: MuJoCo vs. Rapier → UI accuracy badge ("94% accurate")
+✅ Confidence report derived from validation + deterministic rule checks
+✅ **Physics side-by-side replay** — Rapier (left) + MuJoCo (right) play simultaneously, divergence frames in red
+✅ **Servo lifespan predictor** — MuJoCo torque data → predicted hours per joint at current duty cycle
 
 **Export**
-- ❌ Jinja2 code generation — Arduino `.ino` + Python `.py` templates
-- ❌ BOM generator from arm config with live AliExpress/Amazon pricing
-- ❌ URDF export (ROS2-compatible robot description)
-- ❌ **QR code generator** — scan with phone → hosted BOM + code page instantly
-- ❌ **Signed export** — SHA-256 hash header in every downloaded file (30 min to build)
-- ❌ ZIP bundle download — one `.zip`: code + BOM + wiring diagram
+✅ Jinja2 code generation — Arduino `.ino` + Python `.py` templates
+✅ BOM generator from arm config with live AliExpress/Amazon pricing
+✅ URDF export (ROS2-compatible robot description)
+✅ **QR code generator** — scan with phone → hosted BOM + code page instantly
+✅ **Signed export** — SHA-256 hash header in every downloaded file (30 min to build)
+✅ ZIP bundle download — one `.zip`: code + BOM + wiring diagram
+
+**Note:** MuJoCo consumes same `ExecutionPlan` schema as Rapier playback.
 
 > **Day 6 Deliverable:** Dual physics side-by-side live. Servo lifespan shown. Signed code downloads. QR judges can scan on stage.
 

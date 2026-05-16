@@ -37,15 +37,15 @@ except ImportError:
     developer_genai = None
 
 from dotenv import load_dotenv
-from models.schemas import (
+from server.models.schemas import (
     TaskSpecRequest,
     TaskSpec,
     RepairRequest,
     SuggestRequest,
     SuggestResponse,
 )
-from models.arm_context import ArmContextBuilder, GeminiPromptAssembler
-from models.validators import SafetyValidator
+from server.models.arm_context import ArmContextBuilder, GeminiPromptAssembler
+from server.models.validators import SafetyValidator
 
 logger = logging.getLogger('mirai.backend')
 

@@ -78,6 +78,34 @@ User empirically showed: Original arm (350+280=630mm revolute) FAILS for Box B. 
 4. `regression_test_boxb.py` (NEW) — proves all 4 mathematical assertions: original fails, user's fix works, auto-scaler matches, retry ratios are valid
 
 **All 4 regression tests PASS**:
+
+---
+
+### Session Log — May 17, 2026 (Day 6 Completion — Backend + MuJoCo + Export)
+
+**What was done this session**
+- Day 6 code implementation completed and verified
+- New backend files: `server/mujoco/mjcf_builder.py`, `server/mujoco/simulator.py`, `server/mujoco/metrics.py`, `server/models/mujoco_schemas.py`, `server/main.py` (WS endpoint)
+- New frontend files: `src/types/mujoco.ts`, `src/store/mujocoAtoms.ts`, `src/utils/mujocoClient.ts`, `src/components/simulation/MuJoCoViewport.tsx`, `src/components/simulation/DivergenceBadge.tsx`, `src/components/simulation/LifespanPanel.tsx`
+- Updated architecture: WebSocket `/ws/simulate` contract, dual physics (Rapier client, MuJoCo server), divergence badge, servo lifespan predictor, signed export pipeline
+
+**Contract changes**
+- Added: WebSocket `/ws/simulate` (browser sends `ExecutionPlan`, receives MuJoCo validation frames, divergence metrics, lifespan prediction)
+- MuJoCo and Rapier now both consume the same `ExecutionPlan` schema for validation and playback
+- Export pipeline now produces signed ZIP bundle with code, BOM, URDF, QR, and SHA-256 hash
+
+**Security changes**
+- Input validation and schema checks for all MuJoCo endpoints
+- Rate limiting and origin checks on backend
+- Resource/time limits for MuJoCo simulation
+- Signed export (SHA-256) for all generated code/BOM files
+- Browser security headers enforced
+
+**Known follow-ups**
+- E2E Playwright regression suite for autonomous flow
+- Backend contract tests for `/ai/plan` and `/ai/repair` fail-closed semantics
+- Gemini SDK migration (`google.generativeai` → `google.genai`)
+- Community browse/import flow and famous preloads (Day 7)
 - A1: Original arm (0.321) < threshold → PASS
 - A2: User's fix (0.410) >= threshold → PASS
 - A3: Auto-scaled (0.440) >= threshold → PASS
