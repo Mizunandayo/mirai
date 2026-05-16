@@ -999,7 +999,7 @@ export default function TaskEditorPanel() {
 
       // Use direct Gemini SDK (browser → Gemini Developer API) when VITE_GEMINI_API_KEY
       // is set — eliminates FastAPI round-trip and drops latency from 4-6 min to 5-15s.
-      // Falls back to backend (/ai/plan via Vertex AI) when key is absent.
+      // Falls back to backend (/ai/plan) when key is absent.
       const planStream = isDirectGeminiAvailable()
         ? streamTaskPlanDirect(request, sceneGraph)
         : streamTaskPlan(request)

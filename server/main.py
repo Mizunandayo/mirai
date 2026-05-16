@@ -12,6 +12,22 @@ from pathlib import Path
 from collections import defaultdict
 from typing import AsyncGenerator, Any
 import logging
+import hashlib
+from fastapi.responses import Response
+from server.export.code_generator import generate_arduino, generate_python
+from server.export.bom_generator   import generate_bom, bom_to_csv
+from server.export.urdf_generator  import generate_urdf
+from server.export.qr_generator    import generate_qr
+from server.export.bundle          import create_bundle
+from server.models.export_schemas  import BundleRequest
+from fastapi import WebSocket, WebSocketDisconnect
+from server.models.mujoco_schemas import MuJoCoRunRequest, MuJoCoRunResult, RapierFrameLite
+from server.mujoco.simulator import run_mujoco_frames
+from server.mujoco.metrics import compute_divergence, estimate_servo_lifespan
+
+
+
+
 
 import httpx
 
@@ -19,13 +35,6 @@ try:
     import google.generativeai as developer_genai
 except ImportError:
     developer_genai = None
-
-try:
-    from google import genai as vertex_genai
-    from google.genai import types as vertex_types
-except ImportError:
-    vertex_genai = None
-    vertex_types = None
 
 from dotenv import load_dotenv
 from models.schemas import (
@@ -61,14 +70,6 @@ elif SERVER_ENV_PATH.exists():
     load_dotenv(SERVER_ENV_PATH)
 
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-GEMINI_PROVIDER = os.getenv('GEMINI_PROVIDER', 'developer').strip().lower()
-VERTEX_PROJECT_ID = (
-    os.getenv('VERTEX_PROJECT_ID')
-    or os.getenv('GCP_PROJECT_ID')
-    or os.getenv('GCP_PROJECT_NUMBER')
-    or os.getenv('GOOGLE_CLOUD_PROJECT')
-)
-VERTEX_LOCATION = os.getenv('VERTEX_LOCATION', 'global')
 GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
 GEMINI_FALLBACK_MODELS = [
     'gemini-2.5-flash',
@@ -79,25 +80,13 @@ GEMINI_FALLBACK_MODELS = [
     'gemini-1.5-flash-latest',
     'gemini-1.5-flash',
 ]
-_vertex_client = None
 
 def configure_provider() -> None:
-    if GEMINI_PROVIDER == 'developer':
-        if developer_genai is None:
-            raise RuntimeError('google-generativeai package not installed for developer Gemini provider')
-        if not GEMINI_API_KEY:
-            raise RuntimeError('GEMINI_API_KEY not found for developer Gemini provider')
-        developer_genai.configure(api_key=GEMINI_API_KEY)
-        return
-
-    if GEMINI_PROVIDER == 'vertex':
-        if vertex_genai is None or vertex_types is None:
-            raise RuntimeError('google-genai package not installed for Vertex AI Gemini provider')
-        if not VERTEX_PROJECT_ID:
-            raise RuntimeError('VERTEX_PROJECT_ID or GCP_PROJECT_ID is required for Vertex AI Gemini provider')
-        return
-
-    raise RuntimeError("GEMINI_PROVIDER must be either 'developer' or 'vertex'")
+    if developer_genai is None:
+        raise RuntimeError('google-generativeai package not installed for Gemini provider')
+    if not GEMINI_API_KEY:
+        raise RuntimeError('GEMINI_API_KEY not found for Gemini provider')
+    developer_genai.configure(api_key=GEMINI_API_KEY)
 
 def normalize_model_name(name: str) -> str:
     return name if name.startswith('models/') else 'models/' + name
@@ -106,7 +95,7 @@ def model_suffix(name: str) -> str:
     return name.split('/', 1)[1] if name.startswith('models/') else name
 
 def discover_generate_models() -> list[str]:
-    if GEMINI_PROVIDER != 'developer' or developer_genai is None:
+    if developer_genai is None:
         return []
 
     try:
@@ -121,9 +110,6 @@ def discover_generate_models() -> list[str]:
 
 def build_model_candidates() -> list[str]:
     preferred_unique = list(dict.fromkeys([GEMINI_MODEL] + GEMINI_FALLBACK_MODELS))
-
-    if GEMINI_PROVIDER == 'vertex':
-        return preferred_unique
 
     preferred = [normalize_model_name(name) for name in preferred_unique]
     # De-duplicate while preserving order.
@@ -144,49 +130,17 @@ def build_model_candidates() -> list[str]:
 
     return candidates or preferred_unique
 
-def get_vertex_client():
-    global _vertex_client
-    if _vertex_client is None:
-        client_kwargs: dict[str, Any] = {
-            'vertexai': True,
-            'project': VERTEX_PROJECT_ID,
-            'location': VERTEX_LOCATION,
-        }
-        _vertex_client = vertex_genai.Client(**client_kwargs)
-    return _vertex_client
-
 def extract_chunk_text(chunk: Any) -> str:
     text = getattr(chunk, 'text', None)
     return text or ''
 
 def generate_stream(model_name: str, system_prompt: str, user_prompt: str):
-    if GEMINI_PROVIDER == 'vertex':
-        client = get_vertex_client()
-        config = vertex_types.GenerateContentConfig(system_instruction=system_prompt)
-        return client.models.generate_content_stream(
-            model=model_name,
-            contents=user_prompt,
-            config=config,
-        )
-
     model = developer_genai.GenerativeModel(model_name)
     return model.generate_content([system_prompt, user_prompt], stream=True)
 
 def generate_text(model_name: str, prompt: str, system_prompt: str | None = None) -> str:
-    if GEMINI_PROVIDER == 'vertex':
-        client = get_vertex_client()
-        config = None
-        if system_prompt:
-            config = vertex_types.GenerateContentConfig(system_instruction=system_prompt)
-        response = client.models.generate_content(
-            model=model_name,
-            contents=prompt,
-            config=config,
-        )
-        return getattr(response, 'text', None) or ''
-
     model = developer_genai.GenerativeModel(model_name)
-    response = model.generate_content(prompt)
+    response = model.generate_content([system_prompt, prompt] if system_prompt else prompt)
     return response.text or ''
 
 def extract_json_dict(text: str) -> dict[str, Any]:
@@ -631,10 +585,8 @@ async def security_headers(request: Request, call_next):
 def health_check():
     return {
         'status': 'ok',
-        'provider': GEMINI_PROVIDER,
+        'provider': 'developer',
         'gemini_key_loaded': bool(GEMINI_API_KEY),
-        'vertex_project_id': VERTEX_PROJECT_ID,
-        'vertex_location': VERTEX_LOCATION,
         'model': GEMINI_MODEL,
         'resolved_models': GEMINI_MODELS,
         'fallback_models': GEMINI_MODELS[1:],
@@ -988,3 +940,157 @@ if __name__ == '__main__':
     import uvicorn
     ensure_port_available(8000)
     uvicorn.run(app, host='0.0.0.0', port=8000)
+
+
+
+
+
+
+
+
+    # ── Export endpoints ──────────────────────────────────────────────────────────
+
+@app.post('/export/bundle')
+async def export_bundle(request: Request, payload: BundleRequest):
+    """
+    Generate and return a signed ZIP bundle containing:
+      .ino, .py, bom.csv, bom.json, robot.urdf, qr_code.png, manifest.json
+    """
+    ip = request.client.host if request.client else 'unknown'
+    if not allow_request(ip):
+        raise HTTPException(status_code=429, detail='Rate limit exceeded')
+
+    if len(payload.task.task_name) > 120:
+        raise HTTPException(status_code=400, detail='Task name too long')
+    if len(payload.task.waypoints) > 500:
+        raise HTTPException(status_code=400, detail='Too many waypoints')
+
+    from datetime import datetime, timezone
+    generated_at = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+
+    # Placeholder SHA256 (will be replaced by bundle.py with real hash)
+    placeholder_sha = "computing..."
+
+    # 1. Code
+    arduino_src = generate_arduino(payload.arm, payload.task, placeholder_sha, generated_at)
+    python_src  = generate_python( payload.arm, payload.task, placeholder_sha, generated_at)
+
+    # 2. BOM
+    bom_data = generate_bom(payload.arm)
+    bom_csv  = bom_to_csv(bom_data)
+
+    # 3. URDF
+    urdf_xml = generate_urdf(payload.arm)
+
+    # 4. QR
+    live_url = payload.live_url or f'https://mirai-demo.vercel.app/?task={payload.task.task_name}'
+    qr_png   = generate_qr(live_url, payload.task.task_name)
+
+    # 5. Bundle → real SHA-256
+    zip_bytes, sha256 = create_bundle(
+        task_name  = payload.task.task_name,
+        arm_name   = payload.arm.name,
+        arduino_src= arduino_src,
+        python_src = python_src,
+        bom_csv    = bom_csv,
+        bom_json   = bom_data,
+        urdf_xml   = urdf_xml,
+        qr_png     = qr_png,
+    )
+
+    slug = payload.task.task_name.lower().replace(' ', '_')[:32] or 'mirai_task'
+
+    return Response(
+        content=zip_bytes,
+        media_type='application/zip',
+        headers={
+            'Content-Disposition': f'attachment; filename="{slug}_mirai.zip"',
+            'X-SHA256': sha256,
+            'X-Mirai-Version': '0.1.0',
+        },
+    )
+
+
+@app.post('/export/preview')
+async def export_preview(request: Request, payload: BundleRequest):
+    """
+    Return code previews + BOM as JSON (no ZIP download).
+    Used by the frontend to show syntax-highlighted preview before downloading.
+    """
+    ip = request.client.host if request.client else 'unknown'
+    if not allow_request(ip):
+        raise HTTPException(status_code=429, detail='Rate limit exceeded')
+
+    from datetime import datetime, timezone
+    generated_at = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+    sha256_placeholder = "(computed on download)"
+
+    arduino_src = generate_arduino(payload.arm, payload.task, sha256_placeholder, generated_at)
+    python_src  = generate_python( payload.arm, payload.task, sha256_placeholder, generated_at)
+    bom_data    = generate_bom(payload.arm)
+    urdf_xml    = generate_urdf(payload.arm)
+
+    return {
+        'arduino': arduino_src,
+        'python':  python_src,
+        'bom':     bom_data,
+        'urdf':    urdf_xml,
+        'generated_at': generated_at,
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+@app.websocket("/ws/simulate")
+async def ws_simulate(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        raw = await websocket.receive_json()
+        req = MuJoCoRunRequest(**raw)
+
+        # Stream start
+        await websocket.send_json({
+            "type": "start",
+            "run_id": req.run_id,
+            "target_fps": req.target_fps,
+        })
+
+        mujoco_frames = []
+        for frame in run_mujoco_frames(req.arm, req.execution_plan, req.target_fps):
+            mujoco_frames.append(frame)
+            await websocket.send_json({
+                "type": "frame",
+                "frame": frame.model_dump(),
+            })
+
+        divergence = compute_divergence(mujoco_frames, req.rapier_frames)
+        lifespan = estimate_servo_lifespan(mujoco_frames)
+
+        result = MuJoCoRunResult(
+            status="ok",
+            total_frames=len(mujoco_frames),
+            divergence=divergence,
+            lifespan=lifespan,
+        )
+        await websocket.send_json({
+            "type": "complete",
+            "result": result.model_dump(),
+        })
+
+    except WebSocketDisconnect:
+        return
+    except Exception as exc:
+        await websocket.send_json({
+            "type": "error",
+            "message": str(exc),
+        })
+           

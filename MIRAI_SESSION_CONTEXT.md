@@ -130,6 +130,66 @@ Fix: Always keep `TaskEditorPanel` mounted, wrapped in a `display:none` div when
 
 ---
 
+### Session Log — May 16, 2026 (FINAL — End of Day Summary)
+
+#### Complete list of Day 16 May accomplishments
+
+**Gemini AI Speed & Architecture:**
+- `geminiDirectPlanner.ts` created — calls `@google/generative-ai` directly from browser
+- `VITE_GEMINI_API_KEY` support — bypasses FastAPI/Vertex AI, latency 4-6 min → 5-15s
+- Model auto-fallback: tries gemini-2.5-flash → 2.5-flash-lite → 2.0-flash → 1.5-flash on 404
+- Root `.env` created with `VITE_GEMINI_API_KEY` from `backend/.env`
+
+**Scene Planner & Collision-Free Generation:**
+- `scenePlanner.ts` — `computeTransitHeight`, `computeSafePickSequence`, `buildRichSceneContext`, `computeObstacleAwareApproach`, `analyzeTaskFeasibility`
+- `normalizeTaskCoordinates` — post-processes Gemini output coordinates with scene geometry
+- `normalizeTaskCoordinates` destination detection fixed: skips lift step (same target as pickup), finds first different target
+- Coordinate role mapping fixed: last pre-open = depositPoint, all post-open = retreatPoint
+
+**Motion Compiler — resolveTarget ROOT CAUSE:**
+- `resolveTarget` was overriding explicit x/y/z with scene object position when `targetId` set
+- Fix: explicit coords take absolute priority when non-zero; scene lookup is fallback only
+- This single bug caused 919-1328 collision frames (arm traveled at table level instead of transit height)
+
+**Volumetric Collision Detection:**
+- `LINK_COLLISION_RADIUS`: 0.022 → 0.045m (matches visual arm link body)
+- `JOINT_HOUSING_RADIUS`: new 0.065m (matches joint disk housings)
+- `LINK_COLLISION_SAMPLES`: 16 → 32 (denser sampling)
+- `checkJointHousings()` added — sphere checks at every articulated joint
+- Surface skip: table-only (arm mounted on it); shelf NOW detected as real obstacle
+- `checkAABBCollision` (EE): surfaces kept, shelf collision always detected
+
+**Arm Auto-Reconfiguration (fully automatic):**
+- `armConfigOptimizer.ts` — `checkArmConditioning`, `scaleArmForTarget`, `checkDestinationReachability`, `extendArmForDestination`
+- Pre-flight step 1: Reach check (extend for out-of-range)
+- Pre-flight step 2: Gripper check (auto-configure width/force/type)
+- Pre-flight step 3: IK conditioning (scale DOWN for close targets, ratio < 0.33 → scale to 0.44)
+- Pre-flight step 4: Destination reachability (extend UP for far deposit zones)
+- L5 retry loop: tries ratios [0.40, 0.36, 0.30] when all layers fail with Pickup:None
+- `handleAutoConfigForPickability` and `handleAIFix` removed — user clicks Generate, AI handles everything
+
+**Task Feasibility Analysis:**
+- `analyzeTaskFeasibility()` — detects pickup-ok/deposit-impossible distinct case
+- Specific error messages: "Arm CAN reach Cylinder A for pickup but CANNOT reach Shelf Drop Zone (680mm, max 573mm). Increase segment lengths."
+- `computeObstacleAwareApproach()` — detects when shelf blocks pickup approach, adds Z-avoidance waypoint
+- `buildFallbackTaskSpec` — obstacle-aware, inserts intermediate waypoints when shelf blocks path
+
+**UI/UX:**
+- AI Results redesigned: `air-*` namespace, status banner, 3-column metric chips, target row, tab disclosures
+- `TaskEditorPanel` always-mounted (display:none when inactive) — state survives tab navigation
+- `commitTask` ACK timeout fixed: task marked "ready" regardless of canvas ACK (task already verified valid)
+- `MAX_LINK_SWEEP_COLLISIONS`: 80 → 150 (accounts for wider volumetric radii)
+
+**Scene Registry:**
+- Shelf `dimensions[1]`: 0.02 → 0.08m (4x thicker, centre at Y=0.3 unchanged)
+- `zone-shelf` Y: 0.32 → 0.35 (above new shelf top at Y=0.34)
+
+**Regression Tests:**
+- `regression_test.py` — validates Gemini direct API, normalization, coordinate trace
+- `regression_test_boxb.py` — validates IK conditioning auto-scale (CONFIRMED: ratio 0.321 → scale → 0.440)
+
+---
+
 ### Session Log — May 16, 2026 (Continued — resolveTarget Root Cause Fixed)
 
 #### THE actual root cause of all collision failures: resolveTarget in motionCompiler.ts

@@ -1,0 +1,94 @@
+/*
+ * ═══════════════════════════════════════════════════
+ *  Mirai Robot Arm Controller — Arduino
+ *  Task:      {{ task_name }}
+ *  Arm:       {{ arm_name }}
+ *  Generated: {{ generated_at }}
+ *  SHA-256:   {{ sha256 }}
+ * ═══════════════════════════════════════════════════
+ *
+ *  Hardware wiring:
+{%- for seg in revolute_segments %}
+ *    Joint {{ loop.index }} ({{ seg.name }}) ── MG996R servo ── Pin {{ seg.servo_pin }}
+{%- endfor %}
+ *    Gripper ({{ gripper_type }}) ─────────── Pin {{ gripper_pin }}
+ *
+ *  Power: 5 V / 3 A per servo. Use separate servo power rail.
+ */
+
+#include <Servo.h>
+
+// ── Pin assignments ────────────────────────────────
+{%- for seg in revolute_segments %}
+const int PIN_J{{ loop.index }} = {{ seg.servo_pin }};
+{%- endfor %}
+const int PIN_GRIP = {{ gripper_pin }};
+
+// ── Servo objects ──────────────────────────────────
+{%- for seg in revolute_segments %}
+Servo j{{ loop.index }};
+{%- endfor %}
+Servo grip;
+
+// ── Safety clamp ───────────────────────────────────
+int clamp180(int v) { return max(0, min(180, v)); }
+
+// ── Smooth interpolated move ───────────────────────
+void moveTo(
+{%- for seg in revolute_segments -%}
+  int t{{ loop.index }},
+{%- endfor %}
+  int tg, int ms) {
+  const int STEPS = max(1, ms / 20);
+{%- for seg in revolute_segments %}
+  int s{{ loop.index }} = j{{ loop.index }}.read();
+{%- endfor %}
+  int sg = grip.read();
+  for (int i = 1; i <= STEPS; i++) {
+    float r = (float)i / STEPS;
+{%- for seg in revolute_segments %}
+    j{{ loop.index }}.write(clamp180(s{{ loop.index }} + (int)((t{{ loop.index }} - s{{ loop.index }}) * r)));
+{%- endfor %}
+    grip.write(clamp180(sg + (int)((tg - sg) * r)));
+    delay(20);
+  }
+}
+
+// ── Setup ──────────────────────────────────────────
+void setup() {
+  Serial.begin(115200);
+  Serial.println(F("Mirai | {{ arm_name }}"));
+  Serial.println(F("Task  : {{ task_name }}"));
+{%- for seg in revolute_segments %}
+  j{{ loop.index }}.attach(PIN_J{{ loop.index }});
+{%- endfor %}
+  grip.attach(PIN_GRIP);
+  // Home all joints
+{%- for seg in revolute_segments %}
+  j{{ loop.index }}.write(90);
+{%- endfor %}
+  grip.write(0);
+  delay(1500);
+  Serial.println(F("Ready."));
+}
+
+// ── Task execution (runs once) ─────────────────────
+void loop() {
+  static bool done = false;
+  if (done) return;
+  done = true;
+
+  Serial.println(F("Starting task..."));
+{% for wp in waypoints %}
+  // ── Step {{ loop.index }}{% if wp.label %}: {{ wp.label }}{% endif %} ─────
+  Serial.println(F("Step {{ loop.index }}"));
+  moveTo(
+{%- for sv in wp.servo_angles -%}
+    {{ sv }},
+{%- endfor %}
+    {{ wp.gripper_servo }},
+    {{ wp.duration_ms }});
+  delay({{ wp.hold_ms }});
+{% endfor %}
+  Serial.println(F("Done."));
+}

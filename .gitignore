@@ -48,4 +48,7 @@ MIRAI_SESSION_CONTEXT.md
 MIRAI_BLUEPRINT.pdf
 MIRAI_BLUEPRINT.md
 convert_blueprint.py
+
+# Regression Testing Scripts (Desktop/Local environment overrides)
 regression_test.py
+regression_test_boxb.py

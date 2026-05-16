@@ -50,12 +50,12 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 | 2 | May 12 | Arm Design Studio | ✅ **COMPLETE** — All 12 files created, types defined, atoms/utils/components full stack, React 18 downgrade applied, app live at localhost:5173, TypeScript clean |
 | 3 | May 13 | Task Editor (React Flow) | ✅ **COMPLETE** — All 14 files created, 7 node types, palette, canvas, deletable edges, validation, Ctrl+S export, Ctrl+Z undo, TypeScript clean |
 | 4 | May 14 | Physics Simulation (Rapier) | ✅ **COMPLETE** — Sim pipeline finalized with arm-link collision detection, segment rigid bodies, revolute/prismatic constraints, and collision flash polish |
-| 5 | May 15 | Gemini AI Integration | 🔄 **IN PROGRESS** — TaskEditor AI workflow integrated (Generate, Results, Fix, Suggestions, Think Trace) |
-| 6 | May 16 | Backend + MuJoCo + Export | ⏳ Ready to Start |
+| 5 | May 15–16 | Gemini AI Integration | ✅ **COMPLETE** — Direct Gemini API (5-15s), scene planner, IK auto-scale, arm auto-config, volumetric collision detection, obstacle-aware routing, feasibility analysis, AI Results UI redesign |
+| 6 | May 16–17 | Backend + MuJoCo + Export | ⏳ Ready to Start |
 | 7 | May 17 | Community + Famous Preloads | ⏳ Ready to Start |
 | 8 | May 18–19 | Polish + Demo Prep + Submit | ⏳ Ready to Start |
 
-**STATUS:** Days 1–4 complete. Day 5 is in progress.
+**STATUS:** Days 1–5 complete. Day 6 starts next.
 
 ---
 
@@ -101,7 +101,7 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 ✅ Collision highlighting applied to both arm segments AND environment objects simultaneously
 ✅ Object positioning adjusted to minimize gap between objects and work table surface
 
-### Day 5 — Gemini AI Integration (In Progress)
+### Day 5 — Gemini AI Integration ✅ COMPLETE (May 15–16)
 ✅ AI integration consolidated into `TaskEditorPanel` (Tasks tab is now the canonical AI surface)
 ✅ `Generate motion` now uses current scene + arm context and streams ReAct steps
 ✅ `AI Results` in TaskEditor shows Confidence, Safety, Reachability, and Target Pickability
@@ -134,7 +134,28 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 ✅ Frame-0 baseline enforcement now restores object pose/state (position + rotation + zero velocities), preventing cylinders from staying rolled/laid down after reset
 ❌ MuJoCo cross-validation feed into TaskEditor AI results
 
-**Immediate Recommended Next Steps (May 15, 2026):**
+**Added May 16, 2026 (Day 5 continuation):**
+✅ Direct Gemini API via browser SDK — VITE_GEMINI_API_KEY, gemini-2.5-flash, 5-15s latency
+✅ Model auto-fallback chain: 2.5-flash → 2.0-flash → 1.5-flash on 404/deprecated
+✅ scenePlanner.ts — computeTransitHeight, computeSafePickSequence, buildRichSceneContext, computeObstacleAwareApproach, analyzeTaskFeasibility
+✅ normalizeTaskCoordinates — post-processes Gemini output with proven-safe waypoints; fixed destination detection + role mapping
+✅ CRITICAL resolveTarget fix: explicit x/y/z always take priority over scene lookup (single bug causing 919-1328 collision frames)
+✅ armConfigOptimizer.ts — IK conditioning auto-scale, destination reachability check, arm auto-extend
+✅ 4-step pre-flight: reach → gripper → IK conditioning → destination reachability (fully automatic)
+✅ L5 retry loop with progressive arm scale ratios [0.40, 0.36, 0.30]
+✅ Volumetric collision detection: LINK_COLLISION_RADIUS 2.2→4.5cm, JOINT_HOUSING_RADIUS 6.5cm, checkJointHousings()
+✅ Surface collision rule: only work table skipped; elevated shelf IS detected as real obstacle
+✅ Task feasibility analysis: pickup-ok / deposit-impossible as distinct infeasibility error with specific distances
+✅ Obstacle-aware approach: detects shelf blocking pickup path, inserts Z-avoidance waypoint
+✅ AI Results UI redesigned: air-* namespace, status banner, 3-col metric chips, disclosure tabs
+✅ TaskEditorPanel always-mounted (display:none) — state survives tab navigation
+✅ commitTask ACK timeout fixed: valid tasks never show false "Plan blocked"
+✅ handleAIFix + handleAutoConfigForPickability removed — generation pipeline fully automatic
+✅ MAX_LINK_SWEEP_COLLISIONS 80 → 150 (wider volumetric radii)
+✅ Shelf height: dimensions[1] 0.02 → 0.08m (position unchanged); zone-shelf Y: 0.32 → 0.35
+✅ regression_test.py + regression_test_boxb.py added
+
+**Immediate Next: Day 6 — Backend + MuJoCo + Export**
 - 🔜 Add a simulation-side hard guard so `mirai:auto-run-simulation` is ignored unless latest execution gate status is `ready`
 - 🔜 Add a compact `Gate Debug` panel (missing targets, collision frames, pickup result) for fast operator diagnosis
 - 🔜 Add Playwright E2E for autonomous flow: prompt -> taskflow load ack -> gate ready -> simulate autoplay

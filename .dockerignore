@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+backend/.env
+__pycache__/
+*.pyc
+.git/
+*.md
+src/
+public/
+e2e/
+regression_test*.py

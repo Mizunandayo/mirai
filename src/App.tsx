@@ -8,6 +8,7 @@ import TaskEditorPanel from './components/task-editor/TaskEditorPanel'
 import TaskFlowCanvas from './components/task-editor/TaskFlowCanvas'
 import SimViewer from './components/simulation/SimViewer'
 import SimulationPanel from './components/simulation/SimulationPanel'
+import ExportPanel from './components/export/ExportPanel'
 
 
 
@@ -126,7 +127,7 @@ const STATUS_MAP: Record<NavItem, string> = {
   design: 'arm designer active',
   tasks: 'task editor active',
   simulate: 'physics simulation',
-  export: 'export · coming day 6',
+  export: 'export pipeline',
 }
 
 export default function App() {
@@ -237,7 +238,12 @@ function handleNavClick(nav: NavItem) {
 
         {activeNav === 'simulate' && panelOpen && <SimulationPanel />}
 
-        <main className="viewport-wrapper">
+        {/* Export panel — full-width, replaces the 3D viewport area */}
+        {activeNav === 'export' && <ExportPanel />}
+
+        {/* 3D viewport — display:none on Export tab preserves WebGL contexts
+            (ArmViewer + SimViewer stay mounted, no context loss on return) */}
+        <main className="viewport-wrapper" style={{ display: activeNav === 'export' ? 'none' : undefined }}>
           {/* Tasks canvas — unmounts cleanly (no WebGL) */}
           {activeNav === 'tasks' && <TaskFlowCanvas />}
 

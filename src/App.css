@@ -4462,3 +4462,149 @@ body.panel-resizing .designer-panel {
   0%, 80%, 100% { transform: translateY(0);    background: #ccc; }
   40%            { transform: translateY(-5px); background: #888; }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ── Export syntax tokens ─────────────────────────────────────────────────── */
+.exp-tok-comment { color: #6a9955; font-style: italic; }
+.exp-tok-kw      { color: #569cd6; }
+.exp-tok-type    { color: #4ec9b0; }
+.exp-tok-str     { color: #ce9178; }
+.exp-tok-num     { color: #b5cea8; }
+.exp-tok-fn      { color: #dcdcaa; }
+.exp-tok-tag     { color: #569cd6; }
+
+/* ── Export panel extras ──────────────────────────────────────────────────── */
+.exp-error-banner {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #991b1b;
+  font-size: 0.85rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.exp-code-panel--loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+}
+
+@keyframes exp-spin-kf {
+  to { transform: rotate(360deg); }
+}
+
+.exp-spin {
+  animation: exp-spin-kf 0.8s linear infinite;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+.mujoco-badge,
+.lifespan-panel,
+.mujoco-viewport {
+  font-family: Poppins, sans-serif;
+  color: #0d0d0d;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+}
+
+.mujoco-badge {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  animation: fade-up 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mujoco-badge-title {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.mujoco-badge-score {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0d0d0d;
+}
+
+.mujoco-badge-meta {
+  font-size: 0.82rem;
+  color: #1a1a1a;
+}
+
+.lifespan-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0d0d0d;
+  margin: 0 0 10px 0;
+}
+
+.lifespan-row {
+  display: grid;
+  grid-template-columns: 52px 92px 90px 1fr;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 0.84rem;
+  color: #1a1a1a;
+}
+
+.btn-mujoco-cta {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid #0d0d0d;
+  background: #0d0d0d;
+  color: #ffffff;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms;
+}
+
+.btn-mujoco-cta:hover {
+  transform: translateY(-1px);
+  opacity: 0.94;
+}
+
+.btn-mujoco-cta:active {
+  transform: translateY(0);
+}
+
+.btn-mujoco-cta:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

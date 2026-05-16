@@ -3,14 +3,13 @@
  *
  * Calls Gemini directly from the browser using @google/generative-ai SDK.
  * Eliminates the FastAPI backend round-trip for planning, reducing latency
- * from 4-6 minutes (Vertex AI via backend) to 5-15 seconds.
+ * to 5-15 seconds for typical prompts.
  *
  * Architecture:
  *   Browser → @google/generative-ai → Gemini Developer API → response
  *
  * Requirement: VITE_GEMINI_API_KEY in your .env file.
- * The Gemini requirement for the hackathon is satisfied — same Gemini models,
- * just accessed via the Developer API instead of Vertex AI.
+ * The Gemini requirement for the hackathon is satisfied via the Developer API.
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai'

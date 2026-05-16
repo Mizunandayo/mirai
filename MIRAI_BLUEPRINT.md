@@ -39,7 +39,7 @@
 
 ## DAILY PROGRESS TRACKER
 
-> **Today:** Thursday, May 14, 2026 (Day 4 of 8 — complete) | **Deadline:** Monday, May 19, 2026 — 8:00 AM PST (Philippine Standard Time)
+> **Today:** Friday, May 16, 2026 (Day 6 of 8) | **Deadline:** Monday, May 19, 2026 — 8:00 AM PST (Philippine Standard Time)
 > **Legend:** ✅ Done &nbsp; ❌ Not Started &nbsp; 🔄 In Progress (today)
 
 ---
@@ -86,7 +86,7 @@
 ✅ Collision highlighting applied to both arm segments AND environment objects simultaneously
 ✅ Object positioning adjusted to minimize gap between objects and work table surface
 
-### Day 5 — Gemini AI Integration (In Progress)
+### Day 5 — Gemini AI Integration ✅ COMPLETE (May 15–16)
 ✅ TaskEditorPanel is now the canonical AI interaction surface (AI navbar flow deprecated)
 ✅ AI Results in TaskEditor shows confidence, safety, reachability, and target pickability
 ✅ TaskEditor AI actions shipped: `AI Fix`, `AI Suggestions`, `Think Trace`, `Auto-config Arm`
@@ -117,6 +117,25 @@
 ✅ Playback reset now restores simulation objects to compile-time baseline positions when returning to frame 0
 ✅ Frame-0 reset now restores full object state (pose + velocity reset), ensuring cylinders and dynamic bodies return to original standing state
 ❌ MuJoCo-backed validation merged into TaskEditor AI result pipeline (pending Day 6)
+✅ Direct Gemini API from browser (VITE_GEMINI_API_KEY, gemini-2.5-flash, 5-15s vs 4-6min Vertex AI)
+✅ Model auto-fallback: gemini-2.5-flash → 2.0-flash → 1.5-flash on 404/deprecated errors
+✅ scenePlanner.ts — single source of truth for collision-free waypoint geometry
+✅ normalizeTaskCoordinates — post-processes Gemini output with scene-planner safe coords
+✅ computeObstacleAwareApproach — detects elevated shelf blocking pickup path, adds Z-avoidance waypoint
+✅ analyzeTaskFeasibility — pickup-ok / deposit-impossible detected as distinct infeasibility case
+✅ CRITICAL resolveTarget bug fixed: explicit x/y/z now always override scene lookup (was causing 919-1328 collision frames)
+✅ armConfigOptimizer.ts: IK conditioning (ratio<0.33→auto-scale), destination reachability, arm extend
+✅ Fully automatic arm reconfiguration — user clicks Generate, AI handles all arm/gripper config
+✅ Regression-confirmed: Box B IK ratio 0.321 (fail) → auto-scale → 0.440 (succeed)
+✅ Volumetric collision detection: LINK_COLLISION_RADIUS 2.2→4.5cm, JOINT_HOUSING_RADIUS 6.5cm, 32 samples
+✅ checkJointHousings() — sphere collision checks at every articulated joint housing
+✅ Surface collision rule fixed: only work table skipped; elevated shelf IS checked as real obstacle
+✅ Specific infeasibility error messages with object names, distances, and actionable fixes
+✅ AI Results UI redesigned: air-* namespace, status banner, 3-col metric chips, disclosure tabs
+✅ TaskEditorPanel always-mounted (display:none on other tabs) — AI state survives navigation
+✅ commitTask ACK timeout fixed — valid tasks never show false "Plan blocked"
+✅ Shelf height increased: 0.02 → 0.08m (centre at Y=0.3 unchanged); zone-shelf Y: 0.32 → 0.35
+✅ regression_test.py + regression_test_boxb.py added
 
 ### Recommended Next Implementation Wave
 - Add final simulation listener guard to block autoplay when execution verification is not `ready`
@@ -126,7 +145,7 @@
 - Migrate backend Gemini integration from deprecated `google.generativeai` to `google.genai`
 - Implement Day 6 MuJoCo validation feed and divergence badge in AI Results
 
-### Day 6 — Backend + MuJoCo + Export (Not Started)
+### Day 6 — Backend + MuJoCo + Export (Ready to Start — May 16–17)
 ❌ Railway deployment + MuJoCo WS pipeline + accuracy badge
 ❌ Servo lifespan predictor + side-by-side Rapier vs MuJoCo replay
 ❌ Deterministic code/BOM/URDF/QR/signed export pipeline

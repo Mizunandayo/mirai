@@ -1,0 +1,372 @@
+/* ═══════════════════════════════════════════════════════════
+   EXPORT PANEL — Mirai v1.0
+   Namespace: exp-*
+   Font: Poppins (inherited). Minimum text: 0.82rem.
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes exp-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes exp-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Root ──────────────────────────────────────────────────── */
+.exp-root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #ebebeb;
+  padding: 20px;
+  gap: 16px;
+  animation: exp-fade-up 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Hero header ───────────────────────────────────────────── */
+.exp-hero {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 16px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+
+.exp-hero-left { display: flex; flex-direction: column; gap: 4px; }
+
+.exp-hero-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0d0d0d;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.exp-hero-sub {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.exp-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* ── Tab bar ───────────────────────────────────────────────── */
+.exp-tabs {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.exp-tab {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: #ffffff;
+  color: #555;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.exp-tab:hover { background: #f5f5f5; color: #0d0d0d; }
+
+.exp-tab--active {
+  background: #0d0d0d;
+  border-color: #0d0d0d;
+  color: #ffffff;
+}
+
+/* ── Main content area ─────────────────────────────────────── */
+.exp-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 16px;
+  overflow: hidden;
+}
+
+/* ── Code preview panel ────────────────────────────────────── */
+.exp-code-panel {
+  flex: 1;
+  min-width: 0;
+  background: #0d0d0d;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.exp-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #1a1a1a;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.exp-code-lang {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #a0a0a0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.exp-code-copy {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
+  color: #a0a0a0;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.exp-code-copy:hover { background: rgba(255,255,255,0.08); color: #ffffff; }
+.exp-code-copy--copied { color: #4ade80; border-color: #4ade80; }
+
+.exp-code-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+
+.exp-code-pre {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.80rem;
+  line-height: 1.7;
+  color: #e8e8e8;
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* Syntax highlighting */
+.exp-tok-comment  { color: #6a9955; font-style: italic; }
+.exp-tok-keyword  { color: #569cd6; }
+.exp-tok-string   { color: #ce9178; }
+.exp-tok-number   { color: #b5cea8; }
+.exp-tok-function { color: #dcdcaa; }
+.exp-tok-type     { color: #4ec9b0; }
+
+/* ── Right sidebar ─────────────────────────────────────────── */
+.exp-sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+/* ── Info card ─────────────────────────────────────────────── */
+.exp-card {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+}
+
+.exp-card-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+/* ── QR code ───────────────────────────────────────────────── */
+.exp-qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+}
+
+.exp-qr-img {
+  width: 140px;
+  height: 140px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.exp-qr-label {
+  font-size: 0.78rem;
+  color: #555;
+  text-align: center;
+}
+
+/* ── Cost badge ────────────────────────────────────────────── */
+.exp-cost {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.exp-cost-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0d0d0d;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.exp-cost-unit {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #555;
+}
+
+/* ── BOM table ─────────────────────────────────────────────── */
+.exp-bom-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.80rem;
+}
+
+.exp-bom-table th {
+  text-align: left;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.exp-bom-table td {
+  padding: 7px 4px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  color: #333;
+  vertical-align: top;
+}
+
+.exp-bom-table tr:last-child td { border-bottom: none; font-weight: 700; }
+
+.exp-bom-source {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  background: #f0f0f0;
+  color: #555;
+}
+
+/* ── Download buttons ──────────────────────────────────────── */
+.exp-dl-primary {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  background: #0d0d0d;
+  color: #ffffff;
+  border: none;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 160ms ease, transform 120ms ease;
+  flex-shrink: 0;
+}
+
+.exp-dl-primary:hover:not(:disabled) { background: #2a2a2a; }
+.exp-dl-primary:active:not(:disabled) { transform: scale(0.98); }
+.exp-dl-primary:disabled { opacity: 0.4; cursor: default; }
+
+.exp-dl-secondary {
+  width: 100%;
+  height: 36px;
+  border-radius: 9px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: transparent;
+  color: #444;
+  font-family: inherit;
+  font-size: 0.80rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 140ms ease, border-color 140ms ease;
+  margin-top: 6px;
+}
+
+.exp-dl-secondary:hover { background: #f5f5f5; border-color: rgba(0,0,0,0.2); }
+
+.exp-dl-spin {
+  animation: exp-spin 0.8s linear infinite;
+}
+
+/* ── Empty state ───────────────────────────────────────────── */
+.exp-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #888;
+  text-align: center;
+  padding: 40px;
+}
+
+.exp-empty-icon { color: #d1d5db; }
+.exp-empty-title { font-size: 1rem; font-weight: 600; color: #444; }
+.exp-empty-sub   { font-size: 0.85rem; color: #888; }
+
+/* ── SHA badge ─────────────────────────────────────────────── */
+.exp-sha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #f7f7f7;
+  border-radius: 8px;
+  font-family: 'SF Mono', monospace;
+  font-size: 0.70rem;
+  color: #555;
+  overflow: hidden;
+  word-break: break-all;
+}
