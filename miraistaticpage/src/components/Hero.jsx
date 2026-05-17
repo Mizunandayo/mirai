@@ -100,14 +100,14 @@ export default function Hero() {
           style={{
             animationDelay: '0.05s',
             display:'inline-flex', alignItems:'center', gap:8,
-            border:'1px solid rgba(255,255,255,0.14)',
+            border:'1px solid rgba(163,163,163,0.25)',
             borderRadius:999,
-            padding:'7px 18px',
+            padding:'9px 18px',
             marginBottom:36,
-            background:'rgba(255,255,255,0.05)',
+            background:'rgba(38,38,38,0.52)',
             backdropFilter:'blur(12px)',
-            fontSize:'0.78rem', fontWeight:600,
-            color:'rgba(255,255,255,0.70)',
+            fontSize:'0.86rem', fontWeight:600,
+            color:'rgba(228,228,231,0.88)',
             letterSpacing:'0.02em',
           }}
         >
@@ -120,34 +120,36 @@ export default function Hero() {
           Transforming Enterprise Through AI &nbsp;·&nbsp; lablab.ai &nbsp;·&nbsp; May 11–19, 2026
         </div>
 
-        {/* Kanji */}
-        <p
-          className="hero-enter"
-          style={{
-            animationDelay:'0.12s',
-            fontSize:'0.92rem', fontWeight:500,
-            color:'rgba(255,255,255,0.35)',
-            letterSpacing:'0.18em',
-            marginBottom:14,
-          }}
-        >
-          未来 &nbsp;—&nbsp; "Future"
-        </p>
-
-        {/* MIRAI — the centrepiece */}
+        {/* Hero wordmark */}
         <h1
           className="hero-enter"
           style={{
             animationDelay:'0.20s',
             fontWeight:900,
-            letterSpacing:'-0.06em',
-            lineHeight:0.92,
+            fontFamily:'Outfit, Poppins, system-ui, sans-serif',
+            letterSpacing:'-0.035em',
+            lineHeight:0.9,
             color:'#ffffff',
-            marginBottom:20,
-            fontSize:'clamp(5rem,14vw,11rem)',
+            marginBottom:18,
+            fontSize:'clamp(4rem,11vw,8.4rem)',
+            display:'flex',
+            alignItems:'baseline',
+            justifyContent:'center',
+            gap:'clamp(0.5rem,1.8vw,1.4rem)',
+            flexWrap:'wrap',
+            className:'text-sm font-bold tracking-[0.16em] uppercase text-white/70'
           }}
         >
-          MIRAI
+          <span style={{ color:'#f5f5f5', letterSpacing: '0.08em' }}>MIRAI</span>
+          <span
+            style={{
+              color:'rgba(113,113,122,0.95)',
+              fontWeight:800,
+              letterSpacing:'-0.02em',
+            }}
+          >
+            ミライ
+          </span>
         </h1>
 
         {/* Subtitle */}
@@ -171,9 +173,9 @@ export default function Hero() {
           className="hero-enter"
           style={{
             animationDelay:'0.38s',
-            fontSize:'clamp(0.88rem,1.4vw,1.05rem)',
+            fontSize:'clamp(0.98rem,1.55vw,1.14rem)',
             fontWeight:400,
-            color:'rgba(255,255,255,0.42)',
+            color:'rgba(212,212,216,0.8)',
             maxWidth:520,
             lineHeight:1.75,
             marginBottom:44,
@@ -249,10 +251,10 @@ export default function Hero() {
             animationDelay:'0.54s',
             display:'grid',
             gridTemplateColumns:`repeat(${STATS.length}, 1fr)`,
-            border:'1px solid rgba(255,255,255,0.09)',
+            border:'1px solid rgba(163,163,163,0.25)',
             borderRadius:16,
             overflow:'hidden',
-            background:'rgba(255,255,255,0.03)',
+            background:'rgba(39,39,42,0.45)',
             backdropFilter:'blur(12px)',
             width:'100%', maxWidth:560,
           }}
@@ -273,7 +275,7 @@ export default function Hero() {
               }}>{s.num}</span>
               <span style={{
                 fontSize:'0.72rem', fontWeight:500,
-                color:'rgba(255,255,255,0.42)',
+                color:'rgba(212,212,216,0.78)',
                 textAlign:'center', whiteSpace:'nowrap',
               }}>{s.lbl}</span>
             </div>
@@ -293,12 +295,11 @@ export default function Hero() {
           {[
             { label:'Developer', value:'Francis Daniel — Mizu' },
             { label:'Track',     value:'Track 3 · Robotics & Simulation' },
-            { label:'Award',     value:'+ Gemini Award' },
-            { label:'Deadline',  value:'May 19, 2026 · 8:00 AM PST' },
+            { label:'Timeline',  value:'Hackathon Event · May 11–19, 2026' },
           ].map(m => (
             <div key={m.label} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
-              <span style={{ fontSize:'0.64rem', fontWeight:700, letterSpacing:'0.10em', textTransform:'uppercase', color:'rgba(255,255,255,0.25)' }}>{m.label}</span>
-              <span style={{ fontSize:'0.82rem', fontWeight:600, color:'rgba(255,255,255,0.68)' }}>{m.value}</span>
+              <span style={{ fontSize:'0.76rem', fontWeight:700, letterSpacing:'0.10em', textTransform:'uppercase', color:'rgba(212,212,216,0.62)' }}>{m.label}</span>
+              <span style={{ fontSize:'0.9rem', fontWeight:600, color:'rgba(228,228,231,0.88)' }}>{m.value}</span>
             </div>
           ))}
         </div>
@@ -323,10 +324,10 @@ export default function Hero() {
           <div className="chip-f1" style={{
             position:'absolute', top:-14, right:48, zIndex:10,
             display:'flex', alignItems:'center', gap:6,
-            border:'1px solid rgba(255,255,255,0.14)', borderRadius:12,
-            padding:'7px 14px', fontSize:'0.72rem', fontWeight:700,
-            color:'rgba(255,255,255,0.85)',
-            background:'rgba(5,5,5,0.80)', backdropFilter:'blur(12px)',
+            border:'1px solid rgba(163,163,163,0.24)', borderRadius:12,
+            padding:'8px 14px', fontSize:'0.82rem', fontWeight:700,
+            color:'rgba(244,244,245,0.95)',
+            background:'rgba(39,39,42,0.72)', backdropFilter:'blur(12px)',
           }}>
             <span style={{ width:6, height:6, borderRadius:'50%', background:'#22c55e' }} />
             Rapier 60fps
@@ -334,10 +335,10 @@ export default function Hero() {
           <div className="chip-f2" style={{
             position:'absolute', top:36, left:-16, zIndex:10,
             display:'flex', alignItems:'center', gap:6,
-            border:'1px solid rgba(255,255,255,0.14)', borderRadius:12,
-            padding:'7px 14px', fontSize:'0.72rem', fontWeight:700,
-            color:'rgba(255,255,255,0.85)',
-            background:'rgba(5,5,5,0.80)', backdropFilter:'blur(12px)',
+            border:'1px solid rgba(163,163,163,0.24)', borderRadius:12,
+            padding:'8px 14px', fontSize:'0.82rem', fontWeight:700,
+            color:'rgba(244,244,245,0.95)',
+            background:'rgba(39,39,42,0.72)', backdropFilter:'blur(12px)',
           }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="#4285F4">
               <path d="M12 24C12 18.053 7.947 14 2 14c5.947 0 10-4.053 10-10 0 5.947 4.053 10 10 10-5.947 0-10 4.053-10 10z"/>
@@ -347,10 +348,10 @@ export default function Hero() {
           <div className="chip-f3" style={{
             position:'absolute', bottom:-14, right:80, zIndex:10,
             display:'flex', alignItems:'center', gap:6,
-            border:'1px solid rgba(255,255,255,0.14)', borderRadius:12,
-            padding:'7px 14px', fontSize:'0.72rem', fontWeight:700,
-            color:'rgba(255,255,255,0.85)',
-            background:'rgba(5,5,5,0.80)', backdropFilter:'blur(12px)',
+            border:'1px solid rgba(163,163,163,0.24)', borderRadius:12,
+            padding:'8px 14px', fontSize:'0.82rem', fontWeight:700,
+            color:'rgba(244,244,245,0.95)',
+            background:'rgba(39,39,42,0.72)', backdropFilter:'blur(12px)',
           }}>
             <span style={{ width:6, height:6, borderRadius:'50%', background:'#60a5fa' }} />
             MuJoCo 94%
@@ -370,7 +371,7 @@ export default function Hero() {
         gap:6, paddingBottom:24, opacity:0.28,
       }}>
         <div style={{ width:1, height:32, background:'rgba(255,255,255,0.5)' }} />
-        <span style={{ fontSize:'0.62rem', fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.6)' }}>Scroll</span>
+        <span style={{ fontSize:'0.78rem', fontWeight:600, letterSpacing:'0.16em', textTransform:'uppercase', color:'rgba(228,228,231,0.75)' }}>Scroll</span>
       </div>
     </section>
   )

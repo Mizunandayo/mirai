@@ -40,7 +40,7 @@ export default function Nav() {
         display: 'flex',
         alignItems: 'center',
         gap: 2,
-        border: '1px solid rgba(255,255,255,0.09)',
+        border: '1px solid rgba(163,163,163,0.26)',
         boxShadow: '0 0 0 1px rgba(0,0,0,0.5), 0 8px 32px rgba(0,0,0,0.4)',
         minWidth: 'max-content',
       }}
@@ -68,12 +68,12 @@ export default function Nav() {
             onClick={e => go(e, href)}
             className="no-underline transition-all"
             style={{
-              fontSize: '0.76rem',
+              fontSize: '0.84rem',
               fontWeight: active === href.slice(1) ? 600 : 500,
               color: active === href.slice(1) ? '#fff' : 'rgba(255,255,255,0.50)',
               padding: '6px 12px',
               borderRadius: 999,
-              background: active === href.slice(1) ? 'rgba(255,255,255,0.10)' : 'transparent',
+              background: active === href.slice(1) ? 'rgba(161,161,170,0.22)' : 'transparent',
               whiteSpace: 'nowrap',
               transition: 'all 200ms cubic-bezier(0.16,1,0.3,1)',
             }}

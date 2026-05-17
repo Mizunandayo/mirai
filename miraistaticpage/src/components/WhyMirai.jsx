@@ -2,20 +2,20 @@ import { Reveal } from '../hooks/useScrollReveal.jsx'
 
 const Check = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-    <circle cx="8" cy="8" r="7" stroke="rgba(255,255,255,0.5)" strokeWidth="1.2"/>
-    <path d="m5 8 2 2 4-4" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="8" cy="8" r="7" stroke="rgba(74,222,128,0.65)" strokeWidth="1.2"/>
+    <path d="m5 8 2 2 4-4" stroke="#4ade80" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
 const Cross = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-    <circle cx="8" cy="8" r="7" stroke="rgba(255,255,255,0.12)" strokeWidth="1.2"/>
-    <path d="m5.5 5.5 5 5M10.5 5.5l-5 5" stroke="rgba(255,255,255,0.22)" strokeWidth="1.4" strokeLinecap="round"/>
+    <circle cx="8" cy="8" r="7" stroke="rgba(251,113,133,0.45)" strokeWidth="1.2"/>
+    <path d="m5.5 5.5 5 5M10.5 5.5l-5 5" stroke="#fb7185" strokeWidth="1.45" strokeLinecap="round"/>
   </svg>
 )
 const Part = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-    <circle cx="8" cy="8" r="7" stroke="rgba(255,255,255,0.22)" strokeWidth="1.2"/>
-    <path d="M5 8h6" stroke="rgba(255,255,255,0.35)" strokeWidth="1.4" strokeLinecap="round"/>
+    <circle cx="8" cy="8" r="7" stroke="rgba(250,204,21,0.5)" strokeWidth="1.2"/>
+    <path d="M5 8h6" stroke="#facc15" strokeWidth="1.4" strokeLinecap="round"/>
   </svg>
 )
 
@@ -35,7 +35,7 @@ function Cell({ v }) {
   if (v === true)  return <Check />
   if (v === false) return <Cross />
   if (v === '~')   return <Part />
-  return <span className="font-mono text-[0.70rem] font-bold text-white/55">{v}</span>
+  return <span className="font-mono text-[0.82rem] font-bold text-zinc-200/90">{v}</span>
 }
 
 const DIFFS = [
@@ -50,35 +50,41 @@ export default function WhyMirai() {
     <section id="differentiation" className="relative py-32 z-10" style={{ background:'#070707' }}>
       <div className="max-w-[1100px] mx-auto px-8">
 
-        <Reveal><p className="text-[0.76rem] font-bold tracking-[0.12em] uppercase text-white/55 mb-5">Why Mirai</p></Reveal>
+        <Reveal><p className="micro-label font-bold uppercase text-zinc-300/90 mb-5">Why Mirai</p></Reveal>
         <Reveal delay={1}>
           <h2 className="font-black tracking-[-0.04em] leading-none text-white mb-4"
               style={{ fontSize:'clamp(2.4rem,5vw,4rem)' }}>
             No existing tool<br/>
-            <span style={{ color:'rgba(255,255,255,0.22)' }}>does all of this.</span>
+            <span style={{ color:'rgba(228,228,231,0.48)' }}>does all of this.</span>
           </h2>
         </Reveal>
 
-        {/* Comparison table */}
         <Reveal delay={2}>
-          <div className="border border-white/8 rounded-2xl overflow-auto mb-8"
-               style={{ background:'rgba(255,255,255,0.02)' }}>
+          <p className="small-copy text-zinc-100/85 mb-6 max-w-3xl">
+            Mirai combines natural-language task authoring, deterministic safety checks, dual-physics validation,
+            and hardware-ready export in one browser workflow.
+          </p>
+        </Reveal>
+
+        {/* Comparison table */}
+        <Reveal delay={3}>
+          <div className="glass-panel rounded-2xl overflow-auto mb-8">
             <table className="w-full border-collapse" style={{ minWidth:580 }}>
               <thead>
-                <tr className="border-b border-white/8">
-                  <th className="py-3.5 px-5 text-left text-[0.70rem] font-bold text-white/55 tracking-wide uppercase">Capability</th>
-                  <th className="py-3.5 px-5 text-left text-[0.70rem] font-bold text-white uppercase tracking-wide" style={{ background:'rgba(255,255,255,0.07)' }}>Mirai</th>
-                  <th className="py-3.5 px-5 text-left text-[0.70rem] font-bold text-white/55 tracking-wide uppercase">RoboDK</th>
-                  <th className="py-3.5 px-5 text-left text-[0.70rem] font-bold text-white/55 tracking-wide uppercase">Webots</th>
-                  <th className="py-3.5 px-5 text-left text-[0.70rem] font-bold text-white/55 tracking-wide uppercase">MATLAB</th>
-                  <th className="py-3.5 px-5 text-left text-[0.70rem] font-bold text-white/55 tracking-wide uppercase">CoppeliaSim</th>
+                <tr className="border-b border-zinc-500/35">
+                  <th className="py-4 px-5 text-left text-[0.82rem] font-bold text-zinc-200/95 tracking-wide uppercase">Capability</th>
+                  <th className="py-4 px-5 text-left text-[0.82rem] font-bold text-zinc-50 uppercase tracking-wide" style={{ background:'rgba(161,161,170,0.22)' }}>Mirai</th>
+                  <th className="py-4 px-5 text-left text-[0.82rem] font-bold text-zinc-200/95 tracking-wide uppercase">RoboDK</th>
+                  <th className="py-4 px-5 text-left text-[0.82rem] font-bold text-zinc-200/95 tracking-wide uppercase">Webots</th>
+                  <th className="py-4 px-5 text-left text-[0.82rem] font-bold text-zinc-200/95 tracking-wide uppercase">MATLAB</th>
+                  <th className="py-4 px-5 text-left text-[0.82rem] font-bold text-zinc-200/95 tracking-wide uppercase">CoppeliaSim</th>
                 </tr>
               </thead>
               <tbody>
                 {ROWS.map((r, i) => (
-                  <tr key={r.feat} className={`${i < ROWS.length-1 ? 'border-b border-white/6' : ''} hover:bg-white/2 transition-colors`}>
-                    <td className="py-3 px-5 text-[0.80rem] text-white/45 font-normal">{r.feat}</td>
-                    <td className="py-3 px-5" style={{ background:'rgba(255,255,255,0.04)' }}><Cell v={r.m}/></td>
+                  <tr key={r.feat} className={`${i < ROWS.length-1 ? 'border-b border-zinc-500/30' : ''} hover:bg-zinc-400/10 transition-colors`}>
+                    <td className="py-3 px-5 text-[0.9rem] text-zinc-100/88 font-medium">{r.feat}</td>
+                    <td className="py-3 px-5" style={{ background:'rgba(113,113,122,0.16)' }}><Cell v={r.m}/></td>
                     <td className="py-3 px-5"><Cell v={r.d1}/></td>
                     <td className="py-3 px-5"><Cell v={r.d2}/></td>
                     <td className="py-3 px-5"><Cell v={r.d3}/></td>
@@ -94,11 +100,10 @@ export default function WhyMirai() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {DIFFS.map((d, i) => (
             <Reveal key={d.n} delay={i + 1}>
-              <div className="border border-white/8 rounded-2xl p-5 group hover:border-white/16 transition-colors duration-300 h-full"
-                   style={{ background:'rgba(255,255,255,0.03)' }}>
-                <div className="text-3xl font-black tracking-[-0.06em] text-white/20 mb-3 group-hover:text-white/35 transition-colors">{d.n}</div>
-                <div className="text-[0.88rem] font-bold text-white mb-2">{d.title}</div>
-                <div className="text-sm text-white/65 leading-relaxed">{d.desc}</div>
+              <div className="glass-panel rounded-2xl p-5 group hover:border-zinc-300/45 transition-colors duration-300 h-full">
+                <div className="text-3xl font-black tracking-[-0.06em] text-zinc-300/55 mb-3 group-hover:text-zinc-100 transition-colors">{d.n}</div>
+                <div className="text-[1rem] font-bold text-zinc-50 mb-2">{d.title}</div>
+                <div className="small-copy text-zinc-100/82">{d.desc}</div>
               </div>
             </Reveal>
           ))}

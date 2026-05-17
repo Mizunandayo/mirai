@@ -1,45 +1,82 @@
 import { Reveal } from '../hooks/useScrollReveal.jsx'
 
-const CARDS = [
-  { big:'$2,500+', unit:'/ year', title:'RoboDK or MATLAB Robotics', sub:'Desktop-only. Corporate pricing.' },
-  { big:'30',      unit:'min',   title:'Minimum setup time',         sub:'Before a single joint moves.' },
-  { big:'0',       unit:'',      title:'Simulators with real code export', sub:'No bridge to actual hardware.' },
+const KPIS = [
+  {
+    n: '$2,500+',
+    u: '/ year',
+    t: 'Access cost is too high for beginners',
+    d: 'Most robotics tooling assumes enterprise budgets, not student or maker constraints.',
+    glow: 'from-cyan-400/25 to-transparent',
+  },
+  {
+    n: '30',
+    u: 'min+',
+    t: 'Setup overhead delays experimentation',
+    d: 'Install chains and environment issues slow progress before testing a single task.',
+    glow: 'from-violet-400/25 to-transparent',
+  },
+  {
+    n: '0',
+    u: '',
+    t: 'No smooth sim-to-hardware bridge',
+    d: 'Most simulators cannot ship deterministic code and parts lists for immediate builds.',
+    glow: 'from-emerald-400/25 to-transparent',
+  },
 ]
 
 export default function Problem() {
   return (
-    <section id="problem" className="relative py-32 z-10" style={{ background:'#070707' }}>
+    <section id="problem" className="relative py-32 z-10" style={{ background: '#070707' }}>
       <div className="max-w-[1100px] mx-auto px-8">
-
         <Reveal>
-          <p className="text-[0.76rem] font-bold tracking-[0.12em] uppercase text-white/55 mb-5">
-            The Problem
-          </p>
-        </Reveal>
-        <Reveal delay={1}>
-          <h2 className="font-black tracking-[-0.04em] leading-none text-white mb-16"
-              style={{ fontSize:'clamp(2.4rem,5vw,4rem)' }}>
-            Robotics is powerful.<br/>
-            <span style={{ color:'rgba(255,255,255,0.22)' }}>But locked behind expertise.</span>
-          </h2>
+          <p className="micro-label font-bold uppercase text-zinc-300/90 mb-6 text-center">Problem Statement</p>
         </Reveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {CARDS.map((c, i) => (
-            <Reveal key={c.big + c.title} delay={i + 1}>
-              <div className="border border-white/8 rounded-2xl p-8 relative overflow-hidden group hover:border-white/16 transition-colors duration-300"
-                   style={{ background:'rgba(255,255,255,0.03)' }}>
-                {/* Subtle hover glow */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl"
-                     style={{ background:'radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.04) 0%, transparent 70%)' }} />
-                <div className="relative z-10">
-                  <div className="flex items-baseline gap-2 mb-4">
-                    <span className="font-black tracking-[-0.06em] leading-none text-white num-display"
-                          style={{ fontSize:'clamp(3rem,6vw,5rem)' }}>{c.big}</span>
-                    {c.unit && <span className="text-white/35 font-bold text-xl">{c.unit}</span>}
+
+        <Reveal delay={1}>
+          <div className="problem-quote-mirai text-center mb-10">
+            <span className="problem-quote-mark-mirai">“</span>
+            <h2
+              className="font-black tracking-[-0.035em] leading-[1.08] text-zinc-50 mx-auto"
+              style={{
+                fontSize: 'clamp(1.35rem,3.2vw,2.25rem)',
+                maxWidth: '38rem',
+                letterSpacing: '-0.01em',
+                marginBottom: '0.7em',
+              }}
+            >
+              Robotics adoption is not failing because of ideas.
+              <br />
+              <span className="text-zinc-300/88">It is failing because access is expensive, complex, and slow.</span>
+            </h2>
+            <p className="small-copy text-zinc-100/82 mx-auto mt-4" style={{ maxWidth: '30rem', fontSize: 'clamp(0.92rem,1.1vw,1.08rem)' }}>
+              Teams that want automation still hit steep tooling prices, setup friction, and weak pathways from simulation results to deployable robot behavior.
+            </p>
+          </div>
+        </Reveal>
+
+        <Reveal delay={2}>
+          <div className="mb-5">
+            <div className="text-[0.78rem] font-bold tracking-widest uppercase text-zinc-300/85 mb-2">Core Friction</div>
+            <div className="text-[1.06rem] font-bold text-zinc-50 mb-2">The entry barrier is structural, not motivational.</div>
+            <p className="small-copy text-zinc-100/82 max-w-4xl">
+              The ecosystem makes it difficult for first-time builders to move from idea to validated motion workflow.
+            </p>
+          </div>
+        </Reveal>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-5 border-t border-zinc-600/45">
+          {KPIS.map((k, i) => (
+            <Reveal key={k.t} delay={i + 3}>
+              <div className="relative py-1">
+                <div className="absolute top-0 left-0 h-[2px] w-16 bg-zinc-300/70" />
+                <div className="pt-4">
+                  <div className="flex items-end gap-1.5 mb-2">
+                    <span className="text-[clamp(2rem,4.2vw,3rem)] font-black tracking-tight text-zinc-50">{k.n}</span>
+                    {k.u ? <span className="text-zinc-300/85 text-[0.95rem] font-bold mb-1.5">{k.u}</span> : null}
                   </div>
-                  <div className="text-[0.92rem] font-bold text-white/80 mb-1.5">{c.title}</div>
-                  <div className="text-[0.78rem] text-white/38 font-medium">{c.sub}</div>
+                  <div className="text-[0.98rem] font-bold text-zinc-50 mb-2">{k.t}</div>
+                  <div className="small-copy text-zinc-200/80">{k.d}</div>
                 </div>
               </div>
             </Reveal>

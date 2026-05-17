@@ -11,20 +11,19 @@ export default function CTA() {
 
         {/* Main CTA block */}
         <Reveal>
-          <div className="border border-white/10 rounded-3xl px-12 py-20 text-center relative overflow-hidden mb-12"
-               style={{ background:'rgba(255,255,255,0.03)' }}>
+          <div className="glass-panel rounded-3xl px-12 py-20 text-center relative overflow-hidden mb-12">
             {/* Inner glow */}
             <div className="absolute inset-0 pointer-events-none rounded-3xl"
-                 style={{ background:'radial-gradient(ellipse 55% 40% at 50% 0%, rgba(255,255,255,0.05) 0%, transparent 70%)' }} />
+                 style={{ background:'radial-gradient(ellipse 55% 40% at 50% 0%, rgba(212,212,216,0.12) 0%, transparent 70%)' }} />
             <div className="relative z-10">
-              <p className="text-[0.65rem] font-bold tracking-[0.14em] uppercase text-white/55 mb-6">
-                Transforming Enterprise Through AI · lablab.ai · Track 3 + Gemini Award
+              <p className="text-[0.82rem] font-bold tracking-[0.14em] uppercase text-zinc-200/90 mb-6">
+                Transforming Enterprise Through AI · lablab.ai · Track 3 · May 11–19, 2026
               </p>
               <h2 className="font-black tracking-[-0.05em] text-white leading-[0.95] mb-6"
                   style={{ fontSize:'clamp(3rem,7vw,6rem)' }}>
                 The future of robotics<br/>is a browser tab.
               </h2>
-              <p className="text-white/65 mb-10 max-w-md mx-auto leading-relaxed">
+              <p className="text-zinc-100/88 text-[1rem] mb-10 max-w-md mx-auto leading-relaxed">
                 Speak a task. Watch physics prove it works. Download the code and build it for real.
               </p>
               <div className="flex gap-3 justify-center flex-wrap">
@@ -48,9 +47,9 @@ export default function CTA() {
 
         {/* Footer */}
         <Reveal delay={2}>
-          <footer className="flex items-center justify-between flex-wrap gap-3 pt-4" style={{ borderTop:'1px solid rgba(255,255,255,0.08)' }}>
+          <footer className="flex items-center justify-between flex-wrap gap-3 pt-4" style={{ borderTop:'1px solid rgba(161,161,170,0.35)' }}>
             <span className="text-sm font-bold tracking-[0.16em] uppercase text-white/70">ミライ MIRAI</span>
-            <span className="text-xs font-medium text-white/50">
+            <span className="text-[0.84rem] font-medium text-zinc-200/80">
               Built by Francis Daniel (Mizu) · Solo · May 11–19, 2026 · lablab.ai
             </span>
             <div className="flex gap-5">

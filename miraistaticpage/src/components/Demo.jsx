@@ -16,7 +16,7 @@ export default function Demo() {
     <section id="demo" className="relative py-32 z-10" style={{ background:'#070707' }}>
       <div className="max-w-[1100px] mx-auto px-8">
 
-        <Reveal><p className="text-[0.68rem] font-bold tracking-[0.12em] uppercase text-white/55 mb-5">Demo</p></Reveal>
+        <Reveal><p className="micro-label font-bold uppercase text-zinc-300/90 mb-5">Demo</p></Reveal>
         <Reveal delay={1}>
           <h2 className="font-black tracking-[-0.04em] leading-none text-white mb-3"
               style={{ fontSize:'clamp(2.4rem,5vw,4rem)' }}>
@@ -46,15 +46,14 @@ export default function Demo() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {STEPS.map((s, i) => (
             <Reveal key={s.n} delay={(i % 3) + 1}>
-              <div className="border border-white/8 rounded-2xl p-5 group hover:border-white/14 transition-all duration-300 h-full flex flex-col"
-                   style={{ background:'rgba(255,255,255,0.03)' }}>
-                <div className="w-7 h-7 rounded-full bg-white/10 border border-white/14 flex items-center justify-center text-[0.72rem] font-bold text-white/70 mb-3 flex-shrink-0">
+              <div className="glass-panel rounded-2xl p-5 group hover:border-zinc-300/45 transition-all duration-300 h-full flex flex-col">
+                <div className="w-7 h-7 rounded-full bg-zinc-400/25 border border-zinc-300/45 flex items-center justify-center text-[0.84rem] font-bold text-zinc-100/90 mb-3 flex-shrink-0">
                   {s.n}
                 </div>
-                <div className="text-[0.88rem] font-bold text-white mb-2">{s.title}</div>
+                <div className="text-[0.98rem] font-bold text-zinc-50 mb-2">{s.title}</div>
                 <div className="flex mb-3">
-                  <span className="text-[0.62rem] font-semibold text-white/60 border border-white/10 rounded-lg px-2.5 py-1"
-                        style={{ background:'rgba(255,255,255,0.04)' }}>{s.chip}</span>
+                  <span className="text-[0.8rem] font-semibold text-zinc-100/88 border border-zinc-400/45 rounded-lg px-2.5 py-1"
+                        style={{ background:'rgba(63,63,70,0.45)' }}>{s.chip}</span>
                 </div>
                 <div className="flex-1">
                   <ImagePlaceholder label={s.img} aspect="16/9" />
