@@ -71,13 +71,31 @@ function makeStartNode(): Node<TaskBlock> {
   }
 }
 
+const FIRST_STEP_Y = 180
+const NODE_VERTICAL_GAP_PX = 24
+
+function estimateNodeHeight(step: AIStep): number {
+  if (step.type === 'move') return 190
+  if (step.type === 'grip') return 112
+  if (step.type === 'wait') return 98
+  return 132
+}
+
+function buildStepLayout(steps: AIStep[]): Array<{ step: AIStep; y: number }> {
+  let cursorY = FIRST_STEP_Y
+  return steps.map((step) => {
+    const positioned = { step, y: cursorY }
+    cursorY += estimateNodeHeight(step) + NODE_VERTICAL_GAP_PX
+    return positioned
+  })
+}
 
 
 
 
-function mapStepToNode(step: AIStep, index: number): Node<TaskBlock> {
-    const y = 180 + index * 140
-    const id = 'ai-step-' + String(index + 1)
+
+function mapStepToNode(step: AIStep, index: number, y: number): Node<TaskBlock> {
+  const id = 'ai-step-' + String(index + 1)
 
   if (step.type === 'move') {
     return {
@@ -176,8 +194,11 @@ function makeEdges(nodeIds: string[]): Edge[] {
 export function buildFlowFromAITask(task: any): { nodes: Node<TaskBlock>[]; edges: Edge[] } {
   const start = makeStartNode()
   const normalizedSteps = extractSteps(task)
-  const stepNodes = normalizedSteps.map((step, idx) => mapStepToNode(step, idx))
-  const endY = 180 + stepNodes.length * 140
+  const stepLayout = buildStepLayout(normalizedSteps)
+  const stepNodes = stepLayout.map(({ step, y }, idx) => mapStepToNode(step, idx, y))
+  const endY = stepLayout.length > 0
+    ? stepLayout[stepLayout.length - 1].y + estimateNodeHeight(stepLayout[stepLayout.length - 1].step) + NODE_VERTICAL_GAP_PX
+    : FIRST_STEP_Y
   const end = makeEndNode(endY)
 
   const nodes = [start, ...stepNodes, end]

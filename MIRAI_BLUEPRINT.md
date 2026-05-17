@@ -46,78 +46,159 @@
 
 ## UPDATED DAILY TASKS (AUTHORITATIVE)
 
+### Detailed Daily Task Snapshot (May 17, 2026)
+
 ### Day 1 — Foundation + 3D Engine
-✅ Repo, scaffold, dependencies, base 3D viewer, base atoms, FastAPI skeleton all completed
-✅ Segment click-to-select and advanced mode wiring completed
-❌ None pending for Day 1
+✅ GitHub repo created and initial scaffold completed
+✅ Frontend package setup completed
+✅ Vite, TypeScript, Tailwind, index, gitignore, env example configured
+✅ Backend environment and requirements prepared
+✅ Base 3D viewer scene mounted
+✅ Base robot arm component created
+✅ Root app shell wired
+✅ Jotai state atoms initialized
+✅ FastAPI skeleton with health and Gemini key check added
+✅ Dependency install flow completed
+✅ Initial git push completed
+✅ Advanced mode atom added
+✅ Segment click-to-select highlight wiring completed
 
 ### Day 2 — Arm Design Studio
-✅ Arm segment editor, gripper library, reach envelope, joint arcs, validation, BOM, save/load all completed
-✅ Design viewport and panel UX polish (camera reset, hint, panel behaviors) completed
-❌ None pending for Day 2
+✅ Arm segment editor built with add/remove/edit controls
+✅ Gripper library built with parallel jaw, suction, magnetic options
+✅ Reach envelope visualization added
+✅ Joint arc overlay visualization added
+✅ Arm validation pipeline added
+✅ BOM counter added with live cost calculation
+✅ Save and load arm config implemented
+✅ Arm viewer upgraded with proper lighting, shadows, controls
+✅ App layout upgraded to full designer workspace
+✅ Panel UX polish completed (topbar, toolbar, tab flow)
+✅ Camera reset and viewport hint UX added
+✅ Panel resize behavior added
+✅ TypeScript clean build verified
 
 ### Day 3 — Task Editor (React Flow)
-✅ 7 node types, palette, deletable edges, validation, undo/export, keyboard shortcuts completed
-✅ Node interaction polish (`nodrag`, semantic grip toggle, edge delete UX) completed
-✅ Task canvas now persists when leaving and returning to Tasks tab
-✅ Task canvas now persists across full webpage reload via local storage
-✅ Canvas clear control shipped: trash icon above zoom controls with Clear all confirmation dialog; clearing resets flow and task-name local storage
-❌ None pending for Day 3
+✅ Task graph schema and core task types created
+✅ Scene registry for default objects and zones created
+✅ Task editor atoms added
+✅ Task validation utility added
+✅ Task export/import utility added
+✅ Start node implemented
+✅ End node implemented
+✅ Move node implemented
+✅ Grip node implemented
+✅ Wait node implemented
+✅ Loop node implemented
+✅ If node implemented
+✅ Deletable edge component implemented
+✅ Node palette implemented
+✅ Flow canvas and provider architecture completed
+✅ Undo history support added
+✅ Keyboard shortcuts added (export and undo)
+✅ Drag/drop and click-to-add flow completed
+✅ Local persistence across tab change added
+✅ Local persistence across full page reload added
+✅ Clear-all flow with confirmation added
 
-### Day 4 — Physics Simulation ✅ COMPLETE
-✅ FK/IK + deterministic motion compiler pipeline operational
-✅ Playback transport: play/pause/step/rewind/jump/speed + loop + skip-collision + reverse + reset
-✅ Timeline collision/grip-empty markers, live Joint HUD, live Physics Metrics completed
-✅ Camera focus/reset, live viewport tool-point X/Y readout, and per-joint row metrics layout completed
-✅ Dynamic object reset at frame 0, approach-target freeze, and no-snap carry behavior completed
-✅ Manual teach/PTP interaction shipped in simulation: hover-highlight arm parts, hold left-click + mouse move to drive hovered joint in real time
-✅ Teach UX controls shipped: camera lock toggle, drag-time highlight latch, and viewport PTP point stack (save, duplicate block, delete, clear, scroll)
-✅ Live tool-point coordinate inputs upgraded to editable X/Y/Z with IK-driven arm updates
-✅ Live coordinate inputs auto-sync as end-effector moves (manual drag, teach, playback)
-✅ PTP "Play all" sequence shipped to replay saved coordinates as a smooth IK path
-✅ Interlock behavior shipped: PlaybackControls disable during PTP sequence, and PTP Play-all disables during regular transport playback
-✅ Starting regular playback now auto-disables Teach + Lock/Free
-✅ Simulation player header now shows loaded task metadata name (not Start-node label)
-✅ Collision detection upgraded from end-effector-only checks to arm-link sampling (non-fixed segments), so arm-vs-surface contacts now trigger `Collision Detected`
-✅ Rapier rigid body setup for each arm segment
-✅ Revolute/prismatic joint constraints in Rapier
-✅ Collision highlight flash polish
-✅ Collision highlighting made persistent (stays red while colliding, not time-out based)
-✅ Collision highlighting applied to both arm segments AND environment objects simultaneously
-✅ Object positioning adjusted to minimize gap between objects and work table surface
+### Day 4 — Physics Simulation (Rapier)
+✅ Forward kinematics utility completed
+✅ Inverse kinematics utility completed
+✅ Motion compiler pipeline completed
+✅ Simulation atoms and playback state model completed
+✅ Scene object physics bodies completed
+✅ Simulated arm articulation completed
+✅ Path trail visualization completed
+✅ Simulation viewer and playback runner completed
+✅ Playback controls completed (play, pause, rewind, speed, jump)
+✅ Loop, reverse, collision pause behavior completed
+✅ Timeline scrubber with markers completed
+✅ Joint HUD completed
+✅ Physics metrics panel completed
+✅ Teach mode manual control completed
+✅ PTP point stack and play-all completed
+✅ Transport and teach interlock behavior completed
+✅ Collision logic upgraded to arm-link collision detection
+✅ Persistent collision highlight polish completed
+✅ Frame-0 baseline reset behavior completed
 
-### Day 5 — Gemini AI Integration ✅ COMPLETE (May 15–16)
-✅ TaskEditorPanel is now the canonical AI interaction surface (AI navbar flow deprecated)
-✅ AI Results in TaskEditor shows confidence, safety, reachability, and target pickability
-✅ TaskEditor AI actions shipped: `AI Fix`, `AI Suggestions`, `Think Trace`, `Auto-config Arm`
-✅ ReAct trace available inline in TaskEditor AI Results
-✅ Scene grounding upgraded to include object metadata (name/id/type/position/dimensions/zone)
-✅ Simulation object transforms synced into shared scene state for AI context freshness
-✅ Backend task JSON normalization prevents partial-model repair crashes
-✅ Collision-risk validation integrated as deterministic preflight error + auto-repair feedback loop
-✅ Backend `/ai/suggest` endpoint implemented with server-side Gemini grounding
-✅ Strict pre-close pickup target consistency check + automatic target-name correction
-✅ Autonomous startup safety: auto-resolve port 8000 conflicts + live endpoint self-test flow
-✅ Autonomous handoff: Generate Motion now routes directly to Simulate and auto-plays compiled plan
-✅ TaskFlow load handshake added: Tasks canvas confirms AI node load before simulation auto-switch
-✅ Iterative collision-repair loop added (compile-check + repair) prior to simulation handoff
-✅ Safety fail-closed mode: backend no longer emits executable task when blocking errors persist
-✅ Pre-simulation gate now requires valid scene targets and successful pickup execution before autonomous Simulate handoff
-✅ AI Results panel now displays animated verification lifecycle (Idle/Verifying/Ready/Blocked) for deterministic handoff transparency
-✅ App-level auto-run listener now hard-enforces execution-gate readiness before simulation handoff
-✅ Gate Debug diagnostics panel added to TaskEditor AI Results for transparent pass/fail reasoning
-✅ E2E autonomy regression skeleton added (`e2e/autonomy-regression.spec.ts`)
-✅ Target canonicalization layer added: Gemini target names are normalized to scene IDs before compile/verification
-✅ Deterministic fallback pick/place synthesis added for AI-repair exhaustion scenarios
-✅ AI Results blocked-state UX hardened: verification + diagnostics remain visible even when TaskSpec generation fails
-✅ Fallback planner payload aligned with backend repair schema to prevent 422 contract errors
-✅ Frontend repair-loop error handling hardened (fail-soft with diagnostic surfacing)
-✅ Collision default updated to pause-on-impact without automatic rewind-to-start behavior
-✅ Simulation playback compile path hardened: live scene-sync updates no longer trigger mid-run recompile/reset while transport is active
-✅ Playback reset now restores simulation objects to compile-time baseline positions when returning to frame 0
-✅ Frame-0 reset now restores full object state (pose + velocity reset), ensuring cylinders and dynamic bodies return to original standing state
-✅ MuJoCo-backed validation merged into TaskEditor AI result pipeline (complete Day 6)
-✅ Direct Gemini API from browser (VITE_GEMINI_API_KEY, gemini-2.5-flash, 5-15s vs 4-6min Vertex AI)
+### Day 5 — Gemini AI Integration
+✅ AI workflow consolidated into task editor panel
+✅ Generate motion grounded on current scene and arm state
+✅ AI Results panel with confidence/safety/reachability/pickability
+✅ AI actions exposed (fix, suggestions, think trace, auto-config)
+✅ Empty-plan guard added
+✅ Normalization and schema hardening added
+✅ Deterministic preflight collision/reach validation added
+✅ Bounded repair loops added for invalid plans
+✅ Suggest endpoint integrated
+✅ Target consistency validation added
+✅ Startup self-test and port conflict handling added
+✅ Auto handoff to simulation after successful generation
+✅ Task flow load acknowledgement before navigation
+✅ Fail-closed behavior for unresolved blocking errors
+✅ Execution gate state model added (idle/verify/ready/blocked)
+✅ Gate diagnostics exposed in AI Results
+✅ E2E autonomy regression skeleton added
+✅ Canonical target-name normalization added
+✅ Deterministic fallback plan generation added
+✅ Repair loop fail-soft UI behavior added
+✅ Collision handling default refined
+✅ Playback compile scene snapshot freeze behavior added
+✅ Dynamic object baseline restore contract refined
+✅ Direct Gemini browser integration added
+✅ Model fallback chain added
+✅ Scene planner and feasibility analysis completed
+✅ IK conditioning auto-scale and destination reach checks completed
+✅ Volumetric collision widening and joint housing checks completed
+✅ Obstacle-aware approach strategy added
+✅ Task editor mount persistence to preserve AI state completed
+
+### Day 6 — Backend + MuJoCo + Export
+✅ FastAPI deployment pipeline completed
+✅ MuJoCo websocket simulation stream completed
+✅ MJCF/URDF build pipeline completed
+✅ Shared execution contract across Rapier and MuJoCo completed
+✅ Accuracy/divergence validation pipeline completed
+✅ Servo lifespan predictor completed
+✅ Deterministic Arduino export completed
+✅ Deterministic Python export completed
+✅ BOM export generation completed
+✅ URDF export completed
+✅ QR generation flow completed
+✅ Signed export with SHA-256 completed
+✅ ZIP bundle packaging completed
+✅ Python template missing-file fix completed
+✅ Content-Disposition filename sanitization completed
+✅ ZIP entry path sanitization completed
+✅ QR domain fallback fix completed
+✅ Live deployment health verification completed
+✅ Review panel regression restore completed
+✅ AI Fix upgraded to multi-step auto-config logic
+✅ Servo-tier state and tier-aware validation completed
+✅ Designer BOM servo-tier pricing completed
+✅ Export BOM parity fix completed (frontend payload + backend schema + backend generator)
+✅ Export BOM source label typo fix completed
+✅ Simulation max update depth loop fix completed
+✅ Shadow map deprecation cleanup completed
+
+### Day 7 — Community + Famous Preloads + Presets
+❌ Community browse/import flow
+❌ Seeded task library
+❌ Famous preload tasks
+❌ Real robot preset skins
+❌ End-to-end quality pass
+❌ 60fps verification pass
+
+### Day 8 — Polish + Demo Prep + Submit
+❌ Final production deploy hardening
+❌ Final full E2E test pass
+❌ Demo video recording
+❌ Slide deck finalization
+❌ README final pass
+❌ Repository cleanup pass
+❌ Final submission packaging
+❌ Submission before deadline
 
 ### Day 6 — Backend + MuJoCo + Export ✅ COMPLETE (May 16–17)
 ✅ FastAPI backend deployed on Railway and healthy
@@ -431,11 +512,11 @@
 | Day 4 | May 14 (Thu) | Physics Simulation (Rapier) | ✅ Complete |
 | Day 5 | May 15 (Fri) | Gemini AI Integration | ✅ Complete |
 | Day 6 | May 16 (Sat) | Backend + MuJoCo + Export | ✅ Complete |
-| Day 7 | May 17 (Sun) | Community + Preloads + Real Robot Skins | 🔄 In Progress |
+| Day 7 | May 17 (Sun) | Community + Preloads + Real Robot Skins | ❌ Not Started |
 | Day 8 | May 18–19 (Mon–Tue) | Polish + Demo Prep + Submit | ❌ Not Started |
 
 > **⏰ Time remaining from May 14: ~4.5 days**
-> **Next action: Complete Day 4 remaining physics polish, then start Day 5 Gemini integration**
+> **Next action: Start Day 7 community browse/import flow + famous preload task seeding, then run full E2E + 60fps pass**
 
 ---
 

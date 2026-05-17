@@ -6,9 +6,9 @@ import './export.css'
 interface Props { bom: ExportBOMData }
 
 const SOURCE_LABEL: Record<string, string> = {
-    aliexpress: 'AliExpress',
-    amazon: 'Amzon',
-    printed: '3D Print',
+  aliexpress: 'AliExpress',
+  amazon: 'Amazon',
+  printed: '3D Print',
 }
 
 

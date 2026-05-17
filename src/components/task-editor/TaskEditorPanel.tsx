@@ -12,12 +12,25 @@ import { exportTaskJson, loadTaskFromFile } from '../../utils/taskExport'
 
 import { armSegmentsAtom, armGripperAtom } from '../../store/atoms'
 import {
+  aiConfigFixNoteAtom,
+  aiGateDebugAtom,
   aiLoadingAtom,
+  aiPreSimulationStatusAtom,
+  aiSuggestionSourceAtom,
+  aiSuggestionsAtom,
   confidenceScoreAtom,
   executionGateAtom,
   generatedTaskSpecAtom,
+  GateDebugSnapshot,
   preflightReportAtom,
+  PreSimulationStatus,
   reactStepsAtom,
+  showAISuggestionsAtom,
+  showAIResultsAtom,
+  showGateDebugAtom,
+  showPhysicsTabAtom,
+  showThinkTraceAtom,
+  taskAIErrorAtom,
 } from '../../store/aiAtoms'
 import { getMotionSuggestions, repairTask, streamTaskPlan } from '../../utils/geminiClient'
 import { streamTaskPlanDirect, isDirectGeminiAvailable } from '../../utils/geminiDirectPlanner'
@@ -31,6 +44,13 @@ import { useVoiceToText } from '../../hooks/useVoiceToText'
 import type { ArmSegment, GripperConfig } from '../../types/arm'
 import type { SceneGraph, SceneObject, TaskBlock } from '../../types/task'
 import type { Node } from '@xyflow/react'
+import {
+  mujocoValidationPhaseAtom,
+  mujocoValidationResultAtom,
+  mujocoValidationErrorAtom,
+} from '../../store/mujocoAtoms'
+import { runMuJoCoValidation } from '../../utils/mujocoClient'
+import type { ExecutionPlan } from '../../types/simulation'
 
 const SEGMENT_MIN_LENGTH = 0.05
 const SEGMENT_MAX_LENGTH = 0.8
@@ -48,11 +68,6 @@ type PickabilityReport = {
   targetDistanceM: number
 }
 
-type PreSimulationStatus = {
-  phase: 'idle' | 'verifying' | 'ready' | 'blocked'
-  message: string
-}
-
 type ExecutionReadinessReport = {
   missingTargetIds: string[]
   pickupRequired: boolean
@@ -66,18 +81,6 @@ type ExecutionReadinessReport = {
     message: string
     suggested_fix: string
   }>
-}
-
-type GateDebugSnapshot = {
-  compileOk: boolean
-  collisionFrames: number
-  missingTargetIds: string[]
-  pickupRequired: boolean
-  hasGripClose: boolean
-  pickupSucceeded: boolean
-  pickupObjectId: string | null
-  blockedReasons: string[]
-  attempt: number
 }
 
 function normalizeLookupToken(value: string): string {
@@ -350,7 +353,7 @@ export default function TaskEditorPanel() {
 
   // AI integration state
   const [aiInput, setAIInput] = useState('')
-  const [aiError, setAIError] = useState<string | null>(null)
+  const [aiError, setAIError] = useAtom(taskAIErrorAtom)
   const [isAILoading, setIsAILoading] = useAtom(aiLoadingAtom)
   const setExecutionGate = useSetAtom(executionGateAtom)
   const [reactSteps, setReactSteps] = useAtom(reactStepsAtom)
@@ -360,22 +363,27 @@ export default function TaskEditorPanel() {
   const [segments, setSegments] = useAtom(armSegmentsAtom)
   const [gripper, setGripper] = useAtom(armGripperAtom)
   const sceneGraph = useAtomValue(sceneGraphAtom)
+  const [mujocoValidationPhase, setMujocoValidationPhase] = useAtom(mujocoValidationPhaseAtom)
+  const [mujocoValidationResult, setMujocoValidationResult] = useAtom(mujocoValidationResultAtom)
+  const [, setMujocoValidationError] = useAtom(mujocoValidationErrorAtom)
+  const mujocoValidationError = useAtomValue(mujocoValidationErrorAtom)
   const abortRef = useRef<AbortController | null>(null)
+  const mujocoCleanupRef     = useRef<(() => void) | null>(null)
+  const lastCommittedPlanRef = useRef<ExecutionPlan | null>(null)
   const voiceSeedRef = useRef('')
-  const [showAIResults, setShowAIResults] = useState(false)
-  const [showAISuggestions, setShowAISuggestions] = useState(false)
-  const [showThinkTrace, setShowThinkTrace] = useState(false)
-  const [configFixNote, setConfigFixNote] = useState<string | null>(null)
-  const [aiSuggestions, setAISuggestions] = useState<string[]>([])
-  const [suggestionSource, setSuggestionSource] = useState<'gemini' | 'deterministic' | 'hybrid' | null>(null)
+  const [showAIResults, setShowAIResults] = useAtom(showAIResultsAtom)
+  const [showAISuggestions, setShowAISuggestions] = useAtom(showAISuggestionsAtom)
+  const [showThinkTrace, setShowThinkTrace] = useAtom(showThinkTraceAtom)
+  const [configFixNote, setConfigFixNote] = useAtom(aiConfigFixNoteAtom)
+  const [aiSuggestions, setAISuggestions] = useAtom(aiSuggestionsAtom)
+  const [suggestionSource, setSuggestionSource] = useAtom(aiSuggestionSourceAtom)
   const [isSuggestionLoading, setIsSuggestionLoading] = useState(false)
-  const [preSimulationStatus, setPreSimulationStatus] = useState<PreSimulationStatus>({
-    phase: 'idle',
-    message: 'No verification has run yet.',
-  })
-  const [showGateDebug, setShowGateDebug] = useState(false)
+  const [preSimulationStatus, setPreSimulationStatus] = useAtom(aiPreSimulationStatusAtom)
+  const [showGateDebug, setShowGateDebug] = useAtom(showGateDebugAtom)
+  const [showPhysicsTab, setShowPhysicsTab] = useAtom(showPhysicsTabAtom)
   const [thinkingText, setThinkingText] = useState('Generating plan...')
-  const [gateDebug, setGateDebug] = useState<GateDebugSnapshot>({
+  const [gateDebug, setGateDebug] = useAtom(aiGateDebugAtom)
+  const defaultGateDebug: GateDebugSnapshot = {
     compileOk: false,
     collisionFrames: 0,
     missingTargetIds: [],
@@ -385,7 +393,7 @@ export default function TaskEditorPanel() {
     pickupObjectId: null,
     blockedReasons: [],
     attempt: 0,
-  })
+  }
   // Voice input state
   const {
     transcript,
@@ -395,6 +403,52 @@ export default function TaskEditorPanel() {
     stopListening,
     clearTranscript,
   } = useVoiceToText()
+
+  const clearAIResults = useCallback(() => {
+    setAIError(null)
+    setGeneratedTask(null)
+    setPreflight(null)
+    setConfidence({ overall: 0, warningFlags: [] })
+    setReactSteps([])
+    setShowAIResults(false)
+    setShowAISuggestions(false)
+    setShowThinkTrace(false)
+    setAISuggestions([])
+    setSuggestionSource(null)
+    setConfigFixNote(null)
+    setMujocoValidationPhase('idle')
+    setMujocoValidationResult(null)
+    setMujocoValidationError(null)
+    setPreSimulationStatus({
+      phase: 'idle',
+      message: 'No verification has run yet.',
+    })
+    setGateDebug(defaultGateDebug)
+    setExecutionGate({
+      phase: 'idle',
+      message: 'No verification has run yet.',
+      updatedAt: Date.now(),
+    })
+  }, [
+    setAIError,
+    setGeneratedTask,
+    setPreflight,
+    setConfidence,
+    setReactSteps,
+    setShowAIResults,
+    setShowAISuggestions,
+    setShowThinkTrace,
+    setAISuggestions,
+    setSuggestionSource,
+    setConfigFixNote,
+    setMujocoValidationPhase,
+    setMujocoValidationResult,
+    setMujocoValidationError,
+    setPreSimulationStatus,
+    setGateDebug,
+    setExecutionGate,
+    defaultGateDebug,
+  ])
 
   useEffect(() => {
     if (!isListening) return
@@ -450,12 +504,21 @@ export default function TaskEditorPanel() {
   )
 
   useEffect(() => {
-    setExecutionGate({
-      phase: 'idle',
-      message: 'No verification has run yet.',
-      updatedAt: Date.now(),
-    })
-  }, [setExecutionGate])
+    const handleTaskCleared = () => {
+      clearAIResults()
+    }
+
+    window.addEventListener('mirai:task-cleared', handleTaskCleared)
+    return () => {
+      window.removeEventListener('mirai:task-cleared', handleTaskCleared)
+    }
+  }, [clearAIResults])
+
+  useEffect(() => {
+    return () => {
+      mujocoCleanupRef.current?.()
+    }
+  }, [])
 
   const waitForTaskflowLoaded = useCallback((expectedNodeCount: number) => {
     return new Promise<boolean>((resolve) => {
@@ -711,6 +774,39 @@ export default function TaskEditorPanel() {
     window.dispatchEvent(new CustomEvent('mirai:auto-run-simulation'))
   }, [])
 
+  const triggerMuJoCoValidation = useCallback((compiled: ExecutionPlan) => {
+    mujocoCleanupRef.current?.()
+
+    setMujocoValidationPhase('running')
+    setMujocoValidationResult(null)
+    setMujocoValidationError(null)
+
+    const rapierFrames = compiled.frames.map((f, i) => ({
+      frame_index:      i,
+      time_ms:          f.timeMs,
+      end_effector_xyz: f.endEffectorPos,
+      joint_angles_deg: [f.waistYawDeg, ...f.pitchAngles],
+    }))
+
+    const armCtx = buildArmContext(segments, gripper, {})
+
+    mujocoCleanupRef.current = runMuJoCoValidation({
+      runId:         `mj-${Date.now()}`,
+      arm:           armCtx as Record<string, unknown>,
+      executionPlan: { taskName: compiled.taskName, totalFrames: compiled.totalFrames },
+      rapierFrames,
+      onFrame:    () => {},
+      onComplete: (result) => {
+        setMujocoValidationResult(result)
+        setMujocoValidationPhase('complete')
+      },
+      onError: (message) => {
+        setMujocoValidationError(message)
+        setMujocoValidationPhase('error')
+      },
+    })
+  }, [segments, gripper, setMujocoValidationPhase, setMujocoValidationResult, setMujocoValidationError])
+
   // handleAutoConfigForPickability and handleAIFix were removed:
   // the generation pipeline (handleAIGenerate) auto-applies arm scaling,
   // gripper config, IK conditioning, destination reachability, and repair
@@ -814,6 +910,7 @@ export default function TaskEditorPanel() {
       flow: ReturnType<typeof buildFlowFromAITask>,
       pickupObjectId: string | null,
       warnings: string[],
+      compiled: ExecutionPlan | null = null,
     ): Promise<boolean> => {
       setThinkingText('Verified — launching simulation...')
       const conf = Number(task.confidence_score ?? task.confidenceScore ?? 0.80)
@@ -845,6 +942,9 @@ export default function TaskEditorPanel() {
           : 'Verified: collision-free.',
       )
       triggerAutoSimulationRun()
+      if (compiled) {
+        lastCommittedPlanRef.current = compiled
+      }
       return true
     }
 
@@ -1037,7 +1137,7 @@ export default function TaskEditorPanel() {
           setThinkingText('Testing trajectory 1 — checking collision path...')
           const L1 = quickVerify(safeTask, activeSegments)
           if (L1.ok) {
-            foundTask = await commitTask(safeTask, L1.flow, L1.pickupObjectId, preflight.warnings || [])
+            foundTask = await commitTask(safeTask, L1.flow, L1.pickupObjectId, preflight.warnings || [], L1.compiled)
             continue
           }
 
@@ -1055,6 +1155,7 @@ export default function TaskEditorPanel() {
                   { ...directTask, task_name: safeTask.task_name || safeTask.taskName || directTask.task_name },
                   L2.flow, L2.pickupObjectId,
                   ['Coordinates replaced by deterministic scene planner.', ...(preflight.warnings || [])],
+                  L2.compiled,
                 )
                 if (foundTask) continue
               }
@@ -1068,6 +1169,7 @@ export default function TaskEditorPanel() {
             foundTask = await commitTask(
               ensured.task, ensured.flow, ensured.pickupObjectId,
               [...(ensured.preflight?.warnings || []), 'Auto-repair applied.'],
+              null,
             )
           } else {
             setThinkingText('All trajectories blocked — see Gate Debug')
@@ -1105,6 +1207,7 @@ export default function TaskEditorPanel() {
             foundTask = await commitTask(
               fallbackTask, LF.flow, LF.pickupObjectId,
               ['Deterministic fallback — safe waypoints from scene geometry.'],
+              LF.compiled,
             )
           } else {
             setThinkingText('Repairing fallback plan...')
@@ -1113,6 +1216,7 @@ export default function TaskEditorPanel() {
               foundTask = await commitTask(
                 ensured.task, ensured.flow, ensured.pickupObjectId,
                 ['Deterministic fallback with repair applied.'],
+                null,
               )
             }
           }
@@ -1145,6 +1249,7 @@ export default function TaskEditorPanel() {
                 foundTask = await commitTask(
                   retryTask, LR.flow, LR.pickupObjectId,
                   [`Arm segments auto-optimized to ${scaled.newRevolveMm}mm for reachability.`],
+                  LR.compiled,
                 )
                 if (foundTask) break
               }
@@ -1208,6 +1313,10 @@ export default function TaskEditorPanel() {
       setAIError('AI error: ' + (err?.message || String(err)))
     } finally {
       setIsAILoading(false)
+      if (lastCommittedPlanRef.current) {
+        triggerMuJoCoValidation(lastCommittedPlanRef.current)
+        lastCommittedPlanRef.current = null
+      }
     }
   }
 
@@ -1280,6 +1389,8 @@ export default function TaskEditorPanel() {
           </button>
         </div>
       </div>
+
+      <div className="task-editor-scroll">
 
 
 
@@ -1511,6 +1622,25 @@ export default function TaskEditorPanel() {
                       <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v3.5L10 10"/></svg>
                       Debug
                     </button>
+                    <button
+                      className={`air-tab${showPhysicsTab ? ' air-tab--active' : ''}`}
+                      onClick={() => setShowPhysicsTab(v => !v)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <circle cx="8" cy="8" r="6.5"/>
+                        <path d="M5.5 8h5M8 5.5v5"/>
+                      </svg>
+                      Physics
+                      {mujocoValidationPhase === 'running' && (
+                        <span className="air-tab-count air-tab-count--spin">●</span>
+                      )}
+                      {mujocoValidationPhase === 'complete' && mujocoValidationResult && (
+                        <span className="air-tab-count">
+                          {Math.round((mujocoValidationResult.divergence?.accuracy_score ?? 0) * 100)}%
+                        </span>
+                      )}
+                    </button>
                   </div>
 
                   {/* Think Trace panel */}
@@ -1576,6 +1706,86 @@ export default function TaskEditorPanel() {
                           {gateDebug.blockedReasons.slice(0, 3).map((r, i) => <li key={i}>{r}</li>)}
                         </ul>
                       )}
+                    </div>
+                  )}
+
+                  {/* Physics validation panel */}
+                  {showPhysicsTab && (
+                    <div className="air-panel air-physics-panel" role="region" aria-label="MuJoCo physics validation">
+                      {mujocoValidationPhase === 'idle' && (
+                        <div className="air-panel-empty">
+                          Physics validation will run after generation.
+                        </div>
+                      )}
+
+                      {mujocoValidationPhase === 'running' && (
+                        <div className="air-physics-loading">
+                          <svg className="air-idle-spin" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 12a9 9 0 1 1-3.1-6.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                          </svg>
+                          <span>MuJoCo validating trajectory...</span>
+                        </div>
+                      )}
+
+                      {mujocoValidationPhase === 'error' && (
+                        <div className="air-physics-offline">
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                            <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.4"/>
+                            <path d="m5.5 5.5 5 5M10.5 5.5l-5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                          </svg>
+                          <span>{mujocoValidationError ?? 'Backend unavailable — run python server/main.py'}</span>
+                        </div>
+                      )}
+
+                      {mujocoValidationPhase === 'complete' && mujocoValidationResult && (() => {
+                        const r = mujocoValidationResult
+                        const accuracy = Math.round((r.divergence?.accuracy_score ?? 0) * 100)
+                        const maxErr   = ((r.divergence?.max_position_error_m ?? 0) * 1000).toFixed(1)
+                        const meanErr  = ((r.divergence?.mean_position_error_m ?? 0) * 1000).toFixed(1)
+
+                        return (
+                          <div className="air-physics-results">
+                            <div className={`air-physics-accuracy air-physics-accuracy--${accuracy >= 90 ? 'high' : accuracy >= 70 ? 'mid' : 'low'}`}>
+                              <span className="air-physics-accuracy-num">{accuracy}%</span>
+                              <span className="air-physics-accuracy-label">MuJoCo accuracy</span>
+                            </div>
+                            <div className="air-physics-row">
+                              <span className="air-physics-key">Max error</span>
+                              <span className="air-physics-val">{maxErr} mm</span>
+                            </div>
+                            <div className="air-physics-row">
+                              <span className="air-physics-key">Mean error</span>
+                              <span className="air-physics-val">{meanErr} mm</span>
+                            </div>
+                            {(r.divergence?.flagged_frames?.length ?? 0) > 0 && (
+                              <div className="air-physics-row air-physics-row--warn">
+                                <span className="air-physics-key">Flagged frames</span>
+                                <span className="air-physics-val">{r.divergence!.flagged_frames.length}</span>
+                              </div>
+                            )}
+                            {r.lifespan.length > 0 && (
+                              <div className="air-physics-lifespan">
+                                <div className="air-physics-section-label">Servo lifespan</div>
+                                {r.lifespan.map((j) => (
+                                  <div
+                                    key={j.joint_index}
+                                    className={`air-physics-joint air-physics-joint--${j.load_ratio > 0.8 ? 'warn' : 'ok'}`}
+                                  >
+                                    <span className="air-physics-joint-name">J{j.joint_index}</span>
+                                    <div className="air-physics-bar-wrap">
+                                      <div
+                                        className="air-physics-bar"
+                                        style={{ width: `${Math.min(100, (j.predicted_hours / 2000) * 100)}%` }}
+                                      />
+                                    </div>
+                                    <span className="air-physics-joint-hrs">{Math.round(j.predicted_hours)}h</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })()}
                     </div>
                   )}
                 </div>
@@ -1688,6 +1898,7 @@ export default function TaskEditorPanel() {
             )}
           </div>
         )}
+      </div>
       </div>
     </aside>
   )

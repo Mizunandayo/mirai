@@ -7,10 +7,15 @@ import type {
 
 
 const G = 9.81                    // m/s²
-const SERVO_MAX_TORQUE_NM = 0.92  // MG995: 9.4 kg·cm ≈ 0.92 N·m
+const SERVO_MAX_TORQUE_NM = 0.92  // Default: MG995: 9.4 kg·cm ≈ 0.92 N·m
 const TORQUE_WARN_RATIO = 0.75    // Warn at 75% of max torque
 const MAX_PRACTICAL_REACH = 1.5   // meters — practical DIY limit
 const REACH_WARN_RATIO = 0.85     // Warn at 85% of max reach
+
+export type ValidationOptions = {
+  servoMaxTorqueNm?: number
+  servoLabel?: string
+}
 
 
 
@@ -46,9 +51,14 @@ export function calculateTorqueAtJoint(
 
 
 
-export function validateArm(segments: ArmSegment[]): ValidationResult {
+export function validateArm(
+  segments: ArmSegment[],
+  options: ValidationOptions = {},
+): ValidationResult {
     const warnings: ValidationWarning[] = []
     const errors: ValidationError[] = []
+    const servoMaxTorqueNm = options.servoMaxTorqueNm ?? SERVO_MAX_TORQUE_NM
+    const servoLabel = options.servoLabel ?? 'MG995'
 
     // Guard: need at least one segment
     if (segments.length === 0) {
@@ -84,21 +94,21 @@ export function validateArm(segments: ArmSegment[]): ValidationResult {
     if (seg.joint === 'fixed') return
 
     const torque = calculateTorqueAtJoint(segments, i)
-    const ratio = torque / SERVO_MAX_TORQUE_NM
+    const ratio = torque / servoMaxTorqueNm
 
     if (ratio > 1.0) {
       errors.push({
         segmentId: seg.id,
         type: 'torque_exceeded',
-        message: `${seg.name}: ${torque.toFixed(2)} N·m exceeds MG995 limit (${SERVO_MAX_TORQUE_NM} N·m). Upgrade to MG996R or DS3218 servo.`,
+        message: `${seg.name}: ${torque.toFixed(2)} N·m exceeds ${servoLabel} limit (${servoMaxTorqueNm.toFixed(2)} N·m).`,
       })
     } else if (ratio > TORQUE_WARN_RATIO) {
       warnings.push({
         segmentId: seg.id,
         type: 'torque_near_limit',
-        message: `${seg.name}: Torque at ${(ratio * 100).toFixed(0)}% of MG995 limit. Operating close to rated torque reduces servo lifespan.`,
+        message: `${seg.name}: Torque at ${(ratio * 100).toFixed(0)}% of ${servoLabel} limit. Operating close to rated torque reduces servo lifespan.`,
         value: torque,
-        limit: SERVO_MAX_TORQUE_NM,
+        limit: servoMaxTorqueNm,
       })
     }
   })

@@ -941,19 +941,8 @@ async def suggest_motion_improvements(request: Request, payload: SuggestRequest)
 
     return SuggestResponse(suggestions=merged[:6], source=source)
 
-if __name__ == '__main__':
-    import uvicorn
-    ensure_port_available(8000)
-    uvicorn.run(app, host='0.0.0.0', port=8000)
 
-
-
-
-
-
-
-
-    # ── Export endpoints ──────────────────────────────────────────────────────────
+# ── Export endpoints ──────────────────────────────────────────────────────────
 
 @app.post('/export/bundle')
 async def export_bundle(request: Request, payload: BundleRequest):
@@ -1108,4 +1097,25 @@ async def ws_simulate(websocket: WebSocket):
             "type": "error",
             "message": str(exc),
         })
-           
+
+
+if __name__ == '__main__':
+    import uvicorn
+    ensure_port_available(8000)
+    uvicorn.run(app, host='0.0.0.0', port=8000)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

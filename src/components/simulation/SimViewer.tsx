@@ -5,6 +5,7 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, Grid, Html } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import { useAtom, useAtomValue } from 'jotai'
+import { PCFShadowMap } from 'three'
 import { compiledPlanAtom, playbackStatusAtom, currentFrameAtom, currentSimFrameAtom, playbackSpeedAtom, loopAtom, skipCollisionPauseAtom, ptpSequencePlayingAtom, autoRewindOnCollisionAtom, collisionRewindFramesAtom, collisionFlashMsAtom } from '../../store/simAtoms'
 import { sceneGraphAtom } from '../../store/taskAtoms'
 import { armSegmentsAtom } from '../../store/atoms'
@@ -578,7 +579,7 @@ export default function SimViewer() {
   return (
     <div className="sim-viewer">
       <Canvas
-        shadows
+        shadows={{ type: PCFShadowMap }}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         camera={{ fov: 38 }}
         onContextMenu={(e) => {

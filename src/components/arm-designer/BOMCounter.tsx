@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useAtomValue } from 'jotai'
-import { armSegmentsAtom, armGripperAtom } from '../../store/atoms'
+import { armSegmentsAtom, armGripperAtom, armServoTierAtom } from '../../store/atoms'
 import { calculateBOM, getTotalBOMCost } from '../../utils/bomPricing'
 
 const SOURCE_LABELS = { aliexpress: 'AliExpress', amazon: 'Amazon', printed: '3D Print' }
@@ -9,10 +9,11 @@ const SOURCE_COLORS = { aliexpress: '#8d624d', amazon: '#7e694b', printed: '#5e7
 export default function BOMCounter() {
   const segments = useAtomValue(armSegmentsAtom)
   const gripper = useAtomValue(armGripperAtom)
+  const servoTier = useAtomValue(armServoTierAtom)
   const [expanded, setExpanded] = useState(false)
 
-  const bom = useMemo(() => calculateBOM(segments, gripper), [segments, gripper])
-  const total = useMemo(() => getTotalBOMCost(segments, gripper), [segments, gripper])
+  const bom = useMemo(() => calculateBOM(segments, gripper, servoTier), [segments, gripper, servoTier])
+  const total = useMemo(() => getTotalBOMCost(segments, gripper, servoTier), [segments, gripper, servoTier])
 
   return (
     <div className={`bom-counter${expanded ? ' bom-counter--expanded' : ''}`}>

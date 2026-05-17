@@ -13,6 +13,9 @@ import SegmentList from './SegmentList'
 import GripperLibrary from './GripperLibrary'
 import ValidationPanel from './ValidationPanel'
 import BOMCounter from './BOMCounter'
+import NLArmDesigner from './NLArmDesigner'
+
+
 
 type Tab = 'segments' | 'gripper' | 'validate'
 
@@ -112,6 +115,12 @@ export default function ArmDesignerPanel({
           placeholder="Unnamed arm"
           maxLength={40}
           spellCheck={false}
+          autoCorrect="off"
+          autoCapitalize="off"
+          data-gramm="false"
+          data-gramm_editor="false"
+          data-enable-grammarly="false"
+          data-lt-active="false"
           aria-label="Arm name"
         />
         <div className="panel-topbar-actions">
@@ -133,6 +142,8 @@ export default function ArmDesignerPanel({
           </button>
         </div>
       </div>
+{/* Natural language arm designer */}
+      <NLArmDesigner />
 
       {/* Toolbar: tabs + viewport guide icons */}
       <div className="panel-toolbar">

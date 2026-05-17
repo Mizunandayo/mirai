@@ -16,6 +16,18 @@ import {
   type SimObjectBaseline,
 } from '../../store/simAtoms'
 
+function tupleDiffers3(
+  a: [number, number, number],
+  b: [number, number, number],
+  epsilon = 0.0001,
+) {
+  return (
+    Math.abs(a[0] - b[0]) > epsilon ||
+    Math.abs(a[1] - b[1]) > epsilon ||
+    Math.abs(a[2] - b[2]) > epsilon
+  )
+}
+
 function CollisionHaloBox({
   w,
   h,
@@ -134,13 +146,30 @@ export default function SceneObjects() {
     }
 
     if (hasBaseline) {
-      setSceneGraph((prev) => ({
-        ...prev,
-        objects: prev.objects.map((obj) => {
+      setSceneGraph((prev) => {
+        let hasChanges = false
+
+        const nextObjects = prev.objects.map((obj) => {
           const reset = baselineObjectStates[obj.id]
-          return reset ? { ...obj, position: reset.position, scale: reset.scale } : obj
-        }),
-      }))
+          if (!reset) return obj
+
+          const currentScale = obj.scale ?? [1, 1, 1]
+          const positionChanged = tupleDiffers3(obj.position, reset.position)
+          const scaleChanged = tupleDiffers3(currentScale, reset.scale)
+
+          if (!positionChanged && !scaleChanged) return obj
+
+          hasChanges = true
+          return { ...obj, position: reset.position, scale: reset.scale }
+        })
+
+        if (!hasChanges) return prev
+
+        return {
+          ...prev,
+          objects: nextObjects,
+        }
+      })
     }
   }, [frameNumber, baselineObjectStates, scene.objects, setSceneGraph])
 

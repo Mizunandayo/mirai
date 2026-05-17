@@ -1,82 +1,71 @@
-import type { ArmSegment, GripperConfig, GripperType, BOMItem } from '../types/arm'
+import type { ArmSegment, GripperConfig, GripperType, BOMItem, BOMSource } from '../types/arm'
+import type { ServoTier } from '../store/atoms'
+import bomCatalog from '../data/bomCatalog.json'
 
-// ─── Fixed Costs (every arm pays these) ──────────────────────────────────────
+type CatalogComponent = {
+  name: string
+  unit: number
+  source: BOMSource
+}
 
-const FIXED_BOM: BOMItem[] = [
-  {
-    id: 'electronics-controller',
-    component: 'Arduino Mega 2560 + USB Cable',
-    quantity: 1,
-    unitPrice: 18,
-    totalPrice: 18,
+type CatalogPart = CatalogComponent & {
+  qty: number
+}
+
+type CatalogShape = {
+  note: string
+  components: Record<string, CatalogComponent>
+  structure: {
+    fixed_base: CatalogComponent
+    revolute_link: CatalogComponent
+  }
+  gripperParts: Record<GripperType, CatalogPart[]>
+}
+
+const catalog = bomCatalog as CatalogShape
+
+const SERVO_BOM_BY_TIER: Record<ServoTier, { name: string; unit: number; source: BOMSource }> = {
+  mg995: {
+    name: 'MG995 Servo (9.4kg·cm)',
+    unit: 7.0,
     source: 'aliexpress',
   },
-  {
-    id: 'electronics-driver',
-    component: 'PCA9685 16-Channel Servo Driver',
-    quantity: 1,
-    unitPrice: 8,
-    totalPrice: 8,
-    source: 'aliexpress',
+  mg996r: {
+    name: catalog.components.servo_revolute.name,
+    unit: catalog.components.servo_revolute.unit,
+    source: catalog.components.servo_revolute.source,
   },
-  {
-    id: 'electronics-power',
-    component: '5V 10A Switching Power Supply',
-    quantity: 1,
-    unitPrice: 16,
-    totalPrice: 16,
+  ds3218: {
+    name: 'DS3218 High Torque Servo (20kg·cm)',
+    unit: 13.5,
     source: 'amazon',
   },
-  {
-    id: 'wiring-kit',
-    component: 'Servo Extension Cable Kit (20pcs)',
-    quantity: 1,
-    unitPrice: 9,
-    totalPrice: 9,
-    source: 'aliexpress',
+  industrial: {
+    name: 'Industrial Servo Module (150kg·cm class)',
+    unit: 68.0,
+    source: 'amazon',
   },
-  {
-    id: 'hardware-base',
-    component: 'Aluminum Base Plate (200x200mm)',
-    quantity: 1,
-    unitPrice: 14,
-    totalPrice: 14,
-    source: 'aliexpress',
-  },
-  {
-    id: 'hardware-screws',
-    component: 'M3 Screw & Standoff Assortment Kit',
-    quantity: 1,
-    unitPrice: 7,
-    totalPrice: 7,
-    source: 'aliexpress',
-  },
-]
+}
 
-// ─── Per-Segment Costs ────────────────────────────────────────────────────────
+function toBOMItem(
+  id: string,
+  component: string,
+  quantity: number,
+  unitPrice: number,
+  source: BOMSource,
+): BOMItem {
+  return {
+    id,
+    component,
+    quantity,
+    unitPrice,
+    totalPrice: roundMoney(unitPrice * quantity),
+    source,
+  }
+}
 
-const SERVO_PRICE = 13     // MG995 servo
-const LINK_PRICE_PER_100MM = 7  // Aluminum extrusion per 100mm
-const JOINT_HARDWARE_PRICE = 5  // Bearing + M4 hardware per joint
-
-// ─── Gripper Costs ────────────────────────────────────────────────────────────
-
-const GRIPPER_BOM: Record<GripperType, BOMItem[]> = {
-  parallel_jaw: [
-    { id: 'g-servo-1', component: 'MG90S Micro Servo ×2 (gripper actuation)', quantity: 2, unitPrice: 5, totalPrice: 10, source: 'aliexpress' },
-    { id: 'g-fingers', component: 'Gripper Fingers (3D printed PLA)', quantity: 1, unitPrice: 6, totalPrice: 6, source: 'printed' },
-    { id: 'g-frame', component: 'Gripper Frame + Hardware', quantity: 1, unitPrice: 9, totalPrice: 9, source: 'aliexpress' },
-  ],
-  suction_cup: [
-    { id: 'g-pump', component: 'Mini Vacuum Pump 12V', quantity: 1, unitPrice: 14, totalPrice: 14, source: 'aliexpress' },
-    { id: 'g-cup', component: 'Silicone Suction Cup 40mm', quantity: 2, unitPrice: 4, totalPrice: 8, source: 'aliexpress' },
-    { id: 'g-valve', component: 'Solenoid Valve 12V', quantity: 1, unitPrice: 8, totalPrice: 8, source: 'aliexpress' },
-  ],
-  magnetic: [
-    { id: 'g-magnet', component: 'Electromagnet 5kg Pull Force 12V', quantity: 1, unitPrice: 11, totalPrice: 11, source: 'aliexpress' },
-    { id: 'g-relay', component: 'Relay Module 5V', quantity: 1, unitPrice: 4, totalPrice: 4, source: 'aliexpress' },
-    { id: 'g-mount', component: 'Magnetic End-Effector Mount (printed)', quantity: 1, unitPrice: 5, totalPrice: 5, source: 'printed' },
-  ],
+function roundMoney(value: number): number {
+  return Math.round(value * 100) / 100
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -84,44 +73,65 @@ const GRIPPER_BOM: Record<GripperType, BOMItem[]> = {
 export function calculateBOM(
   segments: ArmSegment[],
   gripper: GripperConfig,
+  servoTier: ServoTier = 'mg996r',
 ): BOMItem[] {
-  const items: BOMItem[] = [...FIXED_BOM]
+  const items: BOMItem[] = []
+  const revoluteCount = segments.filter((segment) => segment.joint === 'revolute').length
 
-  // Segment costs (skip base which is structural-only)
-  const motorizedSegments = segments.filter((s) => s.joint !== 'fixed')
+  if (revoluteCount > 0) {
+    const servo = SERVO_BOM_BY_TIER[servoTier]
+    items.push(
+      toBOMItem('servo-revolute', servo.name, revoluteCount, servo.unit, servo.source),
+    )
+  }
 
-  motorizedSegments.forEach((seg) => {
-    const linkUnits = Math.max(1, Math.ceil((seg.length * 1000) / 100))
-    const linkTotal = linkUnits * LINK_PRICE_PER_100MM
+  for (const [index, part] of catalog.gripperParts[gripper.type].entries()) {
+    items.push(
+      toBOMItem(`gripper-${gripper.type}-${index}`, part.name, part.qty, part.unit, part.source),
+    )
+  }
 
-    items.push({
-      id: `${seg.id}-servo`,
-      component: `${seg.name} — MG995 Servo`,
-      quantity: 1,
-      unitPrice: SERVO_PRICE,
-      totalPrice: SERVO_PRICE,
-      source: 'aliexpress',
-    })
-    items.push({
-      id: `${seg.id}-link`,
-      component: `${seg.name} — Aluminum Link (${linkUnits}×100mm)`,
-      quantity: linkUnits,
-      unitPrice: LINK_PRICE_PER_100MM,
-      totalPrice: linkTotal,
-      source: 'aliexpress',
-    })
-    items.push({
-      id: `${seg.id}-joint`,
-      component: `${seg.name} — Joint Bearing & Hardware`,
-      quantity: 1,
-      unitPrice: JOINT_HARDWARE_PRICE,
-      totalPrice: JOINT_HARDWARE_PRICE,
-      source: 'aliexpress',
-    })
+  segments.forEach((segment) => {
+    if (segment.joint === 'fixed') {
+      items.push(
+        toBOMItem(
+          `${segment.id}-base`,
+          `${catalog.structure.fixed_base.name} (${(segment.length * 100).toFixed(0)}cm)`,
+          1,
+          catalog.structure.fixed_base.unit,
+          catalog.structure.fixed_base.source,
+        ),
+      )
+      return
+    }
+
+    if (segment.joint === 'revolute') {
+      items.push(
+        toBOMItem(
+          `${segment.id}-link`,
+          `${catalog.structure.revolute_link.name} (${(segment.length * 100).toFixed(0)}cm)`,
+          1,
+          catalog.structure.revolute_link.unit,
+          catalog.structure.revolute_link.source,
+        ),
+      )
+    }
   })
 
-  // Gripper
-  items.push(...GRIPPER_BOM[gripper.type])
+  const fixedComponents = [
+    ['pca9685', 'electronics-driver'],
+    ['arduino_nano', 'electronics-controller'],
+    ['power_5v', 'electronics-power'],
+    ['bearings', 'hardware-bearings'],
+    ['screws', 'hardware-screws'],
+    ['jumper_wires', 'wiring-kit'],
+    ['usb_cable', 'usb-cable'],
+  ] as const
+
+  for (const [catalogKey, itemId] of fixedComponents) {
+    const component = catalog.components[catalogKey]
+    items.push(toBOMItem(itemId, component.name, 1, component.unit, component.source))
+  }
 
   return items
 }
@@ -129,10 +139,11 @@ export function calculateBOM(
 export function getTotalBOMCost(
   segments: ArmSegment[],
   gripper: GripperConfig,
+  servoTier: ServoTier = 'mg996r',
 ): number {
-  return calculateBOM(segments, gripper).reduce(
+  return roundMoney(calculateBOM(segments, gripper, servoTier).reduce(
     (sum, item) => sum + item.totalPrice,
     0,
-  )
+  ))
 }
 

@@ -36,6 +36,7 @@ export interface ArmConfigExport {
   name:     string
   segments: ArmSegmentExport[]
   gripper:  GripperExport
+  servo_tier?: 'mg995' | 'mg996r' | 'ds3218' | 'industrial'
 }
 
 export interface TaskExport {

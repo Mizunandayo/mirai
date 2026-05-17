@@ -1,7 +1,7 @@
 // src/components/export/ExportPanel.tsx
 import { useAtomValue }                          from 'jotai'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { armSegmentsAtom, armGripperAtom, armNameAtom } from '../../store/atoms'
+import { armSegmentsAtom, armGripperAtom, armNameAtom, armServoTierAtom } from '../../store/atoms'
 import { compiledPlanAtom }                      from '../../store/simAtoms'
 import { taskNameAtom, taskDescriptionAtom }     from '../../store/taskAtoms'
 import type { ArmSegment }                       from '../../types/arm'
@@ -69,6 +69,7 @@ export default function ExportPanel() {
   const segments  = useAtomValue(armSegmentsAtom)
   const gripper   = useAtomValue(armGripperAtom)
   const armName   = useAtomValue(armNameAtom)
+  const servoTier = useAtomValue(armServoTierAtom)
   const plan      = useAtomValue(compiledPlanAtom)
   const taskName  = useAtomValue(taskNameAtom)
   const taskDesc  = useAtomValue(taskDescriptionAtom)
@@ -100,7 +101,7 @@ export default function ExportPanel() {
     setError(null)
     try {
       const body = buildExportPayload(
-        armName, taskName, taskDesc, segments, gripper, plan, liveUrl,
+        armName, taskName, taskDesc, segments, gripper, servoTier, plan, liveUrl,
       )
       const res = await fetch(`${API_BASE}/export/preview`, {
         method:  'POST',
@@ -114,7 +115,7 @@ export default function ExportPanel() {
     } finally {
       setLoadPreview(false)
     }
-  }, [plan, armName, taskName, taskDesc, segments, gripper, liveUrl])
+  }, [plan, armName, taskName, taskDesc, segments, gripper, servoTier, liveUrl])
 
   // ── API: download bundle ──────────────────────────────────────────────────
   const handleDownload = useCallback(async () => {
@@ -123,7 +124,7 @@ export default function ExportPanel() {
     setError(null)
     try {
       const body = buildExportPayload(
-        armName, taskName, taskDesc, segments, gripper, plan, liveUrl,
+        armName, taskName, taskDesc, segments, gripper, servoTier, plan, liveUrl,
       )
       const res = await fetch(`${API_BASE}/export/bundle`, {
         method:  'POST',
@@ -148,7 +149,7 @@ export default function ExportPanel() {
     } finally {
       setDownloading(false)
     }
-  }, [plan, armName, taskName, taskDesc, segments, gripper, liveUrl])
+  }, [plan, armName, taskName, taskDesc, segments, gripper, servoTier, liveUrl])
 
   // ── Derived helpers ────────────────────────────────────────────────────────
   const revolute    = segments.filter((s: ArmSegment) => s.joint === 'revolute')

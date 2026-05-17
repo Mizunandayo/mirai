@@ -26,6 +26,7 @@ class ArmConfigExport(BaseModel):
     name: str = "Mirai Arm"
     segments: List[SegmentExport] = Field(..., min_length=1, max_length=10)
     gripper: GripperExport
+    servo_tier: Optional[Literal["mg995", "mg996r", "ds3218", "industrial"]] = "mg996r"
 
     @field_validator("segments")
     @classmethod

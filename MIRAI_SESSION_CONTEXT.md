@@ -1,5 +1,203 @@
 # Mirai — Session Context
-**Last updated:** Thursday, May 15, 2026 — New session opened. Codebase fully scanned and context loaded. Ready for Day 5 continuation / Day 6 planning.
+**Last updated:** Saturday, May 17, 2026 — Expanded daily task snapshot synced to CLAUDE/BLUEPRINT + backup stored.
+
+---
+
+## Session Log — May 17, 2026 (Docs Update — Expanded Daily Tasks Sync)
+
+### What was done this session
+- Updated `CLAUDE.md` with an expanded authoritative day-by-day status snapshot.
+- Updated `MIRAI_BLUEPRINT.md` with the same expanded day-by-day snapshot for consistency.
+- Kept this file as backup memory of the sync action and current project status.
+
+### Detailed day-by-day status (authoritative backup)
+
+#### Day 1 — Foundation + 3D Engine
+✅ GitHub repo created and initial scaffold completed
+✅ Frontend package setup completed
+✅ Vite, TypeScript, Tailwind, index, gitignore, env example configured
+✅ Backend environment and requirements prepared
+✅ Base 3D viewer scene mounted
+✅ Base robot arm component created
+✅ Root app shell wired
+✅ Jotai state atoms initialized
+✅ FastAPI skeleton with health and Gemini key check added
+✅ Dependency install flow completed
+✅ Initial git push completed
+✅ Advanced mode atom added
+✅ Segment click-to-select highlight wiring completed
+
+#### Day 2 — Arm Design Studio
+✅ Arm segment editor built with add/remove/edit controls
+✅ Gripper library built with parallel jaw, suction, magnetic options
+✅ Reach envelope visualization added
+✅ Joint arc overlay visualization added
+✅ Arm validation pipeline added
+✅ BOM counter added with live cost calculation
+✅ Save and load arm config implemented
+✅ Arm viewer upgraded with proper lighting, shadows, controls
+✅ App layout upgraded to full designer workspace
+✅ Panel UX polish completed (topbar, toolbar, tab flow)
+✅ Camera reset and viewport hint UX added
+✅ Panel resize behavior added
+✅ TypeScript clean build verified
+
+#### Day 3 — Task Editor (React Flow)
+✅ Task graph schema and core task types created
+✅ Scene registry for default objects and zones created
+✅ Task editor atoms added
+✅ Task validation utility added
+✅ Task export/import utility added
+✅ Start node implemented
+✅ End node implemented
+✅ Move node implemented
+✅ Grip node implemented
+✅ Wait node implemented
+✅ Loop node implemented
+✅ If node implemented
+✅ Deletable edge component implemented
+✅ Node palette implemented
+✅ Flow canvas and provider architecture completed
+✅ Undo history support added
+✅ Keyboard shortcuts added (export and undo)
+✅ Drag/drop and click-to-add flow completed
+✅ Local persistence across tab change added
+✅ Local persistence across full page reload added
+✅ Clear-all flow with confirmation added
+
+#### Day 4 — Physics Simulation (Rapier)
+✅ Forward kinematics utility completed
+✅ Inverse kinematics utility completed
+✅ Motion compiler pipeline completed
+✅ Simulation atoms and playback state model completed
+✅ Scene object physics bodies completed
+✅ Simulated arm articulation completed
+✅ Path trail visualization completed
+✅ Simulation viewer and playback runner completed
+✅ Playback controls completed (play, pause, rewind, speed, jump)
+✅ Loop, reverse, collision pause behavior completed
+✅ Timeline scrubber with markers completed
+✅ Joint HUD completed
+✅ Physics metrics panel completed
+✅ Teach mode manual control completed
+✅ PTP point stack and play-all completed
+✅ Transport and teach interlock behavior completed
+✅ Collision logic upgraded to arm-link collision detection
+✅ Persistent collision highlight polish completed
+✅ Frame-0 baseline reset behavior completed
+
+#### Day 5 — Gemini AI Integration
+✅ AI workflow consolidated into task editor panel
+✅ Generate motion grounded on current scene and arm state
+✅ AI Results panel with confidence/safety/reachability/pickability
+✅ AI actions exposed (fix, suggestions, think trace, auto-config)
+✅ Empty-plan guard added
+✅ Normalization and schema hardening added
+✅ Deterministic preflight collision/reach validation added
+✅ Bounded repair loops added for invalid plans
+✅ Suggest endpoint integrated
+✅ Target consistency validation added
+✅ Startup self-test and port conflict handling added
+✅ Auto handoff to simulation after successful generation
+✅ Task flow load acknowledgement before navigation
+✅ Fail-closed behavior for unresolved blocking errors
+✅ Execution gate state model added (idle/verify/ready/blocked)
+✅ Gate diagnostics exposed in AI Results
+✅ E2E autonomy regression skeleton added
+✅ Canonical target-name normalization added
+✅ Deterministic fallback plan generation added
+✅ Repair loop fail-soft UI behavior added
+✅ Collision handling default refined
+✅ Playback compile scene snapshot freeze behavior added
+✅ Dynamic object baseline restore contract refined
+✅ Direct Gemini browser integration added
+✅ Model fallback chain added
+✅ Scene planner and feasibility analysis completed
+✅ IK conditioning auto-scale and destination reach checks completed
+✅ Volumetric collision widening and joint housing checks completed
+✅ Obstacle-aware approach strategy added
+✅ Task editor mount persistence to preserve AI state completed
+
+#### Day 6 — Backend + MuJoCo + Export
+✅ FastAPI deployment pipeline completed
+✅ MuJoCo websocket simulation stream completed
+✅ MJCF/URDF build pipeline completed
+✅ Shared execution contract across Rapier and MuJoCo completed
+✅ Accuracy/divergence validation pipeline completed
+✅ Servo lifespan predictor completed
+✅ Deterministic Arduino export completed
+✅ Deterministic Python export completed
+✅ BOM export generation completed
+✅ URDF export completed
+✅ QR generation flow completed
+✅ Signed export with SHA-256 completed
+✅ ZIP bundle packaging completed
+✅ Python template missing-file fix completed
+✅ Content-Disposition filename sanitization completed
+✅ ZIP entry path sanitization completed
+✅ QR domain fallback fix completed
+✅ Live deployment health verification completed
+✅ Review panel regression restore completed
+✅ AI Fix upgraded to multi-step auto-config logic
+✅ Servo-tier state and tier-aware validation completed
+✅ Designer BOM servo-tier pricing completed
+✅ Export BOM parity fix completed (frontend payload + backend schema + backend generator)
+✅ Export BOM source label typo fix completed
+✅ Simulation max update depth loop fix completed
+✅ Shadow map deprecation cleanup completed
+
+#### Day 7 — Community + Famous Preloads + Presets
+❌ Community browse/import flow
+❌ Seeded task library
+❌ Famous preload tasks
+❌ Real robot preset skins
+❌ End-to-end quality pass
+❌ 60fps verification pass
+
+#### Day 8 — Polish + Demo Prep + Submit
+❌ Final production deploy hardening
+❌ Final full E2E test pass
+❌ Demo video recording
+❌ Slide deck finalization
+❌ README final pass
+❌ Repository cleanup pass
+❌ Final submission packaging
+❌ Submission before deadline
+
+---
+
+## Session Log — May 17, 2026 (Post-Day-6 Stabilization — Review + AI Fix + Export BOM Parity)
+
+### What was done this session
+- Restored Review tab stats UI after a regression replaced `ValidationPanel` with a minimal placeholder.
+- Rebuilt Review panel to show status badge, metric cards (reach/peak torque/mass/joints), blocking issues, warnings, and pass-state confirmation.
+- Fixed simulation runtime warning loop: removed redundant scene atom writes in `SceneObjects.tsx` that caused `Maximum update depth exceeded`.
+- Removed Three.js deprecation noise by explicitly setting `PCFShadowMap` in simulation and arm viewer canvases.
+
+### AI Fix behavior upgrades
+- Added persisted actuator-tier atom: `armServoTierAtom` with supported tiers `mg995`, `mg996r`, `ds3218`, `industrial`.
+- Made validation torque checks tier-aware via `validateArm(..., options)` using dynamic torque limits and labels.
+- Upgraded Review `AI Fix` flow to perform coordinated auto-config:
+  - segment-length tuning toward requested reach,
+  - mass reduction/material adjustment to clear `mass_high` warnings where possible,
+  - gripper force retargeting from requested payload,
+  - automatic actuator-tier selection based on computed peak torque.
+- Updated button visibility rule: `AI Fix` now hides when there are no remaining errors or warnings.
+
+### BOM parity fixes (Designer vs Export)
+- Designer BOM path now prices servo line by active actuator tier and recalculates totals.
+- Root mismatch found: Export BOM still defaulted to MG996R because servo tier was not part of export payload/schema.
+- Fixed end-to-end export parity:
+  - frontend export payload includes `arm.servo_tier`,
+  - export panel sends current `armServoTierAtom` value,
+  - backend `ArmConfigExport` schema accepts `servo_tier`,
+  - backend BOM generator maps servo tier to matching component pricing.
+- Minor UI fix: Export BOM source label typo corrected (`Amzon` -> `Amazon`).
+
+### Outcome
+- Review metrics, warnings, and status now render reliably.
+- `AI Fix` can now resolve actuator-related torque violations by promoting servo tier when needed.
+- Designer BOM and Export BOM totals/parts now correlate for the same arm configuration.
 
 ---
 

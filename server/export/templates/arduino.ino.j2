@@ -8,9 +8,9 @@
  * ═══════════════════════════════════════════════════
  *
  *  Hardware wiring:
-{%- for seg in revolute_segments %}
+{% for seg in revolute_segments %}
  *    Joint {{ loop.index }} ({{ seg.name }}) ── MG996R servo ── Pin {{ seg.servo_pin }}
-{%- endfor %}
+{% endfor %}
  *    Gripper ({{ gripper_type }}) ─────────── Pin {{ gripper_pin }}
  *
  *  Power: 5 V / 3 A per servo. Use separate servo power rail.
@@ -19,15 +19,15 @@
 #include <Servo.h>
 
 // ── Pin assignments ────────────────────────────────
-{%- for seg in revolute_segments %}
+{% for seg in revolute_segments %}
 const int PIN_J{{ loop.index }} = {{ seg.servo_pin }};
-{%- endfor %}
+{% endfor %}
 const int PIN_GRIP = {{ gripper_pin }};
 
 // ── Servo objects ──────────────────────────────────
-{%- for seg in revolute_segments %}
+{% for seg in revolute_segments %}
 Servo j{{ loop.index }};
-{%- endfor %}
+{% endfor %}
 Servo grip;
 
 // ── Safety clamp ───────────────────────────────────
@@ -35,20 +35,20 @@ int clamp180(int v) { return max(0, min(180, v)); }
 
 // ── Smooth interpolated move ───────────────────────
 void moveTo(
-{%- for seg in revolute_segments -%}
+{% for seg in revolute_segments %}
   int t{{ loop.index }},
-{%- endfor %}
+{% endfor %}
   int tg, int ms) {
   const int STEPS = max(1, ms / 20);
-{%- for seg in revolute_segments %}
+{% for seg in revolute_segments %}
   int s{{ loop.index }} = j{{ loop.index }}.read();
-{%- endfor %}
+{% endfor %}
   int sg = grip.read();
   for (int i = 1; i <= STEPS; i++) {
     float r = (float)i / STEPS;
-{%- for seg in revolute_segments %}
+{% for seg in revolute_segments %}
     j{{ loop.index }}.write(clamp180(s{{ loop.index }} + (int)((t{{ loop.index }} - s{{ loop.index }}) * r)));
-{%- endfor %}
+{% endfor %}
     grip.write(clamp180(sg + (int)((tg - sg) * r)));
     delay(20);
   }
@@ -59,14 +59,14 @@ void setup() {
   Serial.begin(115200);
   Serial.println(F("Mirai | {{ arm_name }}"));
   Serial.println(F("Task  : {{ task_name }}"));
-{%- for seg in revolute_segments %}
+{% for seg in revolute_segments %}
   j{{ loop.index }}.attach(PIN_J{{ loop.index }});
-{%- endfor %}
+{% endfor %}
   grip.attach(PIN_GRIP);
   // Home all joints
-{%- for seg in revolute_segments %}
+{% for seg in revolute_segments %}
   j{{ loop.index }}.write(90);
-{%- endfor %}
+{% endfor %}
   grip.write(0);
   delay(1500);
   Serial.println(F("Ready."));
@@ -83,9 +83,9 @@ void loop() {
   // ── Step {{ loop.index }}{% if wp.label %}: {{ wp.label }}{% endif %} ─────
   Serial.println(F("Step {{ loop.index }}"));
   moveTo(
-{%- for sv in wp.servo_angles -%}
+{% for sv in wp.servo_angles %}
     {{ sv }},
-{%- endfor %}
+{% endfor %}
     {{ wp.gripper_servo }},
     {{ wp.duration_ms }});
   delay({{ wp.hold_ms }});

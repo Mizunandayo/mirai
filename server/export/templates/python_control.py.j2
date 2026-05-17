@@ -32,7 +32,7 @@ class Waypoint:
 
 
 WAYPOINTS = [
-{%- for wp in waypoints %}
+{% for wp in waypoints %}
     Waypoint(
         index={{ loop.index }},
         pitch_angles={{ wp.pitch_angles }},
@@ -44,7 +44,7 @@ WAYPOINTS = [
         hold_ms={{ wp.hold_ms }},
         label={{ wp.label|tojson }},
     ),
-{%- endfor %}
+{% endfor %}
 ]
 
 

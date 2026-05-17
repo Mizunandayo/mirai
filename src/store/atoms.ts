@@ -12,10 +12,9 @@ export const showReachEnvelopeAtom = atomWithStorage<boolean>('mirai_show_reach_
 export const showJointArcsAtom = atomWithStorage<boolean>('mirai_show_arcs_v2', false)
 
 
-// Arm Config
-export const armNameAtom = atom<string>('Studio arm 01')
+const DEFAULT_ARM_NAME = 'Studio arm 01'
 
-export const armSegmentsAtom = atom<ArmSegment[]>([
+const DEFAULT_ARM_SEGMENTS: ArmSegment[] = [
   {
     id: 'seg-base',
     name: 'Base',
@@ -49,17 +48,23 @@ export const armSegmentsAtom = atom<ArmSegment[]>([
     material: 'aluminum',
     color: '#cbd3dc',
   },
-])
+]
 
-
-
-export const armGripperAtom = atom<GripperConfig>({
+const DEFAULT_ARM_GRIPPER: GripperConfig = {
   id: 'gripper-1',
   type: 'parallel_jaw',
   name: 'Parallel Jaw',
   width: 0.08,
   force: 50,
-})
+}
+
+
+// Arm Config
+export const armNameAtom = atomWithStorage<string>('mirai_arm_name_v1', DEFAULT_ARM_NAME)
+
+export const armSegmentsAtom = atomWithStorage<ArmSegment[]>('mirai_arm_segments_v1', DEFAULT_ARM_SEGMENTS)
+
+export const armGripperAtom = atomWithStorage<GripperConfig>('mirai_arm_gripper_v1', DEFAULT_ARM_GRIPPER)
 
 
 
@@ -92,3 +97,15 @@ export const selectedCommunityTaskAtom = atom<unknown | null>(null)
 export const geminiLoadingAtom = atom(false)
 export const geminiErrorAtom = atom<string | null>(null)
 export const geminiResponseAtom = atom<string | null>(null)
+
+export type ArmDesignTargets = {
+  reachMeters: number
+  payloadGrams: number
+  jointCount: number
+}
+
+export const armDesignTargetsAtom = atomWithStorage<ArmDesignTargets | null>('mirai_arm_design_targets_v1', null)
+
+export type ServoTier = 'mg995' | 'mg996r' | 'ds3218' | 'industrial'
+
+export const armServoTierAtom = atomWithStorage<ServoTier>('mirai_arm_servo_tier_v1', 'mg996r')

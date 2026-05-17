@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { useAtom, useAtomValue } from 'jotai'
-import { isAdvancedModeAtom } from './store/atoms'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { armSegmentsAtom, isAdvancedModeAtom } from './store/atoms'
 import { executionGateAtom } from './store/aiAtoms'
 import ArmViewer, { type ArmViewerHandle } from './components/ArmViewer'
 import ArmDesignerPanel from './components/arm-designer/ArmDesignerPanel'
@@ -9,7 +9,89 @@ import TaskFlowCanvas from './components/task-editor/TaskFlowCanvas'
 import SimViewer from './components/simulation/SimViewer'
 import SimulationPanel from './components/simulation/SimulationPanel'
 import ExportPanel from './components/export/ExportPanel'
+import CodePane from './components/simulation/CodePane'
+import { sideBySideModeAtom } from './store/mujocoAtoms'
+import { taskEdgesAtom, taskNameAtom, taskNodesAtom, sceneGraphAtom } from './store/taskAtoms'
+import { compiledPlanAtom, currentFrameAtom, playbackStatusAtom, simBaselineObjectStatesAtom } from './store/simAtoms'
+import { loadStoredTaskFlow } from './utils/taskFlowStorage'
+import { compileTask } from './utils/motionCompiler'
 
+function TaskRuntimeBootstrap() {
+  const nodes = useAtomValue(taskNodesAtom)
+  const edges = useAtomValue(taskEdgesAtom)
+  const segments = useAtomValue(armSegmentsAtom)
+  const scene = useAtomValue(sceneGraphAtom)
+  const taskName = useAtomValue(taskNameAtom)
+  const playbackStatus = useAtomValue(playbackStatusAtom)
+  const currentFrame = useAtomValue(currentFrameAtom)
+
+  const setTaskNodes = useSetAtom(taskNodesAtom)
+  const setTaskEdges = useSetAtom(taskEdgesAtom)
+  const setPlan = useSetAtom(compiledPlanAtom)
+  const setStatus = useSetAtom(playbackStatusAtom)
+  const setFrame = useSetAtom(currentFrameAtom)
+  const setBaselineObjectStates = useSetAtom(simBaselineObjectStatesAtom)
+
+  useEffect(() => {
+    const storedFlow = loadStoredTaskFlow()
+    if (!storedFlow) return
+    setTaskNodes(storedFlow.nodes)
+    setTaskEdges(storedFlow.edges)
+  }, [setTaskNodes, setTaskEdges])
+
+  useEffect(() => {
+    const isPlaybackActive =
+      playbackStatus === 'playing'
+      || playbackStatus === 'reverse_playing'
+      || playbackStatus === 'collision_paused'
+
+    if (isPlaybackActive || currentFrame !== 0) {
+      return
+    }
+
+    const hasRunnableTask = nodes.length > 1 || edges.length > 0
+    if (!hasRunnableTask) {
+      setPlan(null)
+      return
+    }
+
+    const compiled = compileTask(nodes, edges, segments, scene, taskName)
+    if (!compiled) {
+      setPlan(null)
+      return
+    }
+
+    const baseline = Object.fromEntries(
+      scene.objects.map((obj) => [
+        obj.id,
+        {
+          position: [...obj.position] as [number, number, number],
+          rotation: [0, 0, 0, 1] as [number, number, number, number],
+          scale: (obj.scale ? [...obj.scale] : [1, 1, 1]) as [number, number, number],
+        },
+      ]),
+    )
+
+    setBaselineObjectStates(baseline)
+    setPlan(compiled)
+    setStatus('idle')
+    setFrame(0)
+  }, [
+    nodes,
+    edges,
+    segments,
+    scene,
+    taskName,
+    playbackStatus,
+    currentFrame,
+    setPlan,
+    setStatus,
+    setFrame,
+    setBaselineObjectStates,
+  ])
+
+  return null
+}
 
 
 
@@ -133,6 +215,7 @@ const STATUS_MAP: Record<NavItem, string> = {
 export default function App() {
   const [isAdvanced, setIsAdvanced] = useAtom(isAdvancedModeAtom)
   const executionGate = useAtomValue(executionGateAtom)
+  const sideBySide = useAtomValue(sideBySideModeAtom)
   const [activeNav, setActiveNav] = useState<NavItem>('design')
   const [panelOpen, setPanelOpen] = useState(true)
   const [showHint, setShowHint] = useState(true)
@@ -192,6 +275,7 @@ function handleNavClick(nav: NavItem) {
 
   return (
     <div className="app-shell">
+      <TaskRuntimeBootstrap />
       <header className="app-header" style={{ position: 'relative', overflow: 'hidden' }}>
         <HeaderDust />
         <nav className="hdr-nav" aria-label="Workflow steps" style={{ position: 'relative', zIndex: 1 }}>
@@ -243,7 +327,10 @@ function handleNavClick(nav: NavItem) {
 
         {/* 3D viewport — display:none on Export tab preserves WebGL contexts
             (ArmViewer + SimViewer stay mounted, no context loss on return) */}
-        <main className="viewport-wrapper" style={{ display: activeNav === 'export' ? 'none' : undefined }}>
+        <main
+          className={`viewport-wrapper${activeNav === 'simulate' ? ' viewport-wrapper--simulate' : ''}`}
+          style={{ display: activeNav === 'export' ? 'none' : undefined }}
+        >
           {/* Tasks canvas — unmounts cleanly (no WebGL) */}
           {activeNav === 'tasks' && <TaskFlowCanvas />}
 
@@ -300,17 +387,43 @@ function handleNavClick(nav: NavItem) {
             )}
           </div>
 
-          {/* Simulation viewport — always mounted, visibility toggled to preserve WebGL context + Rapier WASM state */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              visibility: activeNav === 'simulate' ? 'visible' : 'hidden',
-              pointerEvents: activeNav === 'simulate' ? 'auto' : 'none',
-            }}
-          >
-            <SimViewer />
-          </div>
+{/* Simulation viewport — always mounted. Side-by-side splits into two halves. */}
+<div
+  style={{
+    position: 'absolute',
+    inset: 0,
+    visibility: activeNav === 'simulate' ? 'visible' : 'hidden',
+    pointerEvents: activeNav === 'simulate' ? 'auto' : 'none',
+    display: 'flex',
+    flexDirection: 'row',
+  }}
+>
+  {/* Left half: always the 3D simulation */}
+  <div style={{
+    flex: sideBySide ? '0 0 50%' : '1 1 100%',
+    position: 'relative',
+    overflow: 'hidden',
+    transition: 'flex-basis 320ms cubic-bezier(0.22, 1, 0.36, 1)',
+  }}>
+    <SimViewer />
+  </div>
+
+  {/* Right half: generated code pane — only rendered when side-by-side active */}
+  {sideBySide && (
+    <div style={{
+      flex: '0 0 50%',
+      overflow: 'hidden',
+      borderLeft: '1px solid rgba(0,0,0,0.08)',
+      animation: 'slide-in-right 320ms cubic-bezier(0.22, 1, 0.36, 1) both',
+    }}>
+      <CodePane />
+    </div>
+  )}
+</div>
+
+
+
+
         </main>
       </div>
 

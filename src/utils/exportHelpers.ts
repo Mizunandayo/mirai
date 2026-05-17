@@ -3,6 +3,7 @@
 // Converts existing project types → API request payload.
 
 import type { ArmSegment, GripperConfig }     from '../types/arm'
+import type { ServoTier }                      from '../store/atoms'
 import type { ExecutionPlan, SimFrame }        from '../types/simulation'
 import type {
   BundleRequestPayload,
@@ -105,12 +106,14 @@ export function buildExportPayload(
   taskDesc: string,
   segments: ArmSegment[],
   gripper:  GripperConfig,
+  servoTier: ServoTier,
   plan:     ExecutionPlan,
   liveUrl:  string,
 ): BundleRequestPayload {
   return {
     arm: {
       name: armName || 'Mirai Arm',
+      servo_tier: servoTier,
       segments: segments.map(s => ({
         id:              s.id,
         name:            s.name,

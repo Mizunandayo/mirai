@@ -1,125 +1,255 @@
 ﻿import { useMemo } from 'react'
-import { useAtomValue } from 'jotai'
-import { armSegmentsAtom } from '../../store/atoms'
-import { validateArm, calculateMaxReach, calculateTorqueAtJoint } from '../../utils/armPhysics'
+import { useAtom, useAtomValue } from 'jotai'
+import {
+  armSegmentsAtom,
+  armGripperAtom,
+  armDesignTargetsAtom,
+  armServoTierAtom,
+  type ServoTier,
+} from '../../store/atoms'
+import {
+  validateArm,
+  calculateMaxReach,
+  calculateTorqueAtJoint,
+} from '../../utils/armPhysics'
 
-export default function ValidationPanel() {
-  const segments = useAtomValue(armSegmentsAtom)
-  const result = useMemo(() => validateArm(segments), [segments])
-  const maxReach = useMemo(() => calculateMaxReach(segments), [segments])
+const SEGMENT_MIN_LENGTH = 0.08
+const SEGMENT_MAX_LENGTH = 0.8
 
-  const totalMass = segments.reduce((s, seg) => s + seg.mass, 0)
-  const activeJoints = segments.filter((s) => s.joint !== 'fixed').length
-  const baseTorque = segments.length > 0 ? calculateTorqueAtJoint(segments, 0) : null
-  const issueCount = result.errors.length + result.warnings.length
+const SERVO_TORQUE_LIMIT: Record<ServoTier, { maxTorqueNm: number; label: string }> = {
+  mg995: { maxTorqueNm: 0.92, label: 'MG995' },
+  mg996r: { maxTorqueNm: 1.10, label: 'MG996R' },
+  ds3218: { maxTorqueNm: 2.45, label: 'DS3218' },
+  industrial: { maxTorqueNm: 15.0, label: 'Industrial Servo' },
+}
+
+function chooseServoTierForTorque(peakTorqueNm: number): ServoTier {
+  const safetyTarget = peakTorqueNm * 1.08
+  if (safetyTarget <= SERVO_TORQUE_LIMIT.mg995.maxTorqueNm) return 'mg995'
+  if (safetyTarget <= SERVO_TORQUE_LIMIT.mg996r.maxTorqueNm) return 'mg996r'
+  if (safetyTarget <= SERVO_TORQUE_LIMIT.ds3218.maxTorqueNm) return 'ds3218'
+  return 'industrial'
+}
+
+function ValidationPanel() {
+  const [segments, setSegments] = useAtom(armSegmentsAtom)
+  const [gripper, setGripper] = useAtom(armGripperAtom)
+  const [servoTier, setServoTier] = useAtom(armServoTierAtom)
+  const targets = useAtomValue(armDesignTargetsAtom)
+
+  const servoProfile = SERVO_TORQUE_LIMIT[servoTier]
+
+  const validation = useMemo(
+    () =>
+      validateArm(segments, {
+        servoMaxTorqueNm: servoProfile.maxTorqueNm,
+        servoLabel: servoProfile.label,
+      }),
+    [segments, servoProfile.maxTorqueNm, servoProfile.label],
+  )
+
+  const stats = useMemo(() => {
+    const reachMeters = calculateMaxReach(segments)
+    const totalMassKg = segments.reduce((sum, seg) => sum + seg.mass, 0)
+    const movableSegments = segments.filter((seg) => seg.joint !== 'fixed')
+
+    let peakTorqueNm = 0
+    for (let i = 0; i < segments.length; i += 1) {
+      if (segments[i].joint === 'fixed') continue
+      peakTorqueNm = Math.max(peakTorqueNm, calculateTorqueAtJoint(segments, i))
+    }
+
+    return {
+      reachMeters,
+      totalMassKg,
+      peakTorqueNm,
+      jointCount: movableSegments.length,
+    }
+  }, [segments])
+
+  const hasErrors = validation.errors.length > 0
+  const hasWarnings = validation.warnings.length > 0
+  const hasTargets = Boolean(targets)
+  const shouldShowFix = hasErrors || hasWarnings
+
+  const handleAutoConfigure = () => {
+    const desiredReach = targets?.reachMeters
+    const currentReach = stats.reachMeters
+
+    let scaleFactor = 1
+    if (desiredReach && currentReach > 0.001) {
+      scaleFactor = desiredReach / currentReach
+      scaleFactor = Math.min(1.35, Math.max(0.65, scaleFactor))
+    }
+
+    let nextSegments = segments.map((segment) => {
+      if (segment.joint === 'fixed') return segment
+      const scaled = segment.length * scaleFactor
+      return {
+        ...segment,
+        length: Number(
+          Math.min(SEGMENT_MAX_LENGTH, Math.max(SEGMENT_MIN_LENGTH, scaled)).toFixed(3),
+        ),
+      }
+    })
+
+    const nextTotalMass = nextSegments.reduce((sum, segment) => sum + segment.mass, 0)
+    if (nextTotalMass > 3.95) {
+      const nonFixedCount = Math.max(1, nextSegments.filter((segment) => segment.joint !== 'fixed').length)
+      const targetMass = 3.9
+      const massReductionPerSegment = (nextTotalMass - targetMass) / nonFixedCount
+
+      nextSegments = nextSegments.map((segment) => {
+        if (segment.joint === 'fixed') {
+          const lighterBaseMass = Math.max(1.2, Number((segment.mass * 0.88).toFixed(2)))
+          return {
+            ...segment,
+            mass: lighterBaseMass,
+            material: 'aluminum',
+          }
+        }
+
+        const lowered = Math.max(0.2, Number((segment.mass - massReductionPerSegment).toFixed(2)))
+        return {
+          ...segment,
+          mass: lowered,
+          material: 'carbon_fiber',
+        }
+      })
+    }
+
+    let nextPeakTorque = 0
+    for (let i = 0; i < nextSegments.length; i += 1) {
+      if (nextSegments[i].joint === 'fixed') continue
+      nextPeakTorque = Math.max(nextPeakTorque, calculateTorqueAtJoint(nextSegments, i))
+    }
+
+    const recommendedTier = chooseServoTierForTorque(nextPeakTorque)
+    if (recommendedTier !== servoTier) {
+      setServoTier(recommendedTier)
+    }
+
+    setSegments(nextSegments)
+
+    if (targets?.payloadGrams) {
+      const requiredForceN = Math.max(20, Math.min(160, (targets.payloadGrams / 1000) * 9.81 * 2.2))
+      setGripper({ ...gripper, force: Math.round(requiredForceN) })
+    }
+  }
 
   return (
-    <div className="validation-panel">
-      <div className="panel-section-header">
-        <span>Design check</span>
+    <section className="validation-panel" aria-label="Arm review">
+      <div className="section-header">
+        <h3 className="section-title">Design Validation</h3>
         <span
-          className={`validation-badge ${
-            result.isValid ? 'validation-badge--ok' : 'validation-badge--error'
-          }`}
+          className={`validation-badge ${validation.isValid ? 'validation-badge--ok' : 'validation-badge--error'}`}
         >
-          {result.isValid
-            ? 'OK'
-            : `${issueCount} issue${issueCount !== 1 ? 's' : ''}`}
+          {validation.isValid ? 'Ready' : 'Needs fixes'}
         </span>
       </div>
 
-      {/* Metrics */}
+      {shouldShowFix && (
+        <div className="validation-actions">
+          <button
+            type="button"
+            className="validation-ai-fix-btn"
+            onClick={handleAutoConfigure}
+            title="Auto-adjust arm geometry and gripper settings"
+          >
+            AI Fix
+          </button>
+        </div>
+      )}
+
+      <div className="validation-ai-fix-note">
+        Actuator profile: {servoProfile.label} ({servoProfile.maxTorqueNm.toFixed(2)} N m per revolute joint).
+      </div>
+
+      {hasTargets && (
+        <div className="validation-ai-fix-note">
+          Target profile: {targets?.reachMeters.toFixed(2)}m reach, {targets?.payloadGrams.toFixed(0)}g payload, {targets?.jointCount} joints.
+        </div>
+      )}
+
       <div className="validation-metrics">
         <div className="metric">
-          <span className="metric-label">Max reach</span>
-          <div className="metric-value">
-            {(maxReach * 1000).toFixed(0)}
+          <span className="metric-label">Reach</span>
+          <span className="metric-value">
+            {(stats.reachMeters * 1000).toFixed(0)}
             <span className="metric-unit">mm</span>
-          </div>
+          </span>
         </div>
+
         <div className="metric">
-          <span className="metric-label">Active joints</span>
-          <div className="metric-value">
-            {activeJoints}
-            <span className="metric-unit">joints</span>
-          </div>
+          <span className="metric-label">Peak Torque</span>
+          <span className="metric-value">
+            {stats.peakTorqueNm > 0 ? stats.peakTorqueNm.toFixed(2) : <span className="metric-empty">-</span>}
+            {stats.peakTorqueNm > 0 && <span className="metric-unit">N m</span>}
+          </span>
         </div>
+
         <div className="metric">
-          <span className="metric-label">Total mass</span>
-          <div className="metric-value">
-            {totalMass.toFixed(2)}
+          <span className="metric-label">Total Mass</span>
+          <span className="metric-value">
+            {stats.totalMassKg.toFixed(2)}
             <span className="metric-unit">kg</span>
-          </div>
+          </span>
         </div>
+
         <div className="metric">
-          <span className="metric-label">Base torque</span>
-          <div className="metric-value">
-            {baseTorque !== null ? (
-              <>
-                {baseTorque.toFixed(1)}
-                <span className="metric-unit">N·m</span>
-              </>
-            ) : (
-              <span className="metric-empty">—</span>
-            )}
-          </div>
+          <span className="metric-label">Joints</span>
+          <span className="metric-value">
+            {stats.jointCount}
+            <span className="metric-unit">active</span>
+          </span>
         </div>
       </div>
 
-      {/* Blocking errors */}
-      {result.errors.length > 0 && (
+      {hasErrors && (
         <div className="validation-section">
-          <div className="validation-section-title error">
-            Blocking issues ({result.errors.length})
-          </div>
-          {result.errors.map((err, i) => (
-            <div key={i} className="validation-item validation-item--error">
-              <span className="validation-icon validation-icon--error">
+          <h4 className="validation-section-title error">Blocking Issues</h4>
+          {validation.errors.map((error, index) => (
+            <div key={`${error.type}-${error.segmentId ?? 'global'}-${index}`} className="validation-item validation-item--error">
+              <span className="validation-pill validation-pill--error">Error</span>
+              <div className="validation-text" style={{ marginTop: 8 }}>{error.message}</div>
+              <span className="validation-icon validation-icon--error" aria-hidden="true">
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.6"/>
-                  <line x1="8" y1="4.5" x2="8" y2="8.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-                  <circle cx="8" cy="11" r="0.9" fill="currentColor"/>
+                  <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" />
+                  <line x1="8" y1="4.5" x2="8" y2="9.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx="8" cy="11.4" r="0.9" fill="currentColor" />
                 </svg>
               </span>
-              <span className="validation-text">{err.message}</span>
             </div>
           ))}
         </div>
       )}
 
-      {/* Warnings */}
-      {result.warnings.length > 0 && (
+      {hasWarnings && (
         <div className="validation-section">
-          <div className="validation-section-title warning">
-            Watch list ({result.warnings.length})
-          </div>
-          {result.warnings.map((warn, i) => (
-            <div key={i} className="validation-item validation-item--warning">
-              <span className="validation-icon validation-icon--warning">
+          <h4 className="validation-section-title warning">Warnings</h4>
+          {validation.warnings.map((warning, index) => (
+            <div key={`${warning.type}-${warning.segmentId ?? 'global'}-${index}`} className="validation-item validation-item--warning">
+              <span className="validation-pill validation-pill--warning">Warn</span>
+              <div className="validation-text" style={{ marginTop: 8 }}>{warning.message}</div>
+              <span className="validation-icon validation-icon--warning" aria-hidden="true">
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <path d="M7.13 2.5L1.07 13a1 1 0 00.87 1.5h12.12a1 1 0 00.87-1.5L8.87 2.5a1 1 0 00-1.74 0z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                  <line x1="8" y1="6.5" x2="8" y2="9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  <circle cx="8" cy="11.5" r="0.8" fill="currentColor"/>
+                  <path d="M8 2.2L14 13H2L8 2.2Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+                  <line x1="8" y1="6" x2="8" y2="9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                  <circle cx="8" cy="11.2" r="0.8" fill="currentColor" />
                 </svg>
               </span>
-              <span className="validation-text">{warn.message}</span>
             </div>
           ))}
         </div>
       )}
 
-      {/* All clear */}
-      {result.errors.length === 0 && result.warnings.length === 0 && (
+      {!hasErrors && !hasWarnings && (
         <div className="validation-ok">
-          <span className="validation-icon validation-icon--ok">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.6"/>
-              <polyline points="4.5,8.5 7,11 11.5,5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </span>
-          <span>Configuration stays inside the baseline safety envelope.</span>
+          Design checks passed. Your arm is ready for task planning.
         </div>
       )}
-    </div>
+    </section>
   )
 }
+
+export default ValidationPanel

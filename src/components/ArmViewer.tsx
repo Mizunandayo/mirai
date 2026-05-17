@@ -2,6 +2,7 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, Grid } from '@react-three/drei'
 import { Suspense, useRef, forwardRef, useImperativeHandle } from 'react'
 import { useAtomValue } from 'jotai'
+import { PCFShadowMap } from 'three'
 import RobotArm from './RobotArm'
 import ReachEnvelope from './ReachEnvelope'
 import JointArcOverlay from './JointArcOverlay'
@@ -118,7 +119,7 @@ const ArmViewer = forwardRef<ArmViewerHandle>((_, ref) => {
   return (
     <div className="arm-viewer">
       <Canvas
-        shadows
+        shadows={{ type: PCFShadowMap }}
         dpr={[1, 2]}
         gl={{ antialias: true, alpha: true }}
         style={{ background: 'transparent' }}

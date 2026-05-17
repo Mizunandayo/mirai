@@ -125,3 +125,54 @@ export async function getMotionSuggestions(request: AISuggestRequest): Promise<A
 
   return response.json() as Promise<AISuggestResponse>
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Code preview for side-by-side pane
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)
+  ?? 'http://localhost:8000'
+
+export type CodePreviewResult = {
+  arduino: string
+  python: string
+}
+
+export async function fetchCodePreview(
+  arm: Record<string, unknown>,
+  task: Record<string, unknown>,
+): Promise<CodePreviewResult> {
+  const res = await fetch(API_BASE_URL + '/export/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ arm, task }),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Code preview failed ${res.status}: ${text}`)
+  }
+
+  return res.json() as Promise<CodePreviewResult>
+}
+
+
+
+
+
+
