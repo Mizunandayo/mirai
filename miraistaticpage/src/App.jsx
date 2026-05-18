@@ -20,13 +20,13 @@ export default function App() {
       <Hero />
       <Problem />
       <Workflow />
-      <WhyMirai />
       <Gemini />
       <Architecture />
       <Features />
       <TechStack />
       <Market />
       <Revenue />
+      <WhyMirai />
       <Roadmap />
       <Demo />
       <CTA />

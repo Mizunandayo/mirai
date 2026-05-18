@@ -3,13 +3,13 @@ import { useState, useEffect } from 'react'
 const LINKS = [
   { href:'#problem',         label:'Problem' },
   { href:'#solution',        label:'Workflow' },
-  { href:'#differentiation', label:'Why Mirai' },
   { href:'#gemini',          label:'Gemini' },
   { href:'#architecture',    label:'Architecture' },
   { href:'#features',        label:'Features' },
   { href:'#techstack',       label:'Stack' },
   { href:'#market',          label:'Market' },
   { href:'#revenue',         label:'Revenue' },
+  { href:'#differentiation', label:'Why Mirai' },
   { href:'#roadmap',         label:'Roadmap' },   
   { href:'#demo',            label:'Demo' },
 ]
