@@ -100,7 +100,18 @@ export default function Workflow() {
 
         {/* Workflow screenshot */}
         <Reveal delay={5}>
-          <ImagePlaceholder label="Mirai — full workflow: Design panel + AI generation + Simulation viewport" aspect="21/9" />
+          <img
+            src="/screenshots/workflow.png"
+            alt="Mirai — full workflow: Design panel + AI generation + Simulation viewport"
+            style={{
+              maxWidth: '100%',
+              height: 'auto',
+              display: 'block',
+              margin: '0 auto',
+              borderRadius: '0.75rem',
+              border: '1px solid rgba(163,163,163,0.15)'
+            }}
+          />
         </Reveal>
 
       </div>

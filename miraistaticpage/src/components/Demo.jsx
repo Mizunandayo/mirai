@@ -42,26 +42,6 @@ export default function Demo() {
           </div>
         </Reveal>
 
-        {/* 6 step cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {STEPS.map((s, i) => (
-            <Reveal key={s.n} delay={(i % 3) + 1}>
-              <div className="glass-panel rounded-2xl p-5 group hover:border-zinc-300/45 transition-all duration-300 h-full flex flex-col">
-                <div className="w-7 h-7 rounded-full bg-zinc-400/25 border border-zinc-300/45 flex items-center justify-center text-[0.84rem] font-bold text-zinc-100/90 mb-3 flex-shrink-0">
-                  {s.n}
-                </div>
-                <div className="text-[0.98rem] font-bold text-zinc-50 mb-2">{s.title}</div>
-                <div className="flex mb-3">
-                  <span className="text-[0.8rem] font-semibold text-zinc-100/88 border border-zinc-400/45 rounded-lg px-2.5 py-1"
-                        style={{ background:'rgba(63,63,70,0.45)' }}>{s.chip}</span>
-                </div>
-                <div className="flex-1">
-                  <ImagePlaceholder label={s.img} aspect="16/9" />
-                </div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
 
       </div>
     </section>

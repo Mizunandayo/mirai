@@ -39,7 +39,18 @@ export default function Features() {
                 &nbsp;<span className="code-tx">{'{ type: '}</span><span className="code-st">"move"</span><span className="code-tx">{', target: '}</span><span className="code-st">"zone-shelf"</span><span className="code-tx"> {'}'}</span><br/>
                 <span className="code-tx">]</span>
               </div>
-              <ImagePlaceholder label="AI Results — Confidence %, ReAct trace, Physics tab" aspect="16/7" />
+              <img
+                src="/screenshots/voiceai.png"
+                alt="Voice + AI — Confidence %, ReAct trace, Physics tab"
+                style={{
+                  maxWidth: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  margin: '0 auto',
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgba(163,163,163,0.15)'
+                }}
+              />
             </div>
           </Reveal>
 
@@ -56,7 +67,18 @@ export default function Features() {
               <div className="small-copy text-zinc-100/85 mb-5">Two engines, one execution plan.</div>
               <div className="font-black tracking-[-0.07em] leading-none text-white mb-1" style={{ fontSize:'4rem' }}>94%</div>
               <div className="text-[0.84rem] font-medium text-zinc-200/80 mb-5">typical MuJoCo accuracy score</div>
-              <ImagePlaceholder label="Simulation viewport — 60fps playback + path trail" aspect="4/3" />
+              <img
+                src="/screenshots/mujocoscore.png"
+                alt="Simulation viewport — 60fps playback + path trail"
+                style={{
+                  maxWidth: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  margin: '0 auto',
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgba(163,163,163,0.15)'
+                }}
+              />
             </div>
           </Reveal>
         </div>
@@ -84,15 +106,26 @@ export default function Features() {
         {/* Row 3: Community + Presets */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[
-            { tag:'Library', title:'12 ready-to-import tasks', sub:'Boston Dynamics · Tesla Optimus · Toyota Research preloads. One click loads into your arm.', img:'Community Library — task card grid with filter tabs' },
-            { tag:'Presets', title:'Real robot specs in one click', sub:'UR5 (850mm) · KUKA KR6 (706mm) · ABB IRB 1200 (700mm). All community tasks adapt automatically.', img:'Robot Presets — UR5, KUKA, ABB selector' },
+            { tag:'Library', title:'12 ready-to-import tasks', sub:'Boston Dynamics · Tesla Optimus · Toyota Research preloads. One click loads into your arm.', src:'/screenshots/readylibrary.png' },
+            { tag:'Presets', title:'Real robot specs in one click', sub:'UR5 (850mm) · KUKA KR6 (706mm) · ABB IRB 1200 (700mm). All community tasks adapt automatically.', src:'/screenshots/robotspecs.png' },
           ].map((c, i) => (
             <Reveal key={c.tag} delay={i + 1}>
               <div className="glass-panel rounded-2xl p-7 group hover:border-zinc-300/45 transition-all duration-300 h-full">
                 <span className="text-[0.82rem] font-bold tracking-[0.10em] uppercase text-zinc-300/85 mb-2 block">{c.tag}</span>
                 <div className="text-[0.96rem] font-bold text-white mb-2">{c.title}</div>
                 <div className="small-copy text-zinc-100/85 mb-5">{c.sub}</div>
-                <ImagePlaceholder label={c.img} aspect="16/9" />
+                <img
+                  src={c.src}
+                  alt={c.title}
+                  style={{
+                    maxWidth: '100%',
+                    height: 'auto',
+                    display: 'block',
+                    margin: '0 auto',
+                    borderRadius: '0.75rem',
+                    border: '1px solid rgba(163,163,163,0.15)'
+                  }}
+                />
               </div>
             </Reveal>
           ))}

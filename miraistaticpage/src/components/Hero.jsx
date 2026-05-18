@@ -118,7 +118,7 @@ export default function Hero() {
             flexShrink:0,
             animation:'pulseDot 2.2s ease-in-out infinite',
           }} />
-          Transforming Enterprise Through AI &nbsp;·&nbsp; lablab.ai &nbsp;·&nbsp; May 11–19, 2026
+          Transforming Enterprise Through AI &nbsp;·&nbsp;&nbsp; May 11–19, 2026
         </div>
 
         {/* Hero wordmark */}
@@ -296,7 +296,7 @@ export default function Hero() {
           {[
             { label:'Developer', value:'Francis Daniel — Mizu' },
             { label:'Track',     value:'Track 3 · Robotics & Simulation' },
-            { label:'Timeline',  value:'Hackathon Event · May 11–19, 2026' },
+      
           ].map(m => (
             <div key={m.label} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
               <span style={{ fontSize:'0.76rem', fontWeight:700, letterSpacing:'0.10em', textTransform:'uppercase', color:'rgba(212,212,216,0.62)' }}>{m.label}</span>
@@ -314,6 +314,43 @@ export default function Hero() {
         margin:'0 auto',
         padding:'0 32px 80px',
       }}>
+        {/* Floating chips - positioned outside image container */}
+        <div className="chip-f1" style={{
+          position:'absolute', top:32, right:16, zIndex:10,
+          display:'flex', alignItems:'center', gap:6,
+          border:'1px solid rgba(163,163,163,0.24)', borderRadius:12,
+          padding:'8px 14px', fontSize:'0.82rem', fontWeight:700,
+          color:'rgba(244,244,245,0.95)',
+          background:'rgba(39,39,42,0.72)', backdropFilter:'blur(12px)',
+        }}>
+          <span style={{ width:6, height:6, borderRadius:'50%', background:'#22c55e' }} />
+          Rapier 60fps
+        </div>
+        <div className="chip-f2" style={{
+          position:'absolute', top:100, left:0, zIndex:10,
+          display:'flex', alignItems:'center', gap:6,
+          border:'1px solid rgba(163,163,163,0.24)', borderRadius:12,
+          padding:'8px 14px', fontSize:'0.82rem', fontWeight:700,
+          color:'rgba(244,244,245,0.95)',
+          background:'rgba(39,39,42,0.72)', backdropFilter:'blur(12px)',
+        }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="#4285F4">
+            <path d="M12 24C12 18.053 7.947 14 2 14c5.947 0 10-4.053 10-10 0 5.947 4.053 10 10 10-5.947 0-10 4.053-10 10z"/>
+          </svg>
+          Gemini AI
+        </div>
+        <div className="chip-f3" style={{
+          position:'absolute', bottom:120, right:0, zIndex:10,
+          display:'flex', alignItems:'center', gap:6,
+          border:'1px solid rgba(163,163,163,0.24)', borderRadius:12,
+          padding:'8px 14px', fontSize:'0.82rem', fontWeight:700,
+          color:'rgba(244,244,245,0.95)',
+          background:'rgba(39,39,42,0.72)', backdropFilter:'blur(12px)',
+        }}>
+          <span style={{ width:6, height:6, borderRadius:'50%', background:'#60a5fa' }} />
+          MuJoCo 94%
+        </div>
+
         <div style={{
           position:'relative',
           borderRadius:20,
@@ -321,54 +358,18 @@ export default function Hero() {
           border:'1px solid rgba(255,255,255,0.09)',
           boxShadow:'0 0 80px rgba(255,255,255,0.04), 0 40px 100px rgba(0,0,0,0.6)',
         }}>
-          {/* Floating chips */}
-          <div className="chip-f1" style={{
-            position:'absolute', top:-14, right:48, zIndex:10,
-            display:'flex', alignItems:'center', gap:6,
-            border:'1px solid rgba(163,163,163,0.24)', borderRadius:12,
-            padding:'8px 14px', fontSize:'0.82rem', fontWeight:700,
-            color:'rgba(244,244,245,0.95)',
-            background:'rgba(39,39,42,0.72)', backdropFilter:'blur(12px)',
-          }}>
-            <span style={{ width:6, height:6, borderRadius:'50%', background:'#22c55e' }} />
-            Rapier 60fps
-          </div>
-          <div className="chip-f2" style={{
-            position:'absolute', top:36, left:-16, zIndex:10,
-            display:'flex', alignItems:'center', gap:6,
-            border:'1px solid rgba(163,163,163,0.24)', borderRadius:12,
-            padding:'8px 14px', fontSize:'0.82rem', fontWeight:700,
-            color:'rgba(244,244,245,0.95)',
-            background:'rgba(39,39,42,0.72)', backdropFilter:'blur(12px)',
-          }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="#4285F4">
-              <path d="M12 24C12 18.053 7.947 14 2 14c5.947 0 10-4.053 10-10 0 5.947 4.053 10 10 10-5.947 0-10 4.053-10 10z"/>
-            </svg>
-            Gemini AI
-          </div>
-          <div className="chip-f3" style={{
-            position:'absolute', bottom:-14, right:80, zIndex:10,
-            display:'flex', alignItems:'center', gap:6,
-            border:'1px solid rgba(163,163,163,0.24)', borderRadius:12,
-            padding:'8px 14px', fontSize:'0.82rem', fontWeight:700,
-            color:'rgba(244,244,245,0.95)',
-            background:'rgba(39,39,42,0.72)', backdropFilter:'blur(12px)',
-          }}>
-            <span style={{ width:6, height:6, borderRadius:'50%', background:'#60a5fa' }} />
-            MuJoCo 94%
-          </div>
-<img
-  src="/screenshots/heroimage.png"
-  alt="Mirai App — Arm Designer + AI Results + Simulation viewport"
-  style={{
-    maxWidth: '100%',
-    height: 'auto',
-    display: 'block',
-    margin: '0 auto',
-    border: 0,
-    borderRadius: 0
-  }}
-/>
+          <img
+            src="/screenshots/heroimage.png"
+            alt="Mirai App — Arm Designer + AI Results + Simulation viewport"
+            style={{
+              maxWidth: '100%',
+              height: 'auto',
+              display: 'block',
+              margin: '0 auto',
+              border: 0,
+              borderRadius: 0
+            }}
+          />
         </div>
       </div>
 

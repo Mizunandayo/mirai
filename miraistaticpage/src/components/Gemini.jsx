@@ -132,9 +132,18 @@ export default function Gemini() {
 
         {/* AI Results screenshot */}
         <Reveal delay={3}>
-          <div className="border border-zinc-400/35 rounded-xl bg-zinc-900/60 flex items-center justify-center text-zinc-400 text-sm h-48">
-            Mirai — AI Results panel: Gemini ReAct trace, Confidence %, Physics tab, Gate Debug
-          </div>
+          <img
+            src="/screenshots/airesults.png"
+            alt="Mirai — AI Results panel: Gemini ReAct trace, Confidence %, Physics tab, Gate Debug"
+            style={{
+              maxWidth: '100%',
+              height: 'auto',
+              display: 'block',
+              margin: '0 auto',
+              borderRadius: '0.75rem',
+              border: '1px solid rgba(163,163,163,0.15)'
+            }}
+          />
         </Reveal>
 
       </div>
