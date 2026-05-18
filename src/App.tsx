@@ -307,15 +307,7 @@ function handleNavClick(nav: NavItem) {
               ? `Step ${STEP_MAP[activeNav]} of 4`
               : 'Library'}
           </span>
-          <button
-            className={`hdr-mode${isAdvanced ? ' hdr-mode--detailed' : ''}`}
-            onClick={() => setIsAdvanced(!isAdvanced)}
-            title={isAdvanced ? 'Switch to Basic' : 'Switch to Detailed'}
-            aria-pressed={isAdvanced}
-          >
-            <span className="hdr-mode-opt">Basic</span>
-            <span className="hdr-mode-opt">Detailed</span>
-          </button>
+
         </div>
       </header>
 

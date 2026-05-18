@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import ImagePlaceholder from './shared/ImagePlaceholder'
 
+
 /* ── Star-field canvas — identical to WeavePay aesthetic ── */
 function StarField() {
   const ref = useRef(null)
@@ -356,11 +357,18 @@ export default function Hero() {
             <span style={{ width:6, height:6, borderRadius:'50%', background:'#60a5fa' }} />
             MuJoCo 94%
           </div>
-          <ImagePlaceholder
-            label="Mirai App — Arm Designer + AI Results + Simulation viewport"
-            aspect="21/9"
-            className="border-0 rounded-none"
-          />
+<img
+  src="/screenshots/heroimage.png"
+  alt="Mirai App — Arm Designer + AI Results + Simulation viewport"
+  style={{
+    maxWidth: '100%',
+    height: 'auto',
+    display: 'block',
+    margin: '0 auto',
+    border: 0,
+    borderRadius: 0
+  }}
+/>
         </div>
       </div>
 
