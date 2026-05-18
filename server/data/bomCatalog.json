@@ -1,0 +1,101 @@
+{
+  "note": "Prices are estimates (AliExpress/Amazon, May 2026). Print cost ~= $0.08/g PLA.",
+  "components": {
+    "servo_revolute": {
+      "name": "MG996R Metal Servo",
+      "unit": 8.5,
+      "source": "aliexpress"
+    },
+    "pca9685": {
+      "name": "PCA9685 16-ch PWM Board",
+      "unit": 6.8,
+      "source": "aliexpress"
+    },
+    "arduino_nano": {
+      "name": "Arduino Nano (ATmega328P)",
+      "unit": 4.5,
+      "source": "aliexpress"
+    },
+    "power_5v": {
+      "name": "5V 5A DC Power Supply",
+      "unit": 9,
+      "source": "amazon"
+    },
+    "bearings": {
+      "name": "F608ZZ Flange Bearing (x10)",
+      "unit": 6,
+      "source": "aliexpress"
+    },
+    "screws": {
+      "name": "M3 Hex Screw Set (200 pcs)",
+      "unit": 4.5,
+      "source": "aliexpress"
+    },
+    "jumper_wires": {
+      "name": "Jumper Wire Set (120 pcs)",
+      "unit": 3,
+      "source": "aliexpress"
+    },
+    "usb_cable": {
+      "name": "USB-A to USB-B Cable",
+      "unit": 2,
+      "source": "amazon"
+    }
+  },
+  "structure": {
+    "fixed_base": {
+      "name": "3D-Print: Base Housing",
+      "unit": 0.6,
+      "source": "printed"
+    },
+    "revolute_link": {
+      "name": "3D-Print: Link Body",
+      "unit": 1,
+      "source": "printed"
+    }
+  },
+  "gripperParts": {
+    "parallel_jaw": [
+      {
+        "name": "3D-Print: Parallel Jaw Body (2x)",
+        "unit": 0.8,
+        "qty": 2,
+        "source": "printed"
+      },
+      {
+        "name": "3D-Print: Jaw Carrier (2x)",
+        "unit": 0.6,
+        "qty": 2,
+        "source": "printed"
+      }
+    ],
+    "suction_cup": [
+      {
+        "name": "Mini Vacuum Pump 5V",
+        "unit": 5.5,
+        "qty": 1,
+        "source": "aliexpress"
+      },
+      {
+        "name": "Silicone Suction Cup 30mm",
+        "unit": 1.2,
+        "qty": 1,
+        "source": "aliexpress"
+      }
+    ],
+    "magnetic": [
+      {
+        "name": "12V Electromagnet 5kg Holding Force",
+        "unit": 6,
+        "qty": 1,
+        "source": "aliexpress"
+      },
+      {
+        "name": "5V Relay Module",
+        "unit": 1.5,
+        "qty": 1,
+        "source": "aliexpress"
+      }
+    ]
+  }
+}

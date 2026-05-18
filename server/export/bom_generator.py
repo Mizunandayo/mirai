@@ -19,7 +19,7 @@ from ..models.export_schemas import ArmConfigExport
 
 
 
-_CATALOG_PATH = Path(__file__).resolve().parents[2] / "src" / "data" / "bomCatalog.json"
+_CATALOG_PATH = Path(__file__).resolve().parents[1] / "data" / "bomCatalog.json"
 with _CATALOG_PATH.open("r", encoding="utf-8") as handle:
     _CATALOG = json.load(handle)
 

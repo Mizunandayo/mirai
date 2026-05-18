@@ -10,7 +10,6 @@ COPY server/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server/ ./server/
-COPY src/data/bomCatalog.json ./src/data/bomCatalog.json
 
 RUN adduser --disabled-password --gecos '' mirai
 USER mirai
