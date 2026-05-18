@@ -53,6 +53,10 @@ select:focus-visible {
 }
 
 /* ── Keyframes ────────────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @keyframes panel-enter {
   from {
     opacity: 0;
@@ -1943,6 +1947,167 @@ body.panel-resizing .designer-panel {
   background: #111827;
   color: #ffffff;
 }
+
+/* ── Gemini key dialog ────────────────────────────────────────── */
+.gkd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.gkd-card {
+  width: min(420px, 100%);
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  padding: 28px 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: Poppins, sans-serif;
+}
+
+.gkd-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  border: 1px solid rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+}
+
+.gkd-title {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #0d0d0d;
+  letter-spacing: -0.01em;
+}
+
+.gkd-desc {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #555555;
+  line-height: 1.55;
+}
+
+.gkd-get-key-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.80rem;
+  font-weight: 600;
+  color: #0d0d0d;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 150ms;
+}
+.gkd-get-key-link:hover { opacity: 0.65; }
+
+.gkd-input-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.gkd-input {
+  flex: 1;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 9px;
+  border: 1px solid #d1d5db;
+  font-family: inherit;
+  font-size: 0.84rem;
+  color: #0d0d0d;
+  background: #f9fafb;
+  outline: none;
+  transition: border-color 150ms;
+  letter-spacing: 0.04em;
+}
+.gkd-input:focus { border-color: #0d0d0d; background: #fff; }
+
+.gkd-toggle-btn {
+  width: 36px;
+  height: 38px;
+  border-radius: 9px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  color: #555555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 150ms;
+}
+.gkd-toggle-btn:hover { background: #e5e7eb; }
+
+.gkd-error {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #dc2626;
+  line-height: 1.45;
+}
+
+.gkd-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.gkd-btn {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 150ms;
+}
+.gkd-btn:disabled { opacity: 0.42; cursor: not-allowed; }
+
+.gkd-btn--cancel {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+.gkd-btn--cancel:hover:not(:disabled) { background: #e5e7eb; }
+
+.gkd-btn--confirm {
+  background: #0d0d0d;
+  color: #ffffff;
+}
+.gkd-btn--confirm:hover:not(:disabled) { opacity: 0.82; }
+
+.gkd-clear-key {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: #9ca3af;
+  cursor: pointer;
+  text-align: center;
+  align-self: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 150ms;
+}
+.gkd-clear-key:hover { color: #555555; }
 
 /* ── Edge delete button ───────────────────────────────────────── */
 

@@ -33,7 +33,7 @@ import {
   taskAIErrorAtom,
 } from '../../store/aiAtoms'
 import { getMotionSuggestions, repairTask, streamTaskPlan } from '../../utils/geminiClient'
-import { streamTaskPlanDirect, isDirectGeminiAvailable } from '../../utils/geminiDirectPlanner'
+import { streamTaskPlanDirect, isDirectGeminiAvailable, getStoredApiKey, setStoredApiKey, clearStoredApiKey } from '../../utils/geminiDirectPlanner'
 import { buildArmContext, buildAllowedVerbs } from '../../utils/armContextBuilder'
 import { buildRichSceneContext, findPickableObject, findDestination, buildFallbackTaskSpec, normalizeTaskCoordinates, analyzeTaskFeasibility } from '../../utils/scenePlanner'
 import { checkArmConditioning, scaleArmForTarget, RETRY_RATIOS, TARGET_CONDITION_RATIO, checkDestinationReachability, extendArmForDestination } from '../../utils/armConfigOptimizer'
@@ -383,6 +383,14 @@ export default function TaskEditorPanel() {
   const [showPhysicsTab, setShowPhysicsTab] = useAtom(showPhysicsTabAtom)
   const [thinkingText, setThinkingText] = useState('Generating plan...')
   const [gateDebug, setGateDebug] = useAtom(aiGateDebugAtom)
+
+  // Gemini API key dialog
+  const [showKeyDialog, setShowKeyDialog] = useState(false)
+  const [keyDialogInput, setKeyDialogInput] = useState('')
+  const [keyDialogShowText, setKeyDialogShowText] = useState(false)
+  const [keyDialogError, setKeyDialogError] = useState('')
+  const [keyDialogTesting, setKeyDialogTesting] = useState(false)
+  const hasStoredKey = !!getStoredApiKey()
   const defaultGateDebug: GateDebugSnapshot = {
     compileOk: false,
     collisionFrames: 0,
@@ -855,8 +863,46 @@ export default function TaskEditorPanel() {
   //
   //  Typical wall-clock: 12-20 s   (was 2-5 min with the old repair-loop approach)
 
+  const handleKeyDialogConfirm = useCallback(() => {
+    const trimmed = keyDialogInput.trim()
+    if (!trimmed) {
+      setKeyDialogError('Please paste your Gemini API key.')
+      return
+    }
+    if (!trimmed.startsWith('AIza')) {
+      setKeyDialogError('Key looks wrong — it should start with "AIza". Copy it exactly from aistudio.google.com.')
+      return
+    }
+    if (trimmed.length < 30) {
+      setKeyDialogError('Key is too short. Make sure you copied the full key.')
+      return
+    }
+    setKeyDialogTesting(true)
+    setKeyDialogError('')
+    setStoredApiKey(trimmed)
+    setShowKeyDialog(false)
+    setKeyDialogInput('')
+    setKeyDialogTesting(false)
+    // Re-invoke generation now that the key is saved
+    setTimeout(() => handleAIGenerate(), 0)
+  }, [keyDialogInput]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleClearKey = useCallback(() => {
+    clearStoredApiKey()
+    setKeyDialogInput('')
+    setKeyDialogError('')
+    setShowKeyDialog(true)
+  }, [])
+
   const handleAIGenerate = async () => {
     if (!aiInput.trim() || isAILoading) return
+
+    // If no API key is available, show the key-entry dialog instead of failing
+    if (!isDirectGeminiAvailable()) {
+      setShowKeyDialog(true)
+      return
+    }
+
     setIsAILoading(true)
     setAIError(null)
     setReactSteps([])
@@ -1308,9 +1354,27 @@ export default function TaskEditorPanel() {
         }
       }
     } catch (err: any) {
-      setThinkingText('Error — try again')
-      syncExecutionGate('blocked', 'Generation failed unexpectedly.')
-      setAIError('AI error: ' + (err?.message || String(err)))
+      const msg: string = err?.message || String(err)
+      const isAuthError  = /api.?key|invalid.?key|api_key_invalid|401|403|unauthorized|permission denied/i.test(msg)
+      const isQuotaError = /429|quota|rate.?limit|resource.?exhausted|too many request/i.test(msg)
+      const isNetworkError = /fetch|network|failed to fetch|load failed/i.test(msg)
+
+      if (isAuthError) {
+        clearStoredApiKey()
+        setKeyDialogError('API key is invalid or expired. Double-check you copied the full key from aistudio.google.com.')
+        setShowKeyDialog(true)
+      } else if (isQuotaError) {
+        clearStoredApiKey()
+        setKeyDialogError('This key has hit its quota or rate limit. Try a different Gemini API key, or wait a minute.')
+        setShowKeyDialog(true)
+      } else if (isNetworkError) {
+        setAIError('Network error — check your connection and try again.')
+        syncExecutionGate('blocked', 'Network error.')
+      } else {
+        setThinkingText('Error — try again')
+        syncExecutionGate('blocked', 'Generation failed unexpectedly.')
+        setAIError('AI error: ' + msg.slice(0, 160))
+      }
     } finally {
       setIsAILoading(false)
       if (lastCommittedPlanRef.current) {
@@ -1854,6 +1918,98 @@ export default function TaskEditorPanel() {
 
 
 
+
+      {/* ── Gemini API key dialog ────────────────────────────────────── */}
+      {showKeyDialog && (
+        <div className="gkd-overlay" onClick={(e) => { if (e.target === e.currentTarget) { setShowKeyDialog(false); setKeyDialogError('') } }}>
+          <div className="gkd-card" role="dialog" aria-modal="true" aria-label="Enter Gemini API key">
+            {/* Icon */}
+            <div className="gkd-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C12 2 8.5 6.5 8.5 12C8.5 17.5 12 22 12 22C12 22 15.5 17.5 15.5 12C15.5 6.5 12 2 12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                <path d="M2 12C2 12 6.5 8.5 12 8.5C17.5 8.5 22 12 22 12C22 12 17.5 15.5 12 15.5C6.5 15.5 2 12 2 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+              </svg>
+            </div>
+
+            <h3 className="gkd-title">Gemini API key required</h3>
+            <p className="gkd-desc">
+              Enter your free Gemini API key to generate motion plans with AI.
+              Your key is saved in your browser only — never sent to any server.
+            </p>
+
+            <a
+              href="https://aistudio.google.com/apikey"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="gkd-get-key-link"
+            >
+              Get a free key at aistudio.google.com
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+                <path d="M3 13L13 3M13 3H7M13 3v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+
+            <div className="gkd-input-row">
+              <input
+                type={keyDialogShowText ? 'text' : 'password'}
+                className="gkd-input"
+                placeholder="AIza..."
+                value={keyDialogInput}
+                onChange={(e) => { setKeyDialogInput(e.target.value); setKeyDialogError('') }}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleKeyDialogConfirm() }}
+                autoFocus
+                spellCheck={false}
+              />
+              <button
+                type="button"
+                className="gkd-toggle-btn"
+                onClick={() => setKeyDialogShowText(v => !v)}
+                title={keyDialogShowText ? 'Hide key' : 'Show key'}
+                aria-label={keyDialogShowText ? 'Hide key' : 'Show key'}
+              >
+                {keyDialogShowText ? (
+                  <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z"/><circle cx="10" cy="10" r="2.5"/><line x1="3" y1="3" x2="17" y2="17"/></svg>
+                ) : (
+                  <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z"/><circle cx="10" cy="10" r="2.5"/></svg>
+                )}
+              </button>
+            </div>
+
+            {keyDialogError && <p className="gkd-error">{keyDialogError}</p>}
+
+            <div className="gkd-actions">
+              <button
+                type="button"
+                className="gkd-btn gkd-btn--cancel"
+                onClick={() => { setShowKeyDialog(false); setKeyDialogInput(''); setKeyDialogError('') }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="gkd-btn gkd-btn--confirm"
+                onClick={handleKeyDialogConfirm}
+                disabled={!keyDialogInput.trim() || keyDialogTesting}
+              >
+                {keyDialogTesting ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 0.9s linear infinite' }}>
+                      <path d="M14 8a6 6 0 1 1-2.1-4.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                    </svg>
+                    Saving...
+                  </span>
+                ) : 'Save & Generate'}
+              </button>
+            </div>
+
+            {hasStoredKey && (
+              <button type="button" className="gkd-clear-key" onClick={handleClearKey}>
+                Change saved key
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Validation footer */}
       <div className="panel-footer task-validation-footer">

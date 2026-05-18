@@ -19,7 +19,21 @@ import { buildRichSceneContext, computeTransitHeight } from './scenePlanner'
 
 // ── SDK initialisation ────────────────────────────────────────────────────────
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined
+const LS_KEY = 'mirai_gemini_api_key'
+
+export function getStoredApiKey(): string | null {
+  try { return localStorage.getItem(LS_KEY) || null } catch { return null }
+}
+export function setStoredApiKey(key: string): void {
+  try { localStorage.setItem(LS_KEY, key.trim()) } catch {}
+}
+export function clearStoredApiKey(): void {
+  try { localStorage.removeItem(LS_KEY) } catch {}
+}
+
+function resolveApiKey(): string | null {
+  return getStoredApiKey() || (import.meta.env.VITE_GEMINI_API_KEY as string | undefined) || null
+}
 
 // Model priority list — newest first. Falls through automatically on 404/deprecated.
 const CANDIDATE_MODELS = [
@@ -32,13 +46,9 @@ const CANDIDATE_MODELS = [
 ]
 
 function getGenAI(): GoogleGenerativeAI {
-  if (!API_KEY) {
-    throw new Error(
-      'VITE_GEMINI_API_KEY is not set. ' +
-      'Add it to your .env file: VITE_GEMINI_API_KEY=your-api-key-here',
-    )
-  }
-  return new GoogleGenerativeAI(API_KEY)
+  const key = resolveApiKey()
+  if (!key) throw new Error('No Gemini API key. Enter your key to use AI generation.')
+  return new GoogleGenerativeAI(key)
 }
 
 // ── Prompt builder (mirrors Python GeminiPromptAssembler) ────────────────────
@@ -245,7 +255,7 @@ export async function* streamTaskPlanDirect(
   yield { type: 'error', error: 'All Gemini models unavailable. Last error: ' + lastError }
 }
 
-/** True if the direct Gemini API key is configured. */
+/** True if a Gemini API key is available (env or localStorage). */
 export function isDirectGeminiAvailable(): boolean {
-  return Boolean(API_KEY)
+  return !!resolveApiKey()
 }

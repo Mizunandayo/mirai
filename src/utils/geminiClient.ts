@@ -1,6 +1,13 @@
 import type { AIPlanRequest, AISuggestRequest, AISuggestResponse, StreamChunk } from '../types/ai'
 
-const AI_BASE_URL = 'http://localhost:8000'
+const AI_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000'
+const MIRAI_TOKEN = (import.meta.env.VITE_MIRAI_API_TOKEN as string | undefined) ?? ''
+
+function aiHeaders(): Record<string, string> {
+  const h: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (MIRAI_TOKEN) h['x-mirai-token'] = MIRAI_TOKEN
+  return h
+}
 
 
 
@@ -15,7 +22,7 @@ export async function* streamTaskPlan(request: AIPlanRequest): AsyncGenerator<St
 
   const response = await fetch(AI_BASE_URL + '/ai/plan', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: aiHeaders(),
     body: JSON.stringify(payload),
   })
 
@@ -87,7 +94,7 @@ export async function* streamTaskPlan(request: AIPlanRequest): AsyncGenerator<St
 export async function repairTask(taskSpec: any, failures: any[], armContext: any) {
   const response = await fetch(AI_BASE_URL + '/ai/repair', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: aiHeaders(),
     body: JSON.stringify({
       task_spec: taskSpec,
       failures,
@@ -114,7 +121,7 @@ export async function getMotionSuggestions(request: AISuggestRequest): Promise<A
 
   const response = await fetch(AI_BASE_URL + '/ai/suggest', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: aiHeaders(),
     body: JSON.stringify(payload),
   })
 

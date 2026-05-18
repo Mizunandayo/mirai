@@ -75,6 +75,27 @@ elif SERVER_ENV_PATH.exists():
 
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+
+# ── Security: rate limiting + secret token ────────────────────────────────────
+
+# Token that the Vercel frontend must send as X-Mirai-Token.
+# Set MIRAI_API_TOKEN on Railway. Set VITE_MIRAI_API_TOKEN on Vercel.
+# If the env var is not set (local dev), the check is skipped.
+MIRAI_API_TOKEN: str = os.getenv('MIRAI_API_TOKEN', '')
+
+def _get_client_ip(request: Request) -> str:
+    """Return real client IP, respecting X-Forwarded-For from Railway's proxy."""
+    forwarded = request.headers.get('x-forwarded-for')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return request.client.host if request.client else '0.0.0.0'
+
+def _check_token(request: Request) -> None:
+    """Reject requests missing the shared secret header (when token is configured)."""
+    if not MIRAI_API_TOKEN:
+        return   # not configured → local dev, skip
+    if request.headers.get('x-mirai-token', '') != MIRAI_API_TOKEN:
+        raise HTTPException(status_code=401, detail='Unauthorized.')
 GEMINI_FALLBACK_MODELS = [
     'gemini-2.5-flash',
     'gemini-2.0-flash-001',
@@ -708,9 +729,9 @@ async def startup_self_test() -> None:
 
 @app.post('/ai/plan', response_class=StreamingResponse)
 async def stream_task_plan(request: Request, payload: TaskSpecRequest):
-    ip = request.client.host if request.client else 'unknown'
-    if not allow_request(ip):
-        raise HTTPException(status_code=429, detail='Rate limit exceeded')
+    _check_token(request)
+    if not allow_request(_get_client_ip(request)):
+        raise HTTPException(status_code=429, detail='Rate limit exceeded — try again in a minute.')
 
     if len(payload.user_input) > 500:
         raise HTTPException(status_code=400, detail='Input too long')
@@ -798,9 +819,9 @@ async def stream_task_plan(request: Request, payload: TaskSpecRequest):
 
 @app.post('/ai/repair')
 async def repair_failing_task(request: Request, payload: RepairRequest):
-    ip = request.client.host if request.client else 'unknown'
-    if not allow_request(ip):
-        raise HTTPException(status_code=429, detail='Rate limit exceeded')
+    _check_token(request)
+    if not allow_request(_get_client_ip(request)):
+        raise HTTPException(status_code=429, detail='Rate limit exceeded — try again in a minute.')
 
     if not payload.failures:
         repaired_payload = payload.task_spec.model_dump(by_alias=True)
@@ -884,9 +905,9 @@ async def repair_failing_task(request: Request, payload: RepairRequest):
 
 @app.post('/ai/suggest', response_model=SuggestResponse)
 async def suggest_motion_improvements(request: Request, payload: SuggestRequest):
-    ip = request.client.host if request.client else 'unknown'
-    if not allow_request(ip):
-        raise HTTPException(status_code=429, detail='Rate limit exceeded')
+    _check_token(request)
+    if not allow_request(_get_client_ip(request)):
+        raise HTTPException(status_code=429, detail='Rate limit exceeded — try again in a minute.')
 
     deterministic = deterministic_suggestions_from_preflight(
         payload.preflight.model_dump() if payload.preflight else None
