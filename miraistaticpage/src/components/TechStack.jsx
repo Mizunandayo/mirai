@@ -46,8 +46,8 @@ const LAYERS = [
   {
     cat: 'Inference',
     items: [
-{ role: 'Planning',  name: 'Gemini 2.5 Flash', icon: <Icon svg={GEMINI_SVG} alt="Gemini" /> },
-{ role: 'Reasoning', name: 'Gemini 2.0 Pro',   icon: <Icon svg={GEMINI_SVG} alt="Gemini Pro" /> },
+{ role: 'Planning · ReAct', name: 'Gemini 2.5 Flash', icon: <Icon svg={GEMINI_SVG} alt="Gemini" /> },
+{ role: 'Fallback chain',  name: 'Gemini 2.0 Flash', icon: <Icon svg={GEMINI_SVG} alt="Gemini Flash" /> },
       { role: 'Validation', name: 'MuJoCo 3.x',       icon: <Icon svg={MUJOCO_SVG} alt="MuJoCo" /> },
     ],
   },

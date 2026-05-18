@@ -105,7 +105,7 @@ export default function Features() {
         {/* Row 3: Community + Presets */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[
-            { tag:'Library', title:'12 ready-to-import tasks', sub:'Boston Dynamics · Tesla Optimus · Toyota Research preloads. One click loads into your arm.', src:'/screenshots/readylibrary.png' },
+            { tag:'Library', title:'11 ready-to-import tasks', sub:'Boston Dynamics · Tesla Optimus · Toyota Research preloads. One click loads into your arm.', src:'/screenshots/readylibrary.png' },
             { tag:'Presets', title:'Real robot specs in one click', sub:'UR5 (850mm) · KUKA KR6 (706mm) · ABB IRB 1200 (700mm). All community tasks adapt automatically.', src:'/screenshots/robotspecs.png' },
           ].map((c, i) => (
             <Reveal key={c.tag} delay={i + 1}>

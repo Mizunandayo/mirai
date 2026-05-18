@@ -3,18 +3,18 @@ import { Reveal } from '../hooks/useScrollReveal.jsx'
 const MODELS = [
   {
     badge:'Primary',  name:'gemini-2.5-flash', color:'#4285F4', tone:'from-cyan-500/20 via-blue-500/10 to-transparent',
-    use:'Real-time planning · Voice · 5–15s',
-    points:['25× faster than Vertex AI proxy', 'Native multimodal voice input', 'Free tier — no cloud credits needed'],
+    use:'Planning · ReAct loop · Voice · 5–15s',
+    points:['Direct browser SDK — no backend round-trip', 'Native multimodal voice input', 'Free tier — no cloud credits needed'],
   },
   {
-    badge:'Reasoning', name:'gemini-2.0-pro',   color:'#8E75B2', tone:'from-violet-500/20 via-indigo-500/10 to-transparent',
-    use:'ReAct loop · Complex planning · NL arm',
-    points:['Deep spatial constraint analysis', 'Think → Act → Observe streams live', '"1.2m reach, 500g" → full arm config'],
+    badge:'ReAct',    name:'gemini-2.5-flash', color:'#8E75B2', tone:'from-violet-500/20 via-indigo-500/10 to-transparent',
+    use:'Think → Act → Observe · NL arm designer',
+    points:['Deep spatial constraint analysis', 'Think → Act → Observe streams live in panel', '"1.2m reach, 500g" → full arm config'],
   },
   {
     badge:'Fallback',  name:'Auto chain',        color:'rgba(255,255,255,0.35)', tone:'from-amber-500/15 via-zinc-400/10 to-transparent',
     use:'Zero downtime during deprecations',
-    chain:['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'],
+    chain:['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'],
   },
 ]
 
