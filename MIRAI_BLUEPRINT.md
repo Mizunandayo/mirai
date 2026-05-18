@@ -3,13 +3,13 @@
 ### Accessible AI-Powered Robot Arm Simulator + Community Task Marketplace
 
 > **Project Name:** Mirai (未来 — "Future")
-> **Track:** Track 3 — Robotics & Simulation (primary, prize-eligible) + Gemini Award (partner award, separate)
+> **Track:** Track 3 — Robotics & Simulation
 > **AI Engine:** Gemini 2.0 Flash + Gemini 2.0 Pro via Google AI Studio (multimodal: text + voice + image)
 > **Physics Engine:** Rapier.js (WASM, client 60fps) + MuJoCo (server-side validation, Google/DeepMind standard)
 > **Deadline:** May 19, 2026 — Live Demo at AI & Big Data Expo North America
 > **Venue:** San Jose McEnery Convention Center, CA, USA
 > **Team:** Solo
-> **Prize Target:** Track 3 Winner ($2,000–$5,000) + Gemini Award (best Gemini use)
+> **Prize Target:** Track 3 Winner ($2,000–$5,000)
 > **Blueprint Version:** v2.0 — updated May 12, 2026 (scope tightened, MuJoCo upgrade, multimodal AI added)
 
 ---

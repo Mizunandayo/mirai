@@ -10,8 +10,7 @@
 - **Project:** Mirai (未来 — "Future")
 - **Developer:** Francis Daniel (GitHub: Mizunandayo, handle: Mizu)
 - **Hackathon:** Transforming Enterprise Through AI by lablab.ai
-- **Tracks:** Track 3 — Robotics & Simulation (prize-eligible) + Gemini Award (partner award — can win both)
-- **Prize Target:** $2,000–$5,000 (Track 3) + Gemini Award (Best Gemini Integration)
+- **Track:** Track 3 — Robotics & Simulation
 - **Hard Deadline:** May 19, 2026 — 8:00 AM PST (Philippine Standard Time)
 - **Venue:** San Jose McEnery Convention Center, CA, USA (live demo)
 - **Repo:** https://github.com/Mizunandayo/mirai
@@ -531,7 +530,7 @@ Frontend:
 - ❌ Loading states + streaming indicator + error handling
 - ❌ Supported-language scope v1 — `pick`, `place`, `stack`, `sort`, `move`; cloth folding ships only as curated scenario
 
-**Gemini Award Critical Features:**
+**Critical AI Features:**
 - ❌ **Voice input** — record audio → Gemini multimodal → task program (demo wow moment)
 - ❌ **AI confidence score badge** — "87% confident — J3 near limit at step 4"
 - ❌ **Side-by-side mode** — simulation left, live generated code right, synced
@@ -909,11 +908,10 @@ These rules apply to every component, every panel, every piece of UI in Mirai. T
 
 ---
 
-## PRIZE STRATEGY
+## DEMO STRATEGY
 
 1. **Track 3 — Robotics & Simulation:** Dual physics (Rapier + MuJoCo), 60fps, BOM-to-reality bridge
-2. **Gemini Award:** Voice input + ReAct agent with visible Think/Act/Observe UI panel + multimodal image input
-3. **Demo wow moments for judges:**
+2. **Demo wow moments for judges:**
    - Speak a task aloud → arm moves in 3 seconds
    - Visible agent thinking sidebar (ReAct loop streaming live)
    - Download code + BOM → immediately buildable for under $300

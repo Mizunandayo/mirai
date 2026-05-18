@@ -642,7 +642,7 @@ Backend `max_repair_iterations` reduced 4→1. Frontend `MAX_COLLISION_REPAIR_LO
 Status banner → 3 metric chips (Confidence %, Collision, Reach) → Target row → Issues list → AI Fix button → Tab bar (Think/Suggest/Debug) → Disclosure panels. Progressive disclosure architecture.
 
 #### Gemini integration strategy (confirmed correct)
-Gemini always runs (required for Gemini Award). Scene planner post-processes Gemini's coordinates via `normalizeTaskCoordinates()`. Architecture: Gemini handles intent + ReAct + confidence; scene planner handles safety.
+Gemini always runs. Scene planner post-processes Gemini's coordinates via `normalizeTaskCoordinates()`. Architecture: Gemini handles intent + ReAct + confidence; scene planner handles safety.
 
 #### Key files changed in this session block
 - `src/utils/motionCompiler.ts` — skip low-level surfaces in arm-link collision checks; via-point enforcer added
@@ -733,14 +733,11 @@ Gemini always runs (required for Gemini Award). Scene planner post-processes Gem
 - **Dates:** May 11–19, 2026
 - **Solo builder:** Francis Daniel (Mizunandayo / Mizu)
 - **Primary Track:** Track 3 — Robotics & Simulation
-- **Partner Award target:** Gemini Award (Best use of Gemini) — separate from track, can win both
 
 ---
 
 ## Track Strategy
-- Competing in **Track 3 only** (eligible for 1 track prize)
-- Also targeting the **Gemini Award** — partner award, no track restriction
-- Gemini is deeply integrated → qualifies naturally for Gemini Award
+- Competing in **Track 3 — Robotics & Simulation**
 
 ---
 

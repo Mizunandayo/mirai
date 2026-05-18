@@ -44,8 +44,7 @@ cd server && python -m uvicorn main:app --reload
 ## Hackathon Info
 
 - **Event:** Transforming Enterprise Through AI (lablab.ai)
-- **Tracks:** Track 3 (Robotics) + Track 2 (Gemini AI Agents)
-- **Prize Target:** Gemini Award
+- **Track:** Track 3 — Robotics & Simulation
 - **Deadline:** May 19, 2026
 
 ## Project Structure

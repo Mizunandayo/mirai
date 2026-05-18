@@ -8,6 +8,8 @@ import Architecture from './components/Architecture'
 import Features     from './components/Features'
 import TechStack    from './components/TechStack'
 import Market       from './components/Market'
+import Revenue      from './components/Revenue'
+import Roadmap      from './components/Roadmap'
 import Demo         from './components/Demo'
 import CTA          from './components/CTA'
 
@@ -24,6 +26,8 @@ export default function App() {
       <Features />
       <TechStack />
       <Market />
+      <Revenue />
+      <Roadmap />
       <Demo />
       <CTA />
     </>

@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width"/>
+<title>Mirai — Slide Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #060606;
+    --surface:  #111111;
+    --border:   rgba(255,255,255,0.09);
+    --white:    #ffffff;
+    --muted:    #a1a1aa;
+    --dim:      rgba(255,255,255,0.38);
+    --green:    #4ade80;
+    --blue:     #60a5fa;
+    --violet:   #c084fc;
+    --amber:    #fbbf24;
+    --cyan:     #22d3ee;
+  }
+
+  @page { size: 1280px 720px; margin: 0; }
+
+  body {
+    font-family: 'Poppins', system-ui, sans-serif;
+    background: #1a1a1a;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ── Slide container ───────────────────────────────────── */
+  .slide {
+    width: 1280px;
+    height: 720px;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg);
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Screen preview spacing ────────────────────────────── */
+  @media screen {
+    body { padding: 40px; display: flex; flex-direction: column; gap: 40px; align-items: center; }
+    .slide { border-radius: 16px; box-shadow: 0 32px 80px rgba(0,0,0,0.7); }
+  }
+
+  /* ── Shared layout helpers ─────────────────────────────── */
+  .slide-inner { flex: 1; display: flex; flex-direction: column; padding: 60px 72px; position: relative; z-index: 2; }
+  .row { display: flex; align-items: stretch; gap: 32px; flex: 1; }
+  .col { display: flex; flex-direction: column; }
+  .col-6 { flex: 0 0 50%; }
+  .col-5 { flex: 0 0 42%; }
+  .col-7 { flex: 1; }
+
+  /* ── Typography ────────────────────────────────────────── */
+  .eyebrow {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
+  }
+  .h1 {
+    font-size: 3.4rem; font-weight: 900; letter-spacing: -0.04em;
+    line-height: 0.95; color: var(--white);
+  }
+  .h2 {
+    font-size: 2.5rem; font-weight: 800; letter-spacing: -0.035em;
+    line-height: 1.05; color: var(--white);
+  }
+  .h3 {
+    font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em;
+    color: var(--white);
+  }
+  .lead { font-size: 1rem; font-weight: 400; color: var(--muted); line-height: 1.65; }
+  .dim  { color: var(--dim); }
+
+  /* ── Accent glow orbs ──────────────────────────────────── */
+  .orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(90px); pointer-events: none; z-index: 0;
+  }
+
+  /* ── Pill / badge ──────────────────────────────────────── */
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 7px 16px; font-size: 0.76rem; font-weight: 600;
+    color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(8px);
+  }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+
+  /* ── Stat bar ──────────────────────────────────────────── */
+  .stat-bar { display: grid; grid-template-columns: repeat(4,1fr); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.03); margin-top: 32px; }
+  .stat-cell { padding: 18px 20px; border-right: 1px solid var(--border); }
+  .stat-cell:last-child { border-right: none; }
+  .stat-num { font-size: 1.6rem; font-weight: 900; letter-spacing: -0.05em; color: var(--white); line-height: 1; }
+  .stat-lbl { font-size: 0.7rem; font-weight: 500; color: var(--muted); margin-top: 4px; }
+
+  /* ── KPI card ──────────────────────────────────────────── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 28px; }
+  .kpi-card {
+    padding: 22px 20px; border-radius: 12px;
+    border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .kpi-n { font-size: 2rem; font-weight: 900; letter-spacing: -0.06em; line-height: 1; }
+  .kpi-u { font-size: 0.9rem; font-weight: 700; color: var(--muted); }
+  .kpi-t { font-size: 0.8rem; font-weight: 600; color: var(--white); margin-top: 2px; }
+  .kpi-d { font-size: 0.72rem; font-weight: 400; color: var(--muted); line-height: 1.45; }
+
+  /* ── Pipeline ──────────────────────────────────────────── */
+  .pipe { display: flex; align-items: center; gap: 0; margin-top: 32px; }
+  .pipe-step {
+    flex: 1; text-align: center; padding: 14px 8px;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+  }
+  .pipe-n { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .pipe-name { font-size: 0.84rem; font-weight: 700; color: var(--white); margin-top: 3px; }
+  .pipe-tech { font-size: 0.64rem; font-weight: 500; color: var(--muted); margin-top: 3px; }
+  .pipe-arr { color: var(--muted); padding: 0 4px; font-size: 1.1rem; flex-shrink: 0; }
+
+  /* ── Feature grid ──────────────────────────────────────── */
+  .feat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .feat-card {
+    padding: 16px 18px; border-radius: 10px;
+    border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+  }
+  .feat-tag { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+  .feat-title { font-size: 0.88rem; font-weight: 700; color: var(--white); }
+  .feat-sub { font-size: 0.72rem; font-weight: 400; color: var(--muted); line-height: 1.45; margin-top: 3px; }
+
+  /* ── Comparison table ──────────────────────────────────── */
+  .cmp-table { width: 100%; border-collapse: collapse; font-size: 0.76rem; margin-top: 20px; }
+  .cmp-table th { padding: 8px 12px; text-align: left; font-weight: 700; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .cmp-table th.hl { color: var(--white); background: rgba(255,255,255,0.07); }
+  .cmp-table td { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--muted); vertical-align: middle; }
+  .cmp-table td.hl { background: rgba(255,255,255,0.04); }
+  .cmp-table td.feat { color: rgba(255,255,255,0.88); font-weight: 500; }
+  .chk { color: var(--green); font-weight: 700; }
+  .crs { color: #f87171; }
+  .prt { color: var(--amber); }
+
+  /* ── Market funnel ─────────────────────────────────────── */
+  .mkt-list { display: flex; flex-direction: column; gap: 18px; margin-top: 24px; }
+  .mkt-row { display: flex; align-items: baseline; justify-content: space-between; padding-left: 14px; border-left: 2px solid rgba(255,255,255,0.25); }
+  .mkt-key { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .mkt-val { font-size: 1.4rem; font-weight: 900; letter-spacing: -0.05em; color: var(--white); }
+  .mkt-title { font-size: 0.82rem; font-weight: 600; color: var(--white); margin-top: 2px; }
+  .mkt-body { font-size: 0.7rem; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+
+  /* ── Divider ───────────────────────────────────────────── */
+  .vdiv { width: 1px; background: var(--border); flex-shrink: 0; align-self: stretch; }
+
+  /* ── Footer bar ────────────────────────────────────────── */
+  .slide-footer {
+    height: 44px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 72px;
+    border-top: 1px solid var(--border);
+    font-size: 0.68rem; font-weight: 500; color: var(--muted);
+    z-index: 2; position: relative;
+  }
+  .slide-num { font-weight: 700; color: rgba(255,255,255,0.4); }
+
+  /* ── Green accent line ─────────────────────────────────── */
+  .accent-line { width: 40px; height: 3px; border-radius: 4px; background: var(--green); margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 1 — COVER
+════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="orb" style="width:640px;height:640px;top:-200px;right:-120px;background:radial-gradient(circle,rgba(255,255,255,0.055) 0%,transparent 70%)"></div>
+  <div class="orb" style="width:400px;height:400px;bottom:-80px;left:-60px;background:radial-gradient(circle,rgba(74,222,128,0.08) 0%,transparent 70%)"></div>
+
+  <div class="slide-inner" style="justify-content:center;gap:28px">
+
+    <div>
+      <div class="pill" style="margin-bottom:32px">
+        <span class="dot"></span>
+        Transforming Enterprise Through AI &nbsp;·&nbsp; May 11–19, 2026
+      </div>
+
+      <div style="display:flex;align-items:baseline;gap:24px;margin-bottom:16px">
+        <span style="font-size:5.2rem;font-weight:900;letter-spacing:-0.04em;color:#fff;line-height:0.9">MIRAI</span>
+        <span style="font-size:4rem;font-weight:800;letter-spacing:-0.02em;color:rgba(255,255,255,0.28);line-height:0.9">ミライ</span>
+      </div>
+
+      <p style="font-size:1.18rem;font-weight:500;color:var(--muted);letter-spacing:-0.01em;margin-bottom:10px">AI-Powered Robot Arm Simulator</p>
+      <p style="font-size:1rem;font-weight:400;color:rgba(255,255,255,0.55);max-width:580px;line-height:1.7">
+        Describe a task. Gemini generates the motion plan.<br/>
+        Watch physics prove it works. Download the code. Build it for under $300.
+      </p>
+    </div>
+
+    <div class="stat-bar" style="max-width:640px">
+      <div class="stat-cell"><div class="stat-num">60fps</div><div class="stat-lbl">In-browser physics</div></div>
+      <div class="stat-cell"><div class="stat-num">5–15s</div><div class="stat-lbl">AI generation</div></div>
+      <div class="stat-cell"><div class="stat-num">&lt;$300</div><div class="stat-lbl">Real arm build cost</div></div>
+      <div class="stat-cell"><div class="stat-num">0 min</div><div class="stat-lbl">Setup required</div></div>
+    </div>
+
+    <div style="display:flex;gap:32px;margin-top:8px">
+      <div><span style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Developer</span><br/><span style="font-size:0.9rem;font-weight:600;color:rgba(255,255,255,0.88)">Francis Daniel — Mizu</span></div>
+      <div><span style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Track</span><br/><span style="font-size:0.9rem;font-weight:600;color:rgba(255,255,255,0.88)">Track 3 · Robotics &amp; Simulation</span></div>
+      <div><span style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">App Demo</span><br/><span style="font-size:0.9rem;font-weight:600;color:var(--blue)">mirai-tech-ex-hackathon-transformin.vercel.app</span></div>
+      <div><span style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Walkthrough</span><br/><span style="font-size:0.9rem;font-weight:600;color:var(--cyan)">mirai-tech-ex-hackathon-transformin-snowy.vercel.app</span></div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Mirai · Transforming Enterprise Through AI Hackathon 2026</span>
+    <span class="slide-num">01 / 06</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 2 — PROBLEM
+════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="orb" style="width:500px;height:500px;top:-100px;left:50%;transform:translateX(-50%);background:radial-gradient(circle,rgba(96,165,250,0.06) 0%,transparent 70%)"></div>
+
+  <div class="slide-inner">
+    <div style="margin-bottom:32px">
+      <div class="eyebrow">Problem Statement</div>
+      <div class="h2" style="max-width:680px">Robotics adoption is failing.<br/><span class="dim">Not because of ideas — because access is expensive, complex, and slow.</span></div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span class="kpi-n" style="color:var(--cyan)">$2,500+</span>
+          <span class="kpi-u">/ year</span>
+        </div>
+        <div class="kpi-t">Tooling costs block first-time builders</div>
+        <div class="kpi-d">RoboDK starts at $1,250/yr. MATLAB Robotics Toolbox requires a full license. Enterprise teams pay $5,000+ annually just to simulate.</div>
+      </div>
+      <div class="kpi-card">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span class="kpi-n" style="color:var(--violet)">30+</span>
+          <span class="kpi-u">min setup</span>
+        </div>
+        <div class="kpi-t">Install friction kills experimentation momentum</div>
+        <div class="kpi-d">Install chains, ROS environment setup, driver conflicts, and version mismatches delay first simulation by hours — not minutes.</div>
+      </div>
+      <div class="kpi-card">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span class="kpi-n" style="color:var(--green)">Zero</span>
+        </div>
+        <div class="kpi-t">No smooth sim-to-hardware bridge exists</div>
+        <div class="kpi-d">No mainstream simulator produces verified, signed Arduino/Python code with a live-priced bill of materials in a single workflow step.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;padding-top:28px;border-top:1px solid var(--border)">
+      <p style="font-size:0.88rem;font-weight:500;color:rgba(255,255,255,0.6);max-width:760px;line-height:1.65">
+        The gap between "I want to build a robot" and "I have running hardware" is structural — not motivational. Mirai collapses that gap to a single browser session.
+      </p>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Mirai · Transforming Enterprise Through AI Hackathon 2026</span>
+    <span class="slide-num">02 / 06</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 3 — SOLUTION
+════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="orb" style="width:480px;height:480px;bottom:-80px;right:-60px;background:radial-gradient(circle,rgba(74,222,128,0.07) 0%,transparent 70%)"></div>
+
+  <div class="slide-inner">
+    <div style="margin-bottom:24px">
+      <div class="eyebrow">How It Works</div>
+      <div class="h2">One URL. Entire robotics workflow.<br/><span class="dim">Zero install. Natural language in. Hardware code out.</span></div>
+    </div>
+
+    <div class="pipe">
+      <div class="pipe-step" style="border-color:rgba(34,211,238,0.35)">
+        <div class="pipe-n">01</div>
+        <div class="pipe-name" style="color:var(--cyan)">Design</div>
+        <div class="pipe-tech">3D Arm Builder</div>
+      </div>
+      <div class="pipe-arr">→</div>
+      <div class="pipe-step" style="border-color:rgba(96,165,250,0.35)">
+        <div class="pipe-n">02</div>
+        <div class="pipe-name" style="color:var(--blue)">Describe</div>
+        <div class="pipe-tech">Voice / Text</div>
+      </div>
+      <div class="pipe-arr">→</div>
+      <div class="pipe-step" style="border-color:rgba(192,132,252,0.35)">
+        <div class="pipe-n">03</div>
+        <div class="pipe-name" style="color:var(--violet)">AI Plan</div>
+        <div class="pipe-tech">Gemini 2.5 Flash</div>
+      </div>
+      <div class="pipe-arr">→</div>
+      <div class="pipe-step" style="border-color:rgba(251,191,36,0.35)">
+        <div class="pipe-n">04</div>
+        <div class="pipe-name" style="color:var(--amber)">Verify</div>
+        <div class="pipe-tech">Deterministic</div>
+      </div>
+      <div class="pipe-arr">→</div>
+      <div class="pipe-step" style="border-color:rgba(74,222,128,0.35)">
+        <div class="pipe-n">05</div>
+        <div class="pipe-name" style="color:var(--green)">Simulate</div>
+        <div class="pipe-tech">Rapier + MuJoCo</div>
+      </div>
+      <div class="pipe-arr">→</div>
+      <div class="pipe-step" style="border-color:rgba(251,113,133,0.35)">
+        <div class="pipe-n">06</div>
+        <div class="pipe-name" style="color:#fb7185">Export</div>
+        <div class="pipe-tech">ZIP · BOM · URDF</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-top:24px">
+      <div style="padding:16px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.03)">
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:6px">Gemini AI</div>
+        <div style="font-size:0.82rem;font-weight:700;color:var(--white);margin-bottom:4px">Neuro-symbolic pipeline</div>
+        <div style="font-size:0.7rem;color:var(--muted);line-height:1.5">Gemini for intent. Deterministic verifier for safety. LLM never touches joint angles.</div>
+      </div>
+      <div style="padding:16px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.03)">
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--green);margin-bottom:6px">Dual Physics</div>
+        <div style="font-size:0.82rem;font-weight:700;color:var(--white);margin-bottom:4px">Rapier + MuJoCo</div>
+        <div style="font-size:0.7rem;color:var(--muted);line-height:1.5">60fps client-side Rapier. MuJoCo server validates same plan. Accuracy badge shown.</div>
+      </div>
+      <div style="padding:16px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.03)">
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);margin-bottom:6px">ReAct Loop</div>
+        <div style="font-size:0.82rem;font-weight:700;color:var(--white);margin-bottom:4px">Visible reasoning</div>
+        <div style="font-size:0.7rem;color:var(--muted);line-height:1.5">Think→Act→Observe streams live in the panel. Not a black box — judges see the AI think.</div>
+      </div>
+      <div style="padding:16px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.03)">
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#fb7185;margin-bottom:6px">Hardware Bridge</div>
+        <div style="font-size:0.82rem;font-weight:700;color:var(--white);margin-bottom:4px">SHA-256 signed export</div>
+        <div style="font-size:0.7rem;color:var(--muted);line-height:1.5">Jinja2 deterministic Arduino/Python + live BOM pricing. Build for under $300.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Mirai · Transforming Enterprise Through AI Hackathon 2026</span>
+    <span class="slide-num">03 / 06</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 4 — DEMO / FEATURES
+════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="orb" style="width:420px;height:420px;top:-60px;right:80px;background:radial-gradient(circle,rgba(192,132,252,0.07) 0%,transparent 70%)"></div>
+
+  <div class="slide-inner">
+    <div style="margin-bottom:22px">
+      <div class="eyebrow">Features &amp; Differentiation</div>
+      <div class="h2">No existing tool does all of this.<br/><span class="dim">Compared to RoboDK · Webots · MATLAB · CoppeliaSim</span></div>
+    </div>
+
+    <div class="row" style="gap:40px">
+      <div style="flex:1">
+        <table class="cmp-table">
+          <thead>
+            <tr>
+              <th style="width:38%">Capability</th>
+              <th class="hl">Mirai</th>
+              <th>RoboDK</th>
+              <th>Webots</th>
+              <th>MATLAB</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="feat">Zero install (browser)</td><td class="hl"><span class="chk">✓</span></td><td><span class="crs">✗</span></td><td><span class="crs">✗</span></td><td><span class="crs">✗</span></td></tr>
+            <tr><td class="feat">Natural language input</td><td class="hl"><span class="chk">✓</span></td><td><span class="crs">✗</span></td><td><span class="crs">✗</span></td><td><span class="crs">✗</span></td></tr>
+            <tr><td class="feat">Voice control</td><td class="hl"><span class="chk">✓</span></td><td><span class="crs">✗</span></td><td><span class="crs">✗</span></td><td><span class="crs">✗</span></td></tr>
+            <tr><td class="feat">Server-side validation</td><td class="hl"><span class="chk">✓</span></td><td><span class="crs">✗</span></td><td><span class="crs">✗</span></td><td><span class="prt">~</span></td></tr>
+            <tr><td class="feat">Arduino + Python export</td><td class="hl"><span class="chk">✓</span></td><td><span class="prt">~</span></td><td><span class="crs">✗</span></td><td><span class="prt">~</span></td></tr>
+            <tr><td class="feat">Live BOM with pricing</td><td class="hl"><span class="chk">✓</span></td><td><span class="crs">✗</span></td><td><span class="crs">✗</span></td><td><span class="crs">✗</span></td></tr>
+            <tr><td class="feat">Free to start</td><td class="hl"><span class="chk">✓</span></td><td><span class="crs">✗</span></td><td><span class="chk">✓</span></td><td><span class="crs">✗</span></td></tr>
+            <tr><td class="feat">Setup time</td><td class="hl" style="color:var(--green);font-weight:700">0 min</td><td style="color:var(--muted)">20+ min</td><td style="color:var(--muted)">30+ min</td><td style="color:var(--muted)">30+ min</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="vdiv"></div>
+
+      <div style="flex:0 0 280px;display:flex;flex-direction:column;gap:12px;justify-content:center">
+        <div style="padding:16px;border-radius:10px;border:1px solid rgba(74,222,128,0.3);background:rgba(74,222,128,0.06)">
+          <div style="font-size:2.6rem;font-weight:900;letter-spacing:-0.06em;color:var(--green);line-height:1">94%</div>
+          <div style="font-size:0.72rem;font-weight:600;color:rgba(255,255,255,0.7);margin-top:4px">Typical MuJoCo accuracy score</div>
+        </div>
+        <div style="padding:16px;border-radius:10px;border:1px solid rgba(96,165,250,0.3);background:rgba(96,165,250,0.06)">
+          <div style="font-size:2.6rem;font-weight:900;letter-spacing:-0.06em;color:var(--blue);line-height:1">11</div>
+          <div style="font-size:0.72rem;font-weight:600;color:rgba(255,255,255,0.7);margin-top:4px">Ready-to-import community tasks</div>
+        </div>
+        <div style="padding:16px;border-radius:10px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.06)">
+          <div style="font-size:2.6rem;font-weight:900;letter-spacing:-0.06em;color:var(--amber);line-height:1">3</div>
+          <div style="font-size:0.72rem;font-weight:600;color:rgba(255,255,255,0.7);margin-top:4px">Real robot presets: UR5 · KUKA KR6 · ABB IRB 1200</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Mirai · Transforming Enterprise Through AI Hackathon 2026</span>
+    <span class="slide-num">04 / 06</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 5 — MARKET · TAM / SAM / SOM (triangle funnel)
+════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="orb" style="width:560px;height:560px;bottom:-140px;left:50%;transform:translateX(-50%);background:radial-gradient(circle,rgba(255,255,255,0.04) 0%,transparent 70%)"></div>
+
+  <div class="slide-inner" style="padding-bottom:44px">
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Target Market</div>
+      <div class="h2" style="font-size:2.1rem">TAM · SAM · SOM&nbsp;&nbsp;<span class="dim" style="font-size:1.3rem;font-weight:600">Nested market strategy with immediate capture potential.</span></div>
+    </div>
+
+    <div style="display:flex;gap:48px;flex:1;align-items:stretch">
+
+      <!-- Triangle funnel (CSS only, mirrors Market.jsx) -->
+      <div style="flex:0 0 340px;position:relative;display:flex;align-items:center;justify-content:center">
+
+        <!-- Triangle shape -->
+        <div style="
+          width:300px;height:260px;
+          clip-path:polygon(50% 0%, 100% 100%, 0% 100%);
+          background:linear-gradient(180deg,rgba(34,211,238,0.22) 0%,rgba(139,92,246,0.16) 55%,rgba(16,185,129,0.22) 100%);
+          border:0;
+          position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+          filter:drop-shadow(0 16px 40px rgba(0,0,0,0.5));
+        "></div>
+
+        <!-- Divider lines -->
+        <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:290px;height:1px;background:rgba(255,255,255,0.4)"></div>
+        <div style="position:absolute;bottom:86px;left:50%;transform:translateX(-50%);width:186px;height:1px;background:rgba(255,255,255,0.4)"></div>
+        <div style="position:absolute;bottom:160px;left:50%;transform:translateX(-50%);width:96px;height:1px;background:rgba(255,255,255,0.4)"></div>
+
+        <!-- Labels inside triangle -->
+        <div style="position:absolute;bottom:168px;left:50%;transform:translateX(-50%);text-align:center;z-index:2">
+          <div style="font-size:0.58rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.85)">SOM</div>
+          <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.05em;color:#fff;line-height:1">2M+</div>
+        </div>
+        <div style="position:absolute;bottom:90px;left:50%;transform:translateX(-50%);text-align:center;z-index:2">
+          <div style="font-size:0.58rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.85)">SAM</div>
+          <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.05em;color:#fff;line-height:1">$2.4B</div>
+        </div>
+        <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);text-align:center;z-index:2">
+          <div style="font-size:0.58rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.85)">TAM</div>
+          <div style="font-size:1.3rem;font-weight:900;letter-spacing:-0.05em;color:#fff;line-height:1">$18B</div>
+        </div>
+
+        <!-- Glowing dots -->
+        <div style="position:absolute;bottom:220px;left:54%;width:10px;height:10px;border-radius:50%;background:var(--cyan);box-shadow:0 0 16px rgba(34,211,238,0.9);z-index:3"></div>
+        <div style="position:absolute;bottom:130px;left:30%;width:12px;height:12px;border-radius:50%;background:var(--violet);box-shadow:0 0 15px rgba(192,132,252,0.85);z-index:3"></div>
+        <div style="position:absolute;bottom:46px;left:66%;width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 14px rgba(74,222,128,0.9);z-index:3"></div>
+      </div>
+
+      <!-- Segment descriptions -->
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:12px">
+
+        <div style="padding-left:14px;border-left:2px solid rgba(34,211,238,0.6)">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--cyan)">SOM</span>
+            <span style="font-size:1.1rem;font-weight:900;letter-spacing:-0.05em;color:var(--white)">2M+</span>
+          </div>
+          <div style="font-size:0.88rem;font-weight:700;color:var(--white);margin-bottom:3px">Makers, students &amp; indie builders</div>
+          <div style="font-size:0.72rem;color:var(--muted);line-height:1.5">Immediate adopters — Mirai removes the cost and setup barrier entirely. Capture starts day one.</div>
+        </div>
+
+        <div style="padding-left:14px;border-left:2px solid rgba(192,132,252,0.6)">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--violet)">SAM</span>
+            <span style="font-size:1.1rem;font-weight:900;letter-spacing:-0.05em;color:var(--white)">$2.4B</span>
+          </div>
+          <div style="font-size:0.88rem;font-weight:700;color:var(--white);margin-bottom:3px">Simulation-first education &amp; prototyping</div>
+          <div style="font-size:0.72rem;color:var(--muted);line-height:1.5">Startups and university labs needing browser-first robotics planning and validation tools.</div>
+        </div>
+
+        <div style="padding-left:14px;border-left:2px solid rgba(74,222,128,0.6)">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--green)">TAM</span>
+            <span style="font-size:1.1rem;font-weight:900;letter-spacing:-0.05em;color:var(--white)">$18B</span>
+          </div>
+          <div style="font-size:0.88rem;font-weight:700;color:var(--white);margin-bottom:3px">Global enterprise robotics &amp; training</div>
+          <div style="font-size:0.72rem;color:var(--muted);line-height:1.5">Large organizations validating automation workflows before physical deployment at scale.</div>
+        </div>
+
+        <!-- 3 user segments -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:8px;border-top:1px solid var(--border)">
+          <div style="padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(34,211,238,0.06)">
+            <div style="font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--cyan);margin-bottom:3px">Students &amp; Makers</div>
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.7);line-height:1.45">Design, simulate, and export. Zero local setup.</div>
+          </div>
+          <div style="padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(192,132,252,0.06)">
+            <div style="font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--violet);margin-bottom:3px">Robotics Startups</div>
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.7);line-height:1.45">Validate motion plans before committing to hardware.</div>
+          </div>
+          <div style="padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(74,222,128,0.06)">
+            <div style="font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--green);margin-bottom:3px">Enterprise Teams</div>
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.7);line-height:1.45">Train operators and validate workflows before procurement.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Mirai · Transforming Enterprise Through AI Hackathon 2026</span>
+    <span class="slide-num">05 / 06</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE 6 — REVENUE + FUTURE PROSPECTS
+════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="orb" style="width:480px;height:480px;top:-80px;right:-40px;background:radial-gradient(circle,rgba(251,191,36,0.06) 0%,transparent 70%)"></div>
+  <div class="orb" style="width:360px;height:360px;bottom:-60px;left:60px;background:radial-gradient(circle,rgba(74,222,128,0.05) 0%,transparent 70%)"></div>
+
+  <div class="slide-inner">
+    <div style="margin-bottom:18px">
+      <div class="eyebrow">Business Model &amp; Future Prospects</div>
+      <div class="h2" style="font-size:2.1rem">Revenue streams + scalability roadmap.<br/><span class="dim" style="font-size:1.1rem;font-weight:600">Three clear paths to revenue. Three phases to platform scale.</span></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;flex:1">
+
+      <!-- Revenue streams (left) -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:2px">Revenue Streams</div>
+
+        <div style="padding:12px 14px;border-radius:10px;border:1px solid rgba(34,211,238,0.3);background:rgba(34,211,238,0.06);display:flex;gap:12px;align-items:flex-start;flex:1">
+          <div style="flex-shrink:0;margin-top:2px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px rgba(34,211,238,0.7)"></div>
+          </div>
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--white);margin-bottom:2px">Freemium SaaS — $19/mo Pro</div>
+            <div style="font-size:0.68rem;color:var(--muted);line-height:1.5">Free browser sim for all. Pro tier unlocks unlimited exports, custom robot presets, and private task library.</div>
+          </div>
+          <div style="flex-shrink:0;text-align:right">
+            <div style="font-size:1.2rem;font-weight:900;letter-spacing:-0.05em;color:var(--cyan)">$19</div>
+            <div style="font-size:0.58rem;color:var(--muted)">/month</div>
+          </div>
+        </div>
+
+        <div style="padding:12px 14px;border-radius:10px;border:1px solid rgba(192,132,252,0.3);background:rgba(192,132,252,0.06);display:flex;gap:12px;align-items:flex-start;flex:1">
+          <div style="flex-shrink:0;margin-top:2px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--violet);box-shadow:0 0 8px rgba(192,132,252,0.7)"></div>
+          </div>
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--white);margin-bottom:2px">Enterprise API licensing</div>
+            <div style="font-size:0.68rem;color:var(--muted);line-height:1.5">White-label simulation engine for OEMs, robotics training platforms, and university labs. Volume pricing + SDK.</div>
+          </div>
+          <div style="flex-shrink:0;text-align:right">
+            <div style="font-size:0.88rem;font-weight:900;letter-spacing:-0.03em;color:var(--violet)">B2B</div>
+            <div style="font-size:0.58rem;color:var(--muted)">volume</div>
+          </div>
+        </div>
+
+        <div style="padding:12px 14px;border-radius:10px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.06);display:flex;gap:12px;align-items:flex-start;flex:1">
+          <div style="flex-shrink:0;margin-top:2px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px rgba(251,191,36,0.7)"></div>
+          </div>
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--white);margin-bottom:2px">Hardware kit marketplace</div>
+            <div style="font-size:0.68rem;color:var(--muted);line-height:1.5">Affiliate commissions on BOM kit purchases. Curated kits from every simulation export — one click to checkout.</div>
+          </div>
+          <div style="flex-shrink:0;text-align:right">
+            <div style="font-size:0.88rem;font-weight:900;letter-spacing:-0.03em;color:var(--amber)">~$300</div>
+            <div style="font-size:0.58rem;color:var(--muted)">avg kit</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Roadmap (right) -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:2px">Future Prospects</div>
+
+        <!-- connecting vertical line -->
+        <div style="position:relative;display:flex;flex-direction:column;gap:8px;flex:1">
+          <div style="position:absolute;left:7px;top:16px;bottom:16px;width:1px;background:linear-gradient(180deg,rgba(74,222,128,0.5) 0%,rgba(96,165,250,0.5) 50%,rgba(192,132,252,0.5) 100%)"></div>
+
+          <div style="padding:10px 12px 10px 26px;border-radius:10px;border:1px solid rgba(74,222,128,0.3);background:rgba(74,222,128,0.06);position:relative;flex:1">
+            <div style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(74,222,128,0.8)"></div>
+            <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--green)">Phase 1 — Now</div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--white);margin-top:2px">Browser sim + hardware export live</div>
+            <div style="font-size:0.68rem;color:var(--muted);margin-top:2px;line-height:1.45">60fps Rapier + MuJoCo · Voice AI · 11 community tasks · 3 robot presets · SHA-256 signed export</div>
+          </div>
+
+          <div style="padding:10px 12px 10px 26px;border-radius:10px;border:1px solid rgba(96,165,250,0.3);background:rgba(96,165,250,0.06);position:relative;flex:1">
+            <div style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 10px rgba(96,165,250,0.8)"></div>
+            <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue)">Phase 2 — 6 months</div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--white);margin-top:2px">WebSerial live control + mobile app</div>
+            <div style="font-size:0.68rem;color:var(--muted);margin-top:2px;line-height:1.45">Browser → USB → real servo on stage · iOS/Android teach mode · Pro subscription launch</div>
+          </div>
+
+          <div style="padding:10px 12px 10px 26px;border-radius:10px;border:1px solid rgba(192,132,252,0.3);background:rgba(192,132,252,0.06);position:relative;flex:1">
+            <div style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:var(--violet);box-shadow:0 0 10px rgba(192,132,252,0.8)"></div>
+            <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--violet)">Phase 3 — 12 months</div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--white);margin-top:2px">Fleet coordination + enterprise platform</div>
+            <div style="font-size:0.68rem;color:var(--muted);margin-top:2px;line-height:1.45">Multi-arm fleet · enterprise SSO · LMS integration · white-label SDK for OEM licensing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- bottom link bar -->
+    <div style="margin-top:14px;padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.03);display:flex;gap:32px;align-items:center">
+      <div><span style="font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">App Demo&nbsp;</span><span style="font-size:0.72rem;font-weight:600;color:var(--blue)">mirai-tech-ex-hackathon-transformin.vercel.app</span></div>
+      <div><span style="font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Walkthrough&nbsp;</span><span style="font-size:0.72rem;font-weight:600;color:var(--cyan)">mirai-tech-ex-hackathon-transformin-snowy.vercel.app</span></div>
+      <div><span style="font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">GitHub&nbsp;</span><span style="font-size:0.72rem;font-weight:600;color:var(--white)">github.com/Mizunandayo/mirai</span></div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Mirai · Transforming Enterprise Through AI Hackathon 2026</span>
+    <span class="slide-num">06 / 06</span>
+  </div>
+</div>
+
+</body>
+</html>
