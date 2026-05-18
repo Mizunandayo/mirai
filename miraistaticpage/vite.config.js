@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/mirai/',
+  base: '/Mirai---TechEx-Hackathon-Transforming-Enterprise-Through-AI-May-11-20-2026-/',
 })
