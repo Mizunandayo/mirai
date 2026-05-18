@@ -118,7 +118,7 @@ export default function Hero() {
             flexShrink:0,
             animation:'pulseDot 2.2s ease-in-out infinite',
           }} />
-          Transforming Enterprise Through AI &nbsp;·&nbsp;&nbsp; May 11–19, 2026
+          Transforming Enterprise Through AI Hackathon &nbsp;·&nbsp;&nbsp; May 11–19, 2026
         </div>
 
         {/* Hero wordmark */}
