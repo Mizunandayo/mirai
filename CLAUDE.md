@@ -51,10 +51,10 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 | 4 | May 14 | Physics Simulation (Rapier) | ✅ **COMPLETE** — Sim pipeline finalized with arm-link collision detection, segment rigid bodies, revolute/prismatic constraints, and collision flash polish |
 | 5 | May 15–17 | Gemini AI Integration | ✅ **COMPLETE** — Direct Gemini API (5-15s), scene planner, IK auto-scale, arm auto-config, volumetric collision detection, obstacle-aware routing, feasibility analysis, AI Results UI redesign + MuJoCo Physics tab + side-by-side code pane + NL arm designer |
 | 6 | May 16–17 | Backend + MuJoCo + Export | ✅ **COMPLETE** — All export endpoints live, bundle fixes (template/sanitization), Railway + Vercel deployed and healthy |{6}
-| 7 | May 17–18 | Community + Famous Preloads | ✅ **COMPLETE** — 12 seeded tasks, 3 famous preloads, UR5/KUKA/ABB robot presets, Library nav tab, production build clean |
-| 8 | May 18–19 | Polish + Demo Prep + Submit | ⏳ Ready to Start |
+| 7 | May 17–18 | Community + Famous Preloads | ✅ **COMPLETE** — 11 seeded tasks, 3 famous preloads, UR5/KUKA/ABB robot presets, Library nav tab, production build clean |
+| 8 | May 18–19 | Polish + Demo Prep + Submit | 🔄 **IN PROGRESS** — Sim reset bug fixed, Gemini key dialog, backend token gate, slide deck (7 slides), miraistaticpage Revenue+Roadmap sections, all Gemini Award refs removed |
 
-**STATUS:** Days 1–7 complete. Day 8 is the final push — deploy, demo video, slide deck, submit before May 19 8:00 AM PST.
+**STATUS:** Days 1–7 complete. Day 8 in progress — demo video, E2E test, README, repo cleanup, submit before May 19 8:00 AM PST.
 
 ---
 
@@ -220,14 +220,21 @@ Browser-based AI-powered robot arm simulator that makes robotics accessible to e
 - `src/App.css` — lib-*, tpc-*, rps-* CSS blocks added
 - Pre-existing React import errors fixed in DivergenceBadge, LifespanPanel, MuJoCoViewport
 
-#### Day 8 — Polish + Demo Prep + Submit ❌ PENDING
-❌ Final production deploy — push to GitHub → Vercel auto-deploy, Railway backend confirm 200 OK
-❌ Full browser E2E: Design → Library → Tasks → Simulate → Export
-❌ 60fps confirmed live in Chrome DevTools (FPS meter during simulation playback)
-❌ Voice input tested on demo hardware + fallback confirmed
-❌ Demo mode — famous preload pre-loaded as landing state
+#### Day 8 — Polish + Demo Prep + Submit 🔄 IN PROGRESS (May 18, 2026)
+✅ Simulation playback completion reset fixed (sceneResetTrigger on status='complete')
+✅ Gemini API key dialog — popup before Generate motion, localStorage, full error handling
+✅ Backend token gate — MIRAI_API_TOKEN + X-Forwarded-For IP fix for Railway proxy
+✅ VITE_GEMINI_API_KEY removed from Vercel (not baked into bundle anymore)
+✅ All Gemini Award / prize-eligible references removed from all docs + slides
+✅ Slide deck (7 slides, mirai-deck.html) — Cover, Problem, Solution, Features, Market (TAM/SAM/SOM triangle), Revenue Streams, Scalability Roadmap
+✅ miraistaticpage Revenue.jsx + Roadmap.jsx added with visual cards and timeline
+✅ miraistaticpage content audit — model names, task count (12→11), fallback chain
+✅ miraistaticpage deployed to GitHub docs/ + Vercel project configured
+✅ MIRAI_BLUEPRINT.md duplicate Day 6 block (×55) cleaned up
 ❌ Record 2-min demo video (design → library import → voice → pre-flight → simulate → export)
-❌ Slide deck — 5 slides: problem → solution → demo → market → impact
+❌ Full browser E2E: Design → Library → Tasks → Simulate → Export
+❌ 60fps confirmed live in Chrome DevTools
+❌ Voice input tested on demo hardware + fallback confirmed
 ❌ README.md final pass — screenshots + live Vercel URL + Railway backend URL
 ❌ Repo cleanup — no .env committed, no node_modules, no debug console.log
 ❌ Submit on lablab.ai — title, description, demo video URL, repo URL, team

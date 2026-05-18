@@ -1,5 +1,59 @@
 # Mirai — Session Context
-**Last updated:** Sunday, May 18, 2026 — Days 1–7 complete. Day 8 (final submit) is today. Build clean, zero TypeScript errors.
+**Last updated:** Sunday, May 18, 2026 — Day 8 in progress. Sim reset fixed, security hardened, slide deck built, static page audited and extended.
+
+---
+
+## Session Log — May 18, 2026 (Day 8 — Security + Deck + Static Page)
+
+### What was done this session
+
+**Bug fixes:**
+- `SceneObjects.tsx` + `PlaybackControls.tsx`: Simulation playback completion now resets all objects to default positions. Root cause: `status='complete'` was not triggering `sceneResetTrigger`. Fix: added `useEffect` in PlaybackControls that fires `setSceneResetTrigger((n) => n + 1)` when status becomes `'complete'`. Removed the earlier `complete` useEffect that used stale `baselineObjectStates`. Now matches the proven reset-button path exactly.
+
+**Security hardening:**
+- `geminiDirectPlanner.ts`: Added localStorage key management — `getStoredApiKey()`, `setStoredApiKey()`, `clearStoredApiKey()`. `resolveApiKey()` checks localStorage first, then env var. `isDirectGeminiAvailable()` checks both.
+- `TaskEditorPanel.tsx`: Gemini API key dialog (`gkd-*` CSS) — intercepts `handleAIGenerate()` when no key available. Shows centered full-screen modal with input, show/hide toggle, link to aistudio.google.com. Handles errors: invalid key (format check), quota exceeded (429), auth error (401/403) — all re-open dialog with specific messages. "Change saved key" link appears when key already stored.
+- `server/main.py`: `_get_client_ip()` reads X-Forwarded-For for real IP behind Railway proxy. `_check_token()` validates `X-Mirai-Token` header against `MIRAI_API_TOKEN` env var (skipped if not set). All three AI endpoints (`/ai/plan`, `/ai/repair`, `/ai/suggest`) now call both. Returns 401 on missing/wrong token.
+- `geminiClient.ts`: `aiHeaders()` helper includes `X-Mirai-Token` from `VITE_MIRAI_API_TOKEN` env var. All three fetch calls updated.
+- Environment: `VITE_GEMINI_API_KEY` removed from Vercel (no longer baked into JS bundle). `MIRAI_API_TOKEN` set on Railway. `VITE_MIRAI_API_TOKEN` set on Vercel.
+
+**Documentation cleanup:**
+- All "Gemini Award" and "prize-eligible" references removed from CLAUDE.md, MIRAI_BLUEPRINT.md, MIRAI_SESSION_CONTEXT.md, README.md, miraistaticpage slides.
+- MIRAI_BLUEPRINT.md: Fixed AI Engine entry (Gemini 2.0 Flash + 2.0 Pro → Gemini 2.5 Flash with fallback chain). Removed 55 duplicate copies of the Day 6 section (2749 lines → ~260 lines). Added Day 7 and Day 8 sections.
+
+**Slide deck (mirai-deck.html):**
+- 7-slide PDF presentation created as standalone HTML (print to PDF from Chrome with background graphics enabled)
+- Slide 1: Cover — title, 4-stat bar, team/track/URLs
+- Slide 2: Problem — 3 KPI cards ($2500+, 30+min, zero bridge)
+- Slide 3: Solution — 6-step pipeline + 4 differentiator cards
+- Slide 4: Features/Differentiation — comparison table vs RoboDK/Webots/MATLAB + 3 stat cards
+- Slide 5: Market (TAM/SAM/SOM) — CSS triangle funnel (fixed to center vertically), glowing dots, segment descriptions
+- Slide 6: Revenue Streams — 3 large illustrated cards (Freemium $19/mo, Enterprise B2B, Hardware marketplace) with colored gradient headers and conversion flow bar
+- Slide 7: Scalability Roadmap — horizontal timeline with gradient connecting line, Phase 1 checkmark node (live), Phase 2/3 numbered nodes, phase cards with checkmark bullets, impact summary row
+
+**miraistaticpage:**
+- Content audit: Fixed `TechStack.jsx` (Gemini 2.0 Pro → 2.0 Flash for fallback role), `Gemini.jsx` (model card updated, fallback chain 3→5 models), `Features.jsx` (12 → 11 tasks)
+- `Revenue.jsx` (new): 3 illustrated revenue stream cards with colored gradient headers, icons, stats, bullet points, conversion flow arrows
+- `Roadmap.jsx` (new): 3-phase horizontal timeline with gradient connecting line, done/pending node states, checkmark bullets, 3-column impact summary (Scalability/Impact/Moat)
+- `App.jsx`: Revenue and Roadmap wired between Market and Demo sections
+- `vite.config.js`: `base: '/'` (Vercel) vs `base: '/mirai/'` considered — kept at `/` for Vercel deployment
+
+**Deployment:**
+- miraistaticpage deployed to `docs/` folder in main repo for GitHub Pages (Vercel recommended as canonical)
+- Walkthrough URL: https://mirai-tech-ex-hackathon-transformin-snowy.vercel.app/
+
+### Remaining Day 8 tasks
+1. ❌ Record 2-min demo video (design → voice → pre-flight → simulate → export)
+2. ❌ Full browser E2E: Design → Library → Tasks → Simulate → Export
+3. ❌ README.md final pass — screenshots + live URLs
+4. ❌ Repo cleanup — no debug console.log, verify no .env committed
+5. ❌ Submit on lablab.ai before **May 19, 2026 — 8:00 AM PST** ← HARD DEADLINE
+
+### Submission fields (lablab.ai)
+- **Short description** (186 chars): "Browser-based AI robot arm simulator. Describe a task → Gemini generates the motion plan → 60fps physics verify → download Arduino/Python + BOM. Zero install. Build a real arm for under $300."
+- **Long description**: Written and ready (see conversation context) — covers problem, solution, target audience, unique features (~170 words)
+- **Tech tags**: Gemini AI · React · TypeScript · Python · FastAPI · Three.js · WebAssembly · Rapier · MuJoCo · Jotai · Vercel · Railway
+- **Category tags**: Robotics & Simulation · Generative AI · Education · Hardware · Enterprise Automation
 
 ---
 
