@@ -133,7 +133,6 @@ mirai/
 |- docs/                    # Static docs site assets
 |- miraistaticpage/         # Marketing/landing static page
 |- mirai-deck.html          # Pitch deck
-|- mirai-script.html        # Presentation script
 ```
 
 ## Hackathon Context
