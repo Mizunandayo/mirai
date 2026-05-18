@@ -38,7 +38,7 @@ export default function Demo() {
         {/* YouTube embed — set videoId prop when ready */}
         <Reveal delay={3}>
           <div className="mb-12">
-            <YouTubePlaceholder title="Mirai — Full Demo: Design → Voice → Simulate → Export (2 min)" />
+            <YouTubePlaceholder videoId="aVDTUfj3qAQ" title="Mirai — Full Demo: Design → Voice → Simulate → Export (2 min)" />
           </div>
         </Reveal>
 
