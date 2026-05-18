@@ -100,8 +100,10 @@ function planMoveViapoints(
 
 // Target resolver
 const JAW_CENTER_OFFSET = 0.05
+// Offset from top surface to suction/magnetic contact point (pad thickness)
+const SUCTION_TOP_OFFSET = 0.01
 
-function resolveTarget(block: MoveBlock, scene: SceneGraph): [number, number, number] {
+function resolveTarget(block: MoveBlock, scene: SceneGraph, gripperType?: string): [number, number, number] {
   const { x, y, z, targetId } = block.params
 
   // Explicit coordinates ALWAYS take priority over scene-object lookup.
@@ -120,7 +122,11 @@ function resolveTarget(block: MoveBlock, scene: SceneGraph): [number, number, nu
   if (targetId) {
     const obj = scene.objects.find((o) => o.id === targetId)
     if (obj) {
-      return [obj.position[0], obj.position[1] + JAW_CENTER_OFFSET, obj.position[2]]
+      const isTopGripper = gripperType === 'suction_cup' || gripperType === 'magnetic'
+      const gripY = isTopGripper
+        ? obj.position[1] + obj.dimensions[1] / 2 + SUCTION_TOP_OFFSET
+        : obj.position[1] + JAW_CENTER_OFFSET
+      return [obj.position[0], gripY, obj.position[2]]
     }
     const zone = scene.targetZones.find((z) => z.id === targetId)
     if (zone) return zone.position as [number, number, number]
@@ -351,6 +357,7 @@ export function compileTask(
   segments: ArmSegment[],
   scene: SceneGraph,
   taskName: string,
+  gripperType?: string,
 ): ExecutionPlan | null {
   const startNode = nodes.find((n) => n.data.kind === 'start')
   if (!startNode || nodes.length < 2) return null
@@ -443,7 +450,7 @@ export function compileTask(
         approachTargetId = null
       }
 
-      const target = resolveTarget(block, scene)
+      const target = resolveTarget(block, scene, gripperType)
 
       if (!approachTargetId) {
         let nearestId: string | null = null

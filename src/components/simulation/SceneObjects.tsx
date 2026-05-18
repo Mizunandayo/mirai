@@ -13,8 +13,11 @@ import {
   currentSimFrameAtom,
   currentFrameAtom,
   simBaselineObjectStatesAtom,
+  playbackStatusAtom,
+  sceneResetTriggerAtom,
   type SimObjectBaseline,
 } from '../../store/simAtoms'
+import { DEFAULT_SCENE_OBJECTS } from '../../utils/sceneRegistry'
 
 function tupleDiffers3(
   a: [number, number, number],
@@ -96,6 +99,9 @@ export default function SceneObjects() {
   const currentFrame = useAtomValue(currentSimFrameAtom)
   const frameNumber = useAtomValue(currentFrameAtom)
   const baselineObjectStates = useAtomValue(simBaselineObjectStatesAtom)
+  const setBaselineObjectStates = useSetAtom(simBaselineObjectStatesAtom)
+  const playbackStatus = useAtomValue(playbackStatusAtom)
+  const sceneResetTrigger = useAtomValue(sceneResetTriggerAtom)
 
   const frameRef = useRef(currentFrame)
   frameRef.current = currentFrame
@@ -173,6 +179,86 @@ export default function SceneObjects() {
     }
   }, [frameNumber, baselineObjectStates, scene.objects, setSceneGraph])
 
+  // Explicit reset when playback reaches 'complete' status — ensures objects
+  // snap back to their original positions even if frame counter was already 0.
+  useEffect(() => {
+    if (playbackStatus !== 'complete') return
+
+    prevHeldIdRef.current = null
+    gripOffsetRef.current = [0, 0, 0]
+
+    for (const obj of scene.objects) {
+      const body = bodyRefs.current.get(obj.id)
+      if (!body) continue
+      const baseline = baselineObjectStates[obj.id]
+      const resetBaseline: SimObjectBaseline = baseline ?? {
+        position: obj.position,
+        rotation: [0, 0, 0, 1],
+        scale: obj.scale ?? [1, 1, 1],
+      }
+      const [x, y, z] = resetBaseline.position
+      const [qx, qy, qz, qw] = resetBaseline.rotation
+      body.setTranslation({ x, y, z }, true)
+      body.setRotation(new Quaternion(qx, qy, qz, qw), true)
+      body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+      body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+    }
+
+    setSceneGraph((prev) => {
+      let hasChanges = false
+      const nextObjects = prev.objects.map((obj) => {
+        const reset = baselineObjectStates[obj.id]
+        if (!reset) return obj
+        if (!tupleDiffers3(obj.position, reset.position)) return obj
+        hasChanges = true
+        return { ...obj, position: reset.position, scale: reset.scale }
+      })
+      return hasChanges ? { ...prev, objects: nextObjects } : prev
+    })
+  }, [playbackStatus, baselineObjectStates, scene.objects, setSceneGraph])
+
+  // Explicit reset triggered by the K-button (reset) — fires unconditionally even
+  // when frameNumber was already 0, because the trigger counter always increments.
+  // Uses DEFAULT_SCENE_OBJECTS as the canonical source of truth so reset always
+  // restores the exact starting positions regardless of physics drift or prior compilations.
+  useEffect(() => {
+    if (sceneResetTrigger === 0) return    // skip initial mount
+
+    prevHeldIdRef.current = null
+    gripOffsetRef.current = [0, 0, 0]
+
+    // Build new baseline from DEFAULT positions so the frame-0 lock also uses them
+    const newBaseline: Record<string, SimObjectBaseline> = {}
+
+    for (const defaultObj of DEFAULT_SCENE_OBJECTS) {
+      const body = bodyRefs.current.get(defaultObj.id)
+      const pos = defaultObj.position as [number, number, number]
+      const scale = ([1, 1, 1]) as [number, number, number]
+      const rot: [number, number, number, number] = [0, 0, 0, 1]
+
+      if (body) {
+        body.setTranslation({ x: pos[0], y: pos[1], z: pos[2] }, true)
+        body.setRotation(new Quaternion(0, 0, 0, 1), true)
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+      }
+
+      newBaseline[defaultObj.id] = { position: pos, rotation: rot, scale }
+    }
+
+    // Update baseline so frame-0 useFrame lock agrees with DEFAULT positions
+    setBaselineObjectStates(newBaseline)
+
+    // Patch scene graph positions back to DEFAULT
+    setSceneGraph((prev) => ({
+      ...prev,
+      objects: prev.objects.map((obj) => {
+        const d = DEFAULT_SCENE_OBJECTS.find((o) => o.id === obj.id)
+        return d ? { ...obj, position: d.position } : obj
+      }),
+    }))
+  }, [sceneResetTrigger, setSceneGraph, setBaselineObjectStates])
+
   useFrame(({ clock }) => {
     const hasBaseline = Object.keys(baselineObjectStates).length > 0
 
@@ -195,9 +281,12 @@ export default function SceneObjects() {
     if (frame?.approachTargetId && !currentHeld) {
       const approachBody = bodyRefs.current.get(frame.approachTargetId)
       if (approachBody) {
-        const orig = scene.objects.find((o) => o.id === frame.approachTargetId)
-        if (orig) {
-          const [ox, oy, oz] = orig.position
+        // Use DEFAULT position as freeze target — scene.objects may reflect
+        // physics-drifted positions after previous runs.
+        const defaultObj = DEFAULT_SCENE_OBJECTS.find((o) => o.id === frame.approachTargetId)
+        const pos = defaultObj?.position ?? scene.objects.find((o) => o.id === frame.approachTargetId)?.position
+        if (pos) {
+          const [ox, oy, oz] = pos
           approachBody.setTranslation({ x: ox, y: oy, z: oz }, true)
           approachBody.setLinvel({ x: 0, y: 0, z: 0 }, false)
           approachBody.setAngvel({ x: 0, y: 0, z: 0 }, false)
@@ -205,20 +294,8 @@ export default function SceneObjects() {
       }
     }
 
+    // Track held-object transitions (no offset — snap directly to compiled position)
     if (currentHeld !== prevHeldIdRef.current) {
-      if (currentHeld && frame?.heldObjectPos) {
-        const body = bodyRefs.current.get(currentHeld)
-        if (body) {
-          const actual = body.translation()
-          const [bx, by, bz] = frame.heldObjectPos
-          gripOffsetRef.current = [actual.x - bx, actual.y - by, actual.z - bz]
-        } else {
-          gripOffsetRef.current = [0, 0, 0]
-        }
-      } else {
-        gripOffsetRef.current = [0, 0, 0]
-      }
-
       prevHeldIdRef.current = currentHeld
     }
 
@@ -226,9 +303,10 @@ export default function SceneObjects() {
       const body = bodyRefs.current.get(currentHeld)
       if (body) {
         const [bx, by, bz] = frame.heldObjectPos
-        const [ox, oy, oz] = gripOffsetRef.current
-
-        body.setTranslation({ x: bx + ox, y: by + oy, z: bz + oz }, true)
+        // Snap directly to the compiled position — no physics-offset compensation.
+        // The offset approach caused objects to be placed at wrong heights when the
+        // physics body had drifted from its expected position before being grabbed.
+        body.setTranslation({ x: bx, y: by, z: bz }, true)
         body.setLinvel({ x: 0, y: 0, z: 0 }, false)
         body.setAngvel({ x: 0, y: 0, z: 0 }, false)
       }

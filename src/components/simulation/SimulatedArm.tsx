@@ -411,8 +411,11 @@ export default function SimulatedArm({
         debug={false}
       />
 
+      {/* sensor=true: the gripper sphere reports proximity but applies zero contact
+          forces — dynamic scene objects are not pushed when the arm descends to pick.
+          Object holding is handled entirely by SceneObjects.tsx (setTranslation). */}
       <RigidBody type="kinematicPosition" ref={kinematicRef} colliders={false}>
-        <BallCollider args={[0.04]} />
+        <BallCollider args={[0.04]} sensor />
       </RigidBody>
 
       <pointLight

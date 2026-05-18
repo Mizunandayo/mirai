@@ -1,10 +1,14 @@
 // src/components/community/TaskPreviewCard.tsx
 import { useCallback } from 'react'
-import { useSetAtom } from 'jotai'
+import { useSetAtom, useAtom } from 'jotai'
 import { taskNodesAtom, taskEdgesAtom, taskNameAtom, taskDescriptionAtom } from '../../store/taskAtoms'
 import { importingTaskIdAtom } from '../../store/communityAtoms'
+import { armGripperAtom, armSegmentsAtom } from '../../store/atoms'
+import { buildOptimalArmForReach } from '../../utils/armConfigOptimizer'
 import { buildFlowFromAITask } from '../../utils/taskFromAI'
+import { persistTaskFlow } from '../../utils/taskFlowStorage'
 import type { CommunityTask } from '../../data/communityTasks'
+import type { GripperConfig } from '../../types/arm'
 
 
 
@@ -109,34 +113,55 @@ type Props = {
   onImport?:  () => void   // callback after successful import (e.g. navigate)
 }
 
+const GRIPPER_NAME: Record<string, string> = {
+  parallel_jaw: 'Parallel Jaw',
+  suction_cup:  'Suction Cup',
+  magnetic:     'Magnetic',
+}
+
 export default function TaskPreviewCard({ task, onImport }: Props) {
   const setNodes        = useSetAtom(taskNodesAtom)
   const setEdges        = useSetAtom(taskEdgesAtom)
   const setTaskName     = useSetAtom(taskNameAtom)
   const setDescription  = useSetAtom(taskDescriptionAtom)
   const setImportingId  = useSetAtom(importingTaskIdAtom)
+  const setGripper      = useSetAtom(armGripperAtom)
+  const [, setSegments] = useAtom(armSegmentsAtom)
 
   const handleImport = useCallback(() => {
     setImportingId(task.id)
 
     const flow = buildFlowFromAITask(task.taskSpec)
+
+    // 1. Write to Jotai atoms
     setNodes(flow.nodes)
     setEdges(flow.edges)
     setTaskName(task.name)
     setDescription(task.description)
 
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('mirai:load-task', {
-        detail: { nodes: flow.nodes, edges: flow.edges },
-      }))
-    }
+    // 2. Write to localStorage so TaskFlowCanvas seeds correctly on mount
+    persistTaskFlow(flow.nodes, flow.edges)
 
-    // Short delay so the canvas ACK fires before navigation
-    setTimeout(() => {
-      setImportingId(null)
-      onImport?.()
-    }, 120)
-  }, [task, setNodes, setEdges, setTaskName, setDescription, setImportingId, onImport])
+    // 3. Auto-configure gripper to match task requirements
+    const gripperType = task.requiredGripperType as GripperConfig['type']
+    setGripper({
+      id: 'gripper-1',
+      type: gripperType,
+      name: GRIPPER_NAME[gripperType] ?? 'Parallel Jaw',
+      width: gripperType === 'suction_cup' ? 0.06 : 0.08,
+      force: gripperType === 'magnetic' ? 80 : 50,
+    })
+
+    // 4. Always build an optimally-sized arm for this task's reach requirement.
+    //    This ensures well-conditioned IK for every task in the Library —
+    //    no manual segment tweaking required.
+    const optimalSegments = buildOptimalArmForReach(task.requiredReachM)
+    setSegments(optimalSegments)
+
+    // Navigate immediately — canvas will mount with persisted localStorage data
+    setImportingId(null)
+    onImport?.()
+  }, [task, setNodes, setEdges, setTaskName, setDescription, setImportingId, setGripper, setSegments, onImport])
 
   const accentColor = CATEGORY_COLOR[task.category] ?? '#0d0d0d'
   const isFeatured  = task.featured

@@ -6,7 +6,7 @@ import { pathTrailPointsAtom } from '../../store/simAtoms'
 import * as THREE from 'three'
 
 
-const MAX_TRAIL_POINTS = 1200   // enough for a 20s task at 60fps
+const MAX_TRAIL_POINTS = 4096   // handles ~68s at 60fps; generous for all demo tasks
 
 export default function PathTrail() {
   const points = useAtomValue(pathTrailPointsAtom)

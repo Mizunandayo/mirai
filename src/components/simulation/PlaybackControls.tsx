@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue } from 'jotai'
 import { useEffect, useMemo, useRef } from 'react'
 import { taskNodesAtom, taskEdgesAtom, sceneGraphAtom, taskNameAtom } from '../../store/taskAtoms'
-import { armSegmentsAtom } from '../../store/atoms'
+import { armSegmentsAtom, armGripperAtom } from '../../store/atoms'
 import {
   compiledPlanAtom,
   playbackStatusAtom,
@@ -11,6 +11,7 @@ import {
   skipCollisionPauseAtom,
   ptpSequencePlayingAtom,
   simBaselineObjectStatesAtom,
+  sceneResetTriggerAtom,
 } from '../../store/simAtoms'
 import { compileTask } from '../../utils/motionCompiler'
 import TimelineScrubber from './TimelineScrubber'
@@ -42,6 +43,7 @@ export default function PlaybackControls() {
   const nodes = useAtomValue(taskNodesAtom)
   const edges = useAtomValue(taskEdgesAtom)
   const segments = useAtomValue(armSegmentsAtom)
+  const gripper = useAtomValue(armGripperAtom)
   const scene = useAtomValue(sceneGraphAtom)
   const taskName = useAtomValue(taskNameAtom)
 
@@ -52,6 +54,7 @@ export default function PlaybackControls() {
   const [loop, setLoop] = useAtom(loopAtom)
   const [skipCollisionPause, setSkipCollisionPause] = useAtom(skipCollisionPauseAtom)
   const [, setBaselineObjectStates] = useAtom(simBaselineObjectStatesAtom)
+  const [, setSceneResetTrigger] = useAtom(sceneResetTriggerAtom)
   const ptpSequencePlaying = useAtomValue(ptpSequencePlayingAtom)
   const pendingAutoPlayRef = useRef(false)
   const sceneSnapshotRef = useRef(scene)
@@ -88,8 +91,9 @@ export default function PlaybackControls() {
       nodes: compactNodes,
       edges: compactEdges,
       segments: compactSegments,
+      gripperType: gripper.type,
     })
-  }, [taskName, nodes, edges, segments])
+  }, [taskName, nodes, edges, segments, gripper.type])
 
   useEffect(() => {
     // Freeze scene snapshot while playback is active to prevent live scene-sync updates
@@ -103,7 +107,7 @@ export default function PlaybackControls() {
     if (isPlaybackActive) return
     if (compileSignature === lastCompiledSignatureRef.current && plan) return
 
-    const compiled = compileTask(nodes, edges, segments, sceneSnapshotRef.current, taskName)
+    const compiled = compileTask(nodes, edges, segments, sceneSnapshotRef.current, taskName, gripper.type)
     if (compiled) {
       const baseline = Object.fromEntries(
         sceneSnapshotRef.current.objects.map((obj) => [
@@ -178,6 +182,7 @@ export default function PlaybackControls() {
   const handleReset = () => {
     setFrame(0)
     setStatus('idle')
+    setSceneResetTrigger((n) => n + 1)
   }
 
   const handleStepForward = () => {

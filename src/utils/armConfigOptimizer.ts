@@ -239,3 +239,43 @@ export function extendArmForDestination(
     newTotalMm:   Math.round(newTotal * 1000),
   }
 }
+
+/**
+ * Build a well-conditioned 3-segment arm (base + 2 revolute) sized for a
+ * task whose farthest waypoint is approximately `requiredReachM` metres.
+ *
+ * Sizing formula:
+ *   total arm = requiredReachM
+ *   revolute  = total - base (0.15 m)
+ *   seg1      = 55 % of revolute (longer proximal link)
+ *   seg2      = 45 % of revolute (shorter distal link)
+ *
+ * For requiredReachM = 0.65 m this yields:
+ *   seg1 = 0.275 m, seg2 = 0.225 m, total = 0.65 m
+ *   → condition ratio for box-a pickup (0.22 m horiz): 0.34  ✓ above 0.33
+ *   → condition ratio for shelf deposit (0.30 m horiz):  0.46  ✓ well-conditioned
+ */
+export function buildOptimalArmForReach(requiredReachM: number): ArmSegment[] {
+  const total        = Math.max(0.50, requiredReachM)
+  const revolveTotal = Math.max(0.25, total - 0.15)   // subtract fixed base
+  const seg1         = parseFloat((revolveTotal * 0.55).toFixed(3))
+  const seg2         = parseFloat((revolveTotal * 0.45).toFixed(3))
+
+  return [
+    {
+      id: 'seg-base', name: 'Base', length: 0.15, mass: 1.8,
+      joint: 'fixed', jointLimitMin: 0, jointLimitMax: 0,
+      material: 'aluminum', color: '#c7b8aa',
+    },
+    {
+      id: 'seg-1', name: 'Segment 1', length: seg1, mass: 0.9,
+      joint: 'revolute', jointLimitMin: -90, jointLimitMax: 90,
+      material: 'aluminum', color: '#d6dbe1',
+    },
+    {
+      id: 'seg-2', name: 'Segment 2', length: seg2, mass: 0.6,
+      joint: 'revolute', jointLimitMin: -150, jointLimitMax: 150,
+      material: 'aluminum', color: '#cbd3dc',
+    },
+  ]
+}

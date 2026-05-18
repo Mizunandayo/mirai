@@ -27,11 +27,16 @@ export type CommunityTask = {
 
 
 // Proven waypoints from scene planner
-const T = 0.53       // safe transit Y (clears shelf top at 0.34m + 0.19m margin)
-const CYL_X = 0.3,  CYL_Y = 0.066,  CYL_Z = -0.1
-const BOX_A_X = 0.2,  BOX_A_Y = 0.045, BOX_A_Z = 0.1
-const BOX_B_X = -0.15, BOX_B_Y = 0.035, BOX_B_Z = 0.2
-const SHELF_X = 0.5,  SHELF_Y = 0.35, SHELF_Z = 0
+// Shelf centre: [0.7, 0.20, 0], dimensions [0.4, 0.08, 0.2] → top surface Y = 0.24
+// zone-shelf ring stays at Y = 0.34 (10 cm above shelf top, clear of arm transit)
+const T        = 0.42  // safe transit Y: clears zone-shelf ring (0.34) with 8 cm margin
+const CYL_X  = 0.50,  CYL_Y  = 0.066, CYL_Z  = -0.20
+const BOX_A_X = 0.45, BOX_A_Y = 0.045, BOX_A_Z = 0.20
+const BOX_B_X = -0.40, BOX_B_Y = 0.035, BOX_B_Z = 0.30
+// Shelf deposit heights: zone-shelf (0.34) + half-height of carried object
+const SHELF_X   = 0.7,  SHELF_Z   = 0
+const SHELF_Y     = 0.38  // box deposit: 0.34 + box-a half (0.04)
+const SHELF_Y_CYL = 0.40  // cylinder deposit: 0.34 + cylinder-a half (0.06)
 const DRAWER_X = -0.4, DRAWER_Y = 0.25, DRAWER_Z = 0
 const TABLE_X = 0,  TABLE_Y = 0.05, TABLE_Z = 0
 
@@ -61,7 +66,7 @@ const PICK_CYL_TO_SHELF = [
   grip('close', 50),
   moveAbove('cylinder-a',  CYL_X, CYL_Z, 0.5),
   moveAbove('zone-shelf',  SHELF_X, SHELF_Z),
-  moveTo('zone-shelf',     SHELF_X, SHELF_Y, SHELF_Z),
+  moveTo('zone-shelf',     SHELF_X, SHELF_Y_CYL, SHELF_Z),
   grip('open'),
   retreat(SHELF_X, SHELF_Z),
 ]
@@ -213,7 +218,7 @@ export const COMMUNITY_TASKS: CommunityTask[] = [
     featuredLabel:       'Boston Dynamics-style',
     stepCount:           12,
     estimatedSeconds:    24,
-    requiredReachM:      0.65,
+    requiredReachM:      1.10,
     requiredGripperType: 'parallel_jaw',
     tags:                ['inspection', 'traverse', 'multi-step'],
     taskSpec:            spec('Inspection Traverse', 'Survey objects then secure cylinder-a', INSPECTION_TRAVERSE),
@@ -228,7 +233,7 @@ export const COMMUNITY_TASKS: CommunityTask[] = [
     featuredLabel:       'Tesla Optimus-style',
     stepCount:           17,
     estimatedSeconds:    32,
-    requiredReachM:      0.70,
+    requiredReachM:      1.10,
     requiredGripperType: 'parallel_jaw',
     tags:                ['stacking', 'assembly', 'multi-object'],
     taskSpec:            spec('Box Stack Assembly', 'Sequential pick-and-stack of Box A and Box B', BOX_STACK_ASSEMBLY),
@@ -243,7 +248,7 @@ export const COMMUNITY_TASKS: CommunityTask[] = [
     featuredLabel:       'Toyota Research-style',
     stepCount:           8,
     estimatedSeconds:    28,
-    requiredReachM:      0.60,
+    requiredReachM:      1.10,
     requiredGripperType: 'suction_cup',
     tags:                ['slow', 'delicate', 'curated-demo'],
     taskSpec:            spec('Laundry Fold Demo', 'Slow controlled pick of cylinder-a representing textile handling', PICK_CYL_TO_SHELF),
@@ -259,7 +264,7 @@ export const COMMUNITY_TASKS: CommunityTask[] = [
     featured:            false,
     stepCount:           8,
     estimatedSeconds:    15,
-    requiredReachM:      0.60,
+    requiredReachM:      1.10,
     requiredGripperType: 'parallel_jaw',
     tags:                ['pick', 'place', 'tutorial'],
     taskSpec:            spec('Pick and Place — Cylinder A', 'Retrieve Cylinder A and deposit on shelf', PICK_CYL_TO_SHELF),
@@ -273,7 +278,7 @@ export const COMMUNITY_TASKS: CommunityTask[] = [
     featured:            false,
     stepCount:           8,
     estimatedSeconds:    15,
-    requiredReachM:      0.55,
+    requiredReachM:      1.10,
     requiredGripperType: 'parallel_jaw',
     tags:                ['restocking', 'shelf', 'logistics'],
     taskSpec:            spec('Shelf Restocking — Box A', 'Pick Box A and place on shelf', PICK_BOX_A_TO_SHELF),
@@ -287,7 +292,7 @@ export const COMMUNITY_TASKS: CommunityTask[] = [
     featured:            false,
     stepCount:           8,
     estimatedSeconds:    15,
-    requiredReachM:      0.50,
+    requiredReachM:      1.10,
     requiredGripperType: 'parallel_jaw',
     tags:                ['sorting', 'drawer', 'classification'],
     taskSpec:            spec('Drawer Sorting — Box B', 'Pick Box B and sort to drawer zone', PICK_BOX_B_TO_DRAWER),
@@ -301,7 +306,7 @@ export const COMMUNITY_TASKS: CommunityTask[] = [
     featured:            false,
     stepCount:           17,
     estimatedSeconds:    30,
-    requiredReachM:      0.70,
+    requiredReachM:      1.10,
     requiredGripperType: 'parallel_jaw',
     tags:                ['multi-object', 'sorting', 'sequential'],
     taskSpec:            spec('Multi-Object Sort', 'Sort Cylinder A to drawer, Box A to shelf', MULTI_OBJECT_SORT),
@@ -315,7 +320,7 @@ export const COMMUNITY_TASKS: CommunityTask[] = [
     featured:            false,
     stepCount:           8,
     estimatedSeconds:    22,
-    requiredReachM:      0.45,
+    requiredReachM:      1.10,
     requiredGripperType: 'parallel_jaw',
     tags:                ['precision', 'slow', 'center'],
     taskSpec:            spec('Precision Placement', 'Slow controlled placement of Cylinder A to table center', PICK_CYL_TO_CENTER),
@@ -329,7 +334,7 @@ export const COMMUNITY_TASKS: CommunityTask[] = [
     featured:            false,
     stepCount:           8,
     estimatedSeconds:    25,
-    requiredReachM:      0.60,
+    requiredReachM:      1.10,
     requiredGripperType: 'parallel_jaw',
     tags:                ['fragile', 'low-force', 'careful'],
     taskSpec:            spec('Fragile Object Handling', 'Slow low-force transport of Box B to shelf', FRAGILE_HANDLING),
@@ -343,7 +348,7 @@ export const COMMUNITY_TASKS: CommunityTask[] = [
     featured:            false,
     stepCount:           8,
     estimatedSeconds:    15,
-    requiredReachM:      0.55,
+    requiredReachM:      1.10,
     requiredGripperType: 'parallel_jaw',
     tags:                ['mail', 'sorting', 'bin'],
     taskSpec:            spec('Mail Sorting — Left Bin', 'Route Box A to drawer (left bin)', PICK_BOX_A_TO_DRAWER),
@@ -357,7 +362,7 @@ export const COMMUNITY_TASKS: CommunityTask[] = [
     featured:            false,
     stepCount:           8,
     estimatedSeconds:    20,
-    requiredReachM:      0.55,
+    requiredReachM:      1.10,
     requiredGripperType: 'suction_cup',
     tags:                ['lab', 'sample', 'precision'],
     taskSpec:            spec('Laboratory Sample Transfer', 'Transfer Cylinder A to drawer as a sample vial', PICK_CYL_TO_DRAWER),

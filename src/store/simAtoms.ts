@@ -23,6 +23,15 @@ export type SimObjectBaseline = {
 
 export const simBaselineObjectStatesAtom = atom<Record<string, SimObjectBaseline>>({})
 
+/**
+ * Increment this counter to explicitly request a full scene reset.
+ * SceneObjects watches it and snaps all Rapier bodies back to their
+ * baseline positions regardless of the current frameNumber value.
+ * Use this instead of relying on frameNumber→0 transitions, which
+ * silently no-op when the frame was already 0.
+ */
+export const sceneResetTriggerAtom = atom<number>(0)
+
 
 export const currentSimFrameAtom = atom((get) => {
   const plan = get(compiledPlanAtom)
@@ -36,7 +45,14 @@ export const currentSimFrameAtom = atom((get) => {
 export const pathTrailPointsAtom = atom((get) => {
   const plan = get(compiledPlanAtom)
   const frame = get(currentFrameAtom)
+  const status = get(playbackStatusAtom)
   if (!plan) return [] as [number, number, number][]
+  // Keep the full trail visible once playback finishes — persists until user resets
+  if (status === 'complete') return plan.frames.map((f) => f.endEffectorPos)
+  // No trail when idle (before play or after manual reset)
+  if (status === 'idle') return [] as [number, number, number][]
+  // During active playback (playing / paused / collision_paused / reverse_playing)
+  // show a growing trail from start up to the current frame
   return plan.frames.slice(0, frame + 1).map((f) => f.endEffectorPos)
 })
 
