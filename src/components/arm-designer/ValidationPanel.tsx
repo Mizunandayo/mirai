@@ -156,7 +156,7 @@ function ValidationPanel() {
             onClick={handleAutoConfigure}
             title="Auto-adjust arm geometry and gripper settings"
           >
-            AI Fix
+            Auto Fix
           </button>
         </div>
       )}
